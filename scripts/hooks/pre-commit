@@ -1,0 +1,26 @@
+#!/bin/sh
+# Refuses a commit when a secret or the customer brand name (EVX_BRAND_NAME) is staged.
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed (brew install gitleaks); refusing to commit unscanned" >&2
+  exit 1
+fi
+gitleaks git --staged --redact --no-banner -v || { echo "pre-commit: gitleaks found a secret; commit refused" >&2; exit 1; }
+
+root=$(git rev-parse --show-toplevel)
+brand=$(sh "$root/scripts/hooks/brand_value.sh")
+if [ -z "$brand" ]; then
+  echo "pre-commit: EVX_BRAND_NAME is empty; brand-name check skipped" >&2
+  exit 0
+fi
+hits=$(git grep --cached -l -i -F -e "$brand" -- . 2>/dev/null)
+if [ -n "$hits" ]; then
+  echo "pre-commit: the EVX_BRAND_NAME value appears in these tracked files; commit refused:" >&2
+  echo "$hits" >&2
+  exit 1
+fi
+names=$(git diff --cached --name-only --diff-filter=ACMR | grep -i -F -e "$brand")
+if [ -n "$names" ]; then
+  echo "pre-commit: a staged file name contains the EVX_BRAND_NAME value; commit refused" >&2
+  exit 1
+fi
+exit 0

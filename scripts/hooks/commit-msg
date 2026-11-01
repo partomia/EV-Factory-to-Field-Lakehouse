@@ -1,0 +1,10 @@
+#!/bin/sh
+sed -i.bak -E '/^[Cc]o-[Aa]uthored-[Bb]y:/d; /[Gg]enerated with/d; /Made-with:/d' "$1" && rm -f "$1.bak"
+
+root=$(git rev-parse --show-toplevel)
+brand=$(sh "$root/scripts/hooks/brand_value.sh")
+if [ -n "$brand" ] && grep -v '^#' "$1" | grep -q -i -F -e "$brand"; then
+  echo "commit-msg: the commit message contains the EVX_BRAND_NAME value; commit refused" >&2
+  exit 1
+fi
+exit 0
