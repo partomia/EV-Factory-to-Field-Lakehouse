@@ -1,0 +1,13 @@
+{
+ "format": "png",
+ "mime": "image/png",
+ "extensions": [
+  "png"
+ ],
+ "min_bytes": 100,
+ "sources": [
+  "qc_xray",
+  "qc_film"
+ ],
+ "description": "PNG signature, chunk CRCs, IHDR 8-bit grayscale, IDAT inflates to the IHDR size, IEND present"
+}

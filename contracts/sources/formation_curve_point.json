@@ -1,0 +1,40 @@
+{
+ "entity": "formation_curve_point",
+ "source": "formation_curves",
+ "format": "csv",
+ "file_glob": "*.csv",
+ "description": "First-charge cycler curves for flagged and sampled cells, one CSV per formation line per shift",
+ "key": [
+  "cell_id",
+  "minutes"
+ ],
+ "columns": [
+  {
+   "name": "cell_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "channel",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "minutes",
+   "type": "double",
+   "required": true,
+   "min": 0
+  },
+  {
+   "name": "voltage_v",
+   "type": "double",
+   "required": true,
+   "min": 0
+  },
+  {
+   "name": "current_a",
+   "type": "double",
+   "required": true
+  }
+ ]
+}

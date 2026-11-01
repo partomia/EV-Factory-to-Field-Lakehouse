@@ -1,0 +1,89 @@
+{
+ "entity": "cell_mes_step",
+ "source": "cell_mes",
+ "format": "psv",
+ "file_glob": "*.csv",
+ "trailer": "TRL",
+ "description": "Cell MES shift export per process area: one row per cell per process step; trailer TRL|<data rows>",
+ "key": [
+  "cell_id",
+  "step"
+ ],
+ "columns": [
+  {
+   "name": "cell_id",
+   "type": "string",
+   "required": true,
+   "pattern": "^CBCL[12][0-9]{6}[ABC][0-9]{4}$",
+   "severity": "reject"
+  },
+  {
+   "name": "batch_id",
+   "type": "string",
+   "required": true,
+   "pattern": "^CBCL[12][0-9]{6}[ABC]$",
+   "severity": "reject"
+  },
+  {
+   "name": "line",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "CL1",
+    "CL2"
+   ]
+  },
+  {
+   "name": "step",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "mixing",
+    "coating",
+    "calendering",
+    "winding",
+    "tab_welding",
+    "canning",
+    "electrolyte_fill",
+    "formation",
+    "aging",
+    "grading"
+   ],
+   "severity": "reject"
+  },
+  {
+   "name": "station",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "start_ts",
+   "type": "timestamp",
+   "required": true,
+   "formats": [
+    "yyyy-MM-dd'T'HH:mm:ssXXX"
+   ]
+  },
+  {
+   "name": "end_ts",
+   "type": "timestamp",
+   "required": true,
+   "formats": [
+    "yyyy-MM-dd'T'HH:mm:ssXXX"
+   ]
+  },
+  {
+   "name": "result",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "OK",
+    "NG"
+   ]
+  },
+  {
+   "name": "params",
+   "type": "string"
+  }
+ ]
+}

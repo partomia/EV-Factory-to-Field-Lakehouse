@@ -143,6 +143,9 @@ def film_png(segment_id: str, score: float, r) -> bytes:
         line(px, w, x, 0 if r.random() < 0.5 else y, x + r.randrange(-3, 4), h - 1, ink=200, thick=1)
     if score > 0.6:
         rect(px, w, 60, 20, 80, 40, ink=250)
+    for _ in range(200):  # sensor noise: no two captures are byte-identical
+        j = r.randrange(len(px))
+        px[j] = min(255, px[j] + 25)
     return png_gray(w, h, bytes(px))
 
 

@@ -1,0 +1,49 @@
+{
+ "entity": "vehicle_eol_doc",
+ "source": "vehicle_eol",
+ "format": "ndjson",
+ "file_glob": "*.ndjson",
+ "description": "Vehicle EOL: one JSON document per vehicle (VIN to pack, motor, MCU; EOL tests)",
+ "key": [
+  "vin"
+ ],
+ "columns": [
+  {
+   "name": "vin",
+   "type": "string",
+   "required": true,
+   "pattern": "^[A-HJ-NPR-Z0-9]{17}$",
+   "severity": "reject",
+   "json": "vin"
+  },
+  {
+   "name": "pack_serial",
+   "type": "string",
+   "required": true,
+   "json": "pack_serial"
+  },
+  {
+   "name": "vehicle_line",
+   "type": "string",
+   "json": "vehicle_line"
+  },
+  {
+   "name": "eol_ts",
+   "type": "timestamp",
+   "required": true,
+   "formats": [
+    "yyyy-MM-dd'T'HH:mm:ssXXX"
+   ],
+   "json": "eol_ts"
+  },
+  {
+   "name": "result",
+   "type": "string",
+   "allowed": [
+    "PASS",
+    "FAIL"
+   ],
+   "json": "result"
+  }
+ ]
+}

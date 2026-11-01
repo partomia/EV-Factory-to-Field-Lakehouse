@@ -1,0 +1,83 @@
+{
+ "entity": "warranty_claims",
+ "source": "warranty_claims",
+ "format": "csv",
+ "file_glob": "*.csv",
+ "description": "Dealer warranty claims export",
+ "key": [
+  "claim_id"
+ ],
+ "columns": [
+  {
+   "name": "claim_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "vin",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "claim_date",
+   "type": "date",
+   "required": true,
+   "formats": [
+    "yyyy-MM-dd"
+   ]
+  },
+  {
+   "name": "failure_date",
+   "type": "date",
+   "formats": [
+    "yyyy-MM-dd"
+   ]
+  },
+  {
+   "name": "odo_km",
+   "type": "double",
+   "min": 0
+  },
+  {
+   "name": "category",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "complaint_code",
+   "type": "string"
+  },
+  {
+   "name": "part_number",
+   "type": "string"
+  },
+  {
+   "name": "part_desc",
+   "type": "string"
+  },
+  {
+   "name": "labour_hours",
+   "type": "double",
+   "min": 0
+  },
+  {
+   "name": "amount_inr",
+   "type": "double",
+   "min": 0
+  },
+  {
+   "name": "status",
+   "type": "string",
+   "allowed": [
+    "SUBMITTED",
+    "APPROVED",
+    "REJECTED",
+    "PAID"
+   ]
+  },
+  {
+   "name": "dealer_code",
+   "type": "string"
+  }
+ ]
+}

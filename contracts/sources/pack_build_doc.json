@@ -1,0 +1,58 @@
+{
+ "entity": "pack_build_doc",
+ "source": "pack_mes",
+ "format": "ndjson",
+ "file_glob": "*.ndjson",
+ "description": "Pack line MES: one JSON document per pack (cells to modules to pack, wire-bond pulls, pack EOL)",
+ "key": [
+  "pack_serial"
+ ],
+ "columns": [
+  {
+   "name": "pack_serial",
+   "type": "string",
+   "required": true,
+   "pattern": "^PKPL[12][0-9]{10}$",
+   "severity": "reject",
+   "json": "pack_serial"
+  },
+  {
+   "name": "pack_line",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "PL1",
+    "PL2"
+   ],
+   "json": "pack_line"
+  },
+  {
+   "name": "build_ts",
+   "type": "timestamp",
+   "required": true,
+   "formats": [
+    "yyyy-MM-dd'T'HH:mm:ssXXX"
+   ],
+   "json": "build_ts"
+  },
+  {
+   "name": "shift",
+   "type": "string",
+   "allowed": [
+    "A",
+    "B",
+    "C"
+   ],
+   "json": "shift"
+  },
+  {
+   "name": "eol_result",
+   "type": "string",
+   "allowed": [
+    "PASS",
+    "FAIL"
+   ],
+   "json": "eol.result"
+  }
+ ]
+}

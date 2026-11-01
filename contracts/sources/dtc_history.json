@@ -1,0 +1,64 @@
+{
+ "entity": "dtc_history",
+ "source": "dtc_history",
+ "format": "csv",
+ "file_glob": "*.csv",
+ "description": "Legacy DTC history export (history; live DTCs stream through Kafka)",
+ "key": [
+  "event_id"
+ ],
+ "columns": [
+  {
+   "name": "event_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "vin",
+   "type": "string",
+   "required": true,
+   "pattern": "^[A-HJ-NPR-Z0-9]{17}$",
+   "severity": "reject"
+  },
+  {
+   "name": "event_ts",
+   "type": "timestamp",
+   "required": true,
+   "formats": [
+    "yyyy-MM-dd'T'HH:mm:ssXXX"
+   ]
+  },
+  {
+   "name": "dtc_code",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "dtc_desc",
+   "type": "string"
+  },
+  {
+   "name": "severity",
+   "type": "string",
+   "allowed": [
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "CRITICAL"
+   ]
+  },
+  {
+   "name": "odo_km",
+   "type": "double",
+   "min": 0
+  },
+  {
+   "name": "fw_bms",
+   "type": "string"
+  },
+  {
+   "name": "source",
+   "type": "string"
+  }
+ ]
+}

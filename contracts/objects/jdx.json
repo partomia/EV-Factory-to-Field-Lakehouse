@@ -1,0 +1,14 @@
+{
+ "format": "jdx",
+ "mime": "chemical/x-jcamp-dx",
+ "extensions": [
+  "jdx",
+  "dx"
+ ],
+ "min_bytes": 200,
+ "min_points": 50,
+ "sources": [
+  "spectra"
+ ],
+ "description": "JCAMP-DX 4.24 with ##TITLE, (XY..XY) table matching ##NPOINTS, ##END"
+}

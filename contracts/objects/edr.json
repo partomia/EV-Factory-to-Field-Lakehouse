@@ -1,0 +1,12 @@
+{
+ "format": "edr",
+ "mime": "application/x-evx-edr",
+ "extensions": [
+  "edr"
+ ],
+ "min_bytes": 128,
+ "sources": [
+  "edr"
+ ],
+ "description": "EVXEDR1 magic, header readable, sample block size = (n_pre + n_post) x channels x 4 bytes"
+}

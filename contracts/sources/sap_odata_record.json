@@ -1,0 +1,109 @@
+{
+ "entity": "sap_odata_record",
+ "source": "sap_odata",
+ "format": "odata",
+ "file_glob": "*.json",
+ "description": "SAP S/4HANA OData v2 pages (A_Material, A_Supplier, A_Batch, A_InspectionLot, A_ProductionOrder, A_MaterialDocument); one row per record, payload as received",
+ "key": [
+  "entity_set",
+  "record_key"
+ ],
+ "entity_keys": {
+  "A_Material": [
+   "MATNR"
+  ],
+  "A_Supplier": [
+   "LIFNR"
+  ],
+  "A_Batch": [
+   "CHARG"
+  ],
+  "A_InspectionLot": [
+   "PRUEFLOS"
+  ],
+  "A_ProductionOrder": [
+   "AUFNR"
+  ],
+  "A_MaterialDocument": [
+   "MBLNR",
+   "ZEILE"
+  ]
+ },
+ "known_fields": {
+  "A_Material": [
+   "MATNR",
+   "MAKTX",
+   "MTART",
+   "MEINS",
+   "WERKS"
+  ],
+  "A_Supplier": [
+   "LIFNR",
+   "NAME1",
+   "LAND1",
+   "ORT01"
+  ],
+  "A_Batch": [
+   "CHARG",
+   "MATNR",
+   "LIFNR",
+   "WERKS",
+   "HSDAT",
+   "VFDAT",
+   "LICHA"
+  ],
+  "A_InspectionLot": [
+   "PRUEFLOS",
+   "CHARG",
+   "MATNR",
+   "ART",
+   "ENSTEHDAT",
+   "QM_D50_UM",
+   "QM_IMPURITY_FE_PPM",
+   "VCODE"
+  ],
+  "A_ProductionOrder": [
+   "AUFNR",
+   "MATNR",
+   "WERKS",
+   "FEVOR",
+   "GSTRP",
+   "GAMNG",
+   "CHARG"
+  ],
+  "A_MaterialDocument": [
+   "MBLNR",
+   "MJAHR",
+   "ZEILE",
+   "BWART",
+   "MATNR",
+   "CHARG",
+   "LIFNR",
+   "MENGE",
+   "MEINS",
+   "BUDAT",
+   "AUFNR"
+  ]
+ },
+ "columns": [
+  {
+   "name": "entity_set",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "record_key",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "delta_token",
+   "type": "string"
+  },
+  {
+   "name": "payload",
+   "type": "string",
+   "required": true
+  }
+ ]
+}

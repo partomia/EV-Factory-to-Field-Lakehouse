@@ -88,6 +88,24 @@ def read_overlay(path: Path) -> dict:
         return json.loads(path.with_suffix(".json").read_text())
 
 
+def contracts() -> dict:
+    """contracts/sources/*.json by entity, in file-name order."""
+    return {json.loads(p.read_text())["entity"]: json.loads(p.read_text())
+            for p in sorted((repo_root() / "contracts" / "sources").glob("*.json"))}
+
+
+def object_contracts() -> dict:
+    return {p.stem: json.loads(p.read_text()) for p in sorted((repo_root() / "contracts" / "objects").glob("*.json"))}
+
+
+DATE_IN_PATH = re.compile(r"/(\d{4}-\d{2}-\d{2})/[^/]+$")
+
+
+def date_of_path(path: str) -> str | None:
+    m = DATE_IN_PATH.search(path)
+    return m.group(1) if m else None
+
+
 try:
     CFG = load_json("config/lakehouse.json")
 except OSError:
@@ -348,7 +366,7 @@ class LocalFS:
 
     @staticmethod
     def _path(uri: str) -> Path:
-        return Path(uri[len("file://"):] if uri.startswith("file://") else uri)
+        return Path(re.sub(r"^file:/+", "/", uri))
 
     def write_bytes(self, uri: str, data: bytes) -> None:
         p = self._path(uri)

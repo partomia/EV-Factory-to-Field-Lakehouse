@@ -1,0 +1,98 @@
+{
+ "entity": "telematics_daily",
+ "source": "telematics_daily",
+ "format": "csv",
+ "file_glob": "*.csv",
+ "description": "Legacy telematics store: one summary row per vehicle per day (history; live data streams through Kafka)",
+ "key": [
+  "vin",
+  "summary_date"
+ ],
+ "columns": [
+  {
+   "name": "vin",
+   "type": "string",
+   "required": true,
+   "pattern": "^[A-HJ-NPR-Z0-9]{17}$",
+   "severity": "reject"
+  },
+  {
+   "name": "summary_date",
+   "type": "date",
+   "required": true,
+   "formats": [
+    "yyyy-MM-dd"
+   ]
+  },
+  {
+   "name": "odo_km",
+   "type": "double",
+   "min": 0
+  },
+  {
+   "name": "dist_km",
+   "type": "double",
+   "min": 0
+  },
+  {
+   "name": "ride_min",
+   "type": "int",
+   "min": 0
+  },
+  {
+   "name": "soc_min",
+   "type": "double",
+   "min": 0
+  },
+  {
+   "name": "soc_max",
+   "type": "double",
+   "min": 0
+  },
+  {
+   "name": "pack_v_avg",
+   "type": "double"
+  },
+  {
+   "name": "cell_t_max_c",
+   "type": "double"
+  },
+  {
+   "name": "pack_t_avg_c",
+   "type": "double"
+  },
+  {
+   "name": "cell_dv_max_mv",
+   "type": "double"
+  },
+  {
+   "name": "chg_sessions",
+   "type": "int",
+   "min": 0
+  },
+  {
+   "name": "fast_chg_sessions",
+   "type": "int",
+   "min": 0
+  },
+  {
+   "name": "aggr_min",
+   "type": "int",
+   "min": 0
+  },
+  {
+   "name": "geohash5",
+   "type": "string",
+   "pattern": "^[0-9b-hjkmnp-z]{5}$"
+  },
+  {
+   "name": "fw_bms",
+   "type": "string"
+  },
+  {
+   "name": "readings",
+   "type": "int",
+   "min": 0
+  }
+ ]
+}

@@ -1,0 +1,91 @@
+{
+ "entity": "dms_riders",
+ "source": "dms_riders",
+ "format": "csv",
+ "file_glob": "*.csv",
+ "pii": true,
+ "description": "DMS rider master at delivery (personal data: masked for analysts by Ranger)",
+ "key": [
+  "rider_id"
+ ],
+ "columns": [
+  {
+   "name": "rider_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "full_name",
+   "type": "string",
+   "pii": true
+  },
+  {
+   "name": "phone",
+   "type": "string",
+   "pii": true
+  },
+  {
+   "name": "email",
+   "type": "string",
+   "pii": true
+  },
+  {
+   "name": "address_line",
+   "type": "string",
+   "pii": true
+  },
+  {
+   "name": "city",
+   "type": "string"
+  },
+  {
+   "name": "pincode",
+   "type": "string",
+   "pii": true
+  },
+  {
+   "name": "home_lat",
+   "type": "double",
+   "pii": true
+  },
+  {
+   "name": "home_lon",
+   "type": "double",
+   "pii": true
+  },
+  {
+   "name": "geohash5",
+   "type": "string"
+  },
+  {
+   "name": "vin",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "registration_no",
+   "type": "string",
+   "pii": true
+  },
+  {
+   "name": "delivery_date",
+   "type": "date",
+   "required": true,
+   "formats": [
+    "yyyy-MM-dd"
+   ]
+  },
+  {
+   "name": "dealer_code",
+   "type": "string"
+  },
+  {
+   "name": "consent_marketing",
+   "type": "string",
+   "allowed": [
+    "Y",
+    "N"
+   ]
+  }
+ ]
+}
