@@ -1,0 +1,17 @@
+{
+  "_comment": "Reference data: the OEM's DTC and EDR trigger dictionary (what a service manual publishes), used by gold and the KPI / label definitions. Battery-related codes count toward FIR90 and the uc01 label; thermal ones trip the safety floor.",
+  "dtc": {
+    "BMS-T01": {"system": "BATTERY", "kind": "THERMAL", "battery_related": true, "safety_floor": true},
+    "BMS-I02": {"system": "BATTERY", "kind": "IMBALANCE", "battery_related": true, "safety_floor": false},
+    "MCU-T10": {"system": "DRIVETRAIN", "kind": "THERMAL", "battery_related": false, "safety_floor": false},
+    "MOT-E21": {"system": "DRIVETRAIN", "kind": "SENSOR", "battery_related": false, "safety_floor": false},
+    "CHG-C05": {"system": "CHARGING", "kind": "COMMUNICATION", "battery_related": false, "safety_floor": false},
+    "ABS-W30": {"system": "CHASSIS", "kind": "SENSOR", "battery_related": false, "safety_floor": false}
+  },
+  "edr_trigger": {
+    "thermal": {"battery_related": true, "safety_floor": true},
+    "fault": {"battery_related": false, "safety_floor": false},
+    "crash": {"battery_related": false, "safety_floor": false}
+  },
+  "warranty_battery_categories": ["BATTERY"]
+}

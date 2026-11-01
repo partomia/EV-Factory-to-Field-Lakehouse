@@ -28,10 +28,12 @@ jobs:
         run: pip install -r requirements-ci.txt
       - name: Unit tests
         run: pytest -q
-      - name: Generate, then land to master on local Spark + Iceberg (two windows that hold the cells behind their packs)
+      - name: Generate, then land to gold on local Spark + Iceberg (two windows that hold the cells behind their packs)
         run: |
           python -m generators.run --out data/generated --scale 0.05 > /dev/null
           python scripts/run_local.py --stages land,bronze,extract,silver --from 2026-09-01 --to 2026-09-16
           python scripts/run_local.py --stages land,bronze,extract,silver --from 2026-10-24 --to 2026-11-08
           python scripts/run_local.py --stages master --business-date 2026-11-08
-          python scripts/check_local.py bronze extract silver master
+          python scripts/run_local.py --stages gold --from 2026-09-01 --to 2026-09-16
+          python scripts/run_local.py --stages gold --from 2026-10-24 --to 2026-11-08
+          python scripts/check_local.py bronze extract silver master gold

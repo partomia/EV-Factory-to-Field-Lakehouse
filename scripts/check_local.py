@@ -166,12 +166,56 @@ def check_master(spark) -> list[str]:
     return errors
 
 
+def check_gold(spark) -> list[str]:
+    """Gold after both CI windows (dimensions as of 2026-11-08)."""
+    errors = []
+    g = "rsingh_evx_gold"
+    days = loaded(spark)
+
+    def rows(sql):
+        return [tuple(x) for x in spark.sql(sql).collect()]
+
+    for t, key in (("dim_vehicle", "vin"), ("dim_pack", "pack_serial"), ("dim_material_batch", "charg")):
+        bad = rows(f"SELECT {key} FROM {g}.{t} GROUP BY 1 HAVING sum(CASE WHEN is_current THEN 1 ELSE 0 END) <> 1 LIMIT 3")
+        gaps = rows(f"SELECT count(*) FROM (SELECT valid_to, lead(valid_from) OVER (PARTITION BY {key} ORDER BY version) nxt "
+                    f"FROM {g}.{t}) WHERE valid_to IS DISTINCT FROM nxt")
+        if bad or gaps != [(0,)]:
+            errors.append(f"{t}: keys without exactly one current version {bad}, broken chains {gaps}")
+    swaps = {(t["key"], t["value"]) for t in truth("pack_swap") if t["date"] in days}
+    cur = set(rows(f"SELECT vin, pack_serial FROM {g}.dim_vehicle WHERE is_current AND version > 1 AND "
+                   f"pack_serial <> (SELECT max(eol_pack_serial) FROM {g}.dim_vehicle v2 WHERE v2.vin = dim_vehicle.vin)"))
+    if cur != swaps:
+        errors.append(f"dim_vehicle current packs after swaps {sorted(cur)}, planted {sorted(swaps)}")
+    hist = rows(f"SELECT pack_serial, concat_ws('>', collect_list(coalesce(vin, fitment_status))) FROM "
+                f"(SELECT * FROM {g}.dim_pack WHERE pack_serial IN ({','.join(repr(p) for _, p in swaps) or 'NULL'}) "
+                "ORDER BY pack_serial, version) GROUP BY 1")
+    if len(hist) != len(swaps) or any(h.count(">") != 2 or not h.startswith("IN_STOCK>") for _, h in hist):
+        errors.append(f"dim_pack history of swapped packs {hist}")
+    missing = set(rows(f"SELECT CAST(_business_date AS STRING), cell_id FROM {g}.fact_qc_inspection "
+                       "WHERE image_status = 'MISSING'"))
+    want = {(t["date"], t["key"]) for t in truth("corrupt_xray_png") if t["date"] in days}
+    if missing != want:
+        errors.append(f"QC rows with a missing image {sorted(missing)}, planted corrupt {sorted(want)}")
+    orphan = {t["key"] for t in truth("genealogy_orphan_cell") if t["date"] in days}
+    got = {x[0] for x in rows(f"SELECT pack_serial FROM {g}.fact_pack_eol WHERE genealogy_status = 'ORPHAN_CELL'")}
+    if got != orphan:
+        errors.append(f"fact_pack_eol orphan packs {sorted(got)}, planted {sorted(orphan)}")
+    suspect = rows(f"SELECT count(*) FROM {g}.dim_material_batch WHERE quality_status = 'SUSPECT' "
+                   "AND root_cause_category IS NULL")
+    if suspect != [(0,)]:
+        errors.append("SUSPECT batches without a root cause")
+    late = rows(f"SELECT count(*) FROM {g}.fact_edr_event WHERE arrival_lag_days < 0")
+    if late != [(0,)]:
+        errors.append("EDR events that arrive before they happen")
+    return errors
+
+
 def main(argv: list[str]) -> int:
     spark = local_spark(DATA / "warehouse")
     errors = []
     for layer in argv or ["bronze"]:
         errors += {"bronze": check_bronze, "extract": check_extract, "silver": check_silver,
-                   "master": check_master}[layer](spark)
+                   "master": check_master, "gold": check_gold}[layer](spark)
     for e in errors:
         print(f"FAIL {e}")
     print("OK" if not errors else f"{len(errors)} check(s) failed")
