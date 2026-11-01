@@ -480,7 +480,14 @@ customer references may stay public, the brand name only in `.env`; field go-liv
 `PROMOTION_REFUSED` acceptable; ≥ 800 positives, ≥ 100 per split; default scale on CDE only; WAP spike first; one
 approval list; skill enhancement; backbone design; resource increases under rule 14; LightGBM + small CPU LLM.
 
-**Open (asked in the approval message):**
+**Decided 2026-11-01 (approval answers and the WAP spike):**
+- All approval items approved. Open items 1–6 below answered yes; sibling CAI resources may be turned off when
+  `evx` needs the capacity (logged in PROJECT_LOG).
+- **[CHANGE] OGX: only the skill commits.** The prompt's update of OGX `docs/USE_CASE_PLAYBOOK.md` is dropped (owner).
+- **WAP: option (a), branch WAP with the audit in Spark**, behind `publish()` (`docs/WAP_SPIKE.md`). One writer per
+  gold table; Impala reads unpublished branches by snapshot id only; Atlas lineage is published by our code.
+
+**Open (asked in the approval message, answered above):**
 1. `EVX_BRAND_NAME` value (or leave the neutral default).
 2. Cells per pack 52 (13s4p) and the larger ramp (≈ 18k packs).
 3. Decoupled business calendar and the 23:30 UTC nightly window; any demo times to avoid.
