@@ -1,0 +1,12 @@
+# GitHub Actions and laptop tests (EVX_CONFIG_OVERLAY=config/ci.yaml): no LLM, no CDP.
+# Spark runs the CDE jobs locally with Iceberg; the generators are standard library only.
+pyspark==4.0.1
+numpy
+pandas
+pyarrow
+scikit-learn==1.9.1
+lightgbm==4.7.0
+joblib
+pyyaml
+requests
+pytest

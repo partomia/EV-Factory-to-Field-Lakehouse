@@ -1,0 +1,30 @@
+name: CI
+
+# Every push to main, every pull request, or by hand. Unit tests on the CI-scale synthetic universe
+# (config/ci.yaml); the CDE jobs on local Spark + Iceberg are added stage by stage. Nothing here talks
+# to Cloudera.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    env:
+      EVX_CONFIG_OVERLAY: config/ci.yaml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install dependencies
+        run: pip install -r requirements-ci.txt
+      - name: Unit tests
+        run: pytest -q

@@ -1,0 +1,21 @@
+# Overlay for GitHub Actions and laptop tests (EVX_CONFIG_OVERLAY=config/ci.yaml): no network, no LLM,
+# no CDP. Scale 0.05 keeps every planted cause and fault but ~1.6k packs. The CI feature hash differs
+# from the platform one, so a CI-built table or model can never be served against platform features.
+lakehouse:
+  generator:
+    scale: 0.05
+  landing: data/landing
+  raw: data/raw
+  reports: data/reports
+  checkpoints: data/checkpoints
+features:
+  hash_salt: ci
+gate:
+  min_auroc: 0.6
+  min_pr_auc_lift: 1.0
+  max_ece: 0.2
+  min_slice_auroc: 0.5
+registry:
+  enabled: false
+llm:
+  provider: stub

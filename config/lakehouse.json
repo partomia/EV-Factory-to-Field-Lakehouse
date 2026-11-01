@@ -1,0 +1,394 @@
+{
+  "_comment": "Synthetic EV factory-to-field universe and lakehouse names. Every value here is synthetic, chosen from public specs where noted, and never the customer's data. scale multiplies the build rate (--scale); CI uses config/ci.yaml (scale 0.05).",
+  "db_prefix": "rsingh_evx",
+  "seed": 20261101,
+  "brand_default": "EVX Mobility",
+  "landing": "s3a://federal-buk-574bcea0/data/IB/rsingh_evx/landing",
+  "raw": "s3a://federal-buk-574bcea0/data/IB/rsingh_evx/raw",
+  "reports": "s3a://federal-buk-574bcea0/data/IB/rsingh_evx/reports",
+  "checkpoints": "s3a://federal-buk-574bcea0/data/IB/rsingh_evx/checkpoints",
+  "calendar": {
+    "history_start": "2026-02-09",
+    "history_end": "2026-11-05",
+    "live_dates": [
+      "2026-11-06",
+      "2026-11-07",
+      "2026-11-08",
+      "2026-11-09",
+      "2026-11-10"
+    ],
+    "label_days": 90,
+    "shifts": {
+      "A": [
+        6,
+        14
+      ],
+      "B": [
+        14,
+        22
+      ],
+      "C": [
+        22,
+        30
+      ]
+    },
+    "timezone_note": "factory local time IST is stored as UTC+05:30 offset in source files; the lakehouse stores UTC"
+  },
+  "universe": {
+    "ramp": {
+      "packs_per_day_start": 45,
+      "packs_per_day_end": 90
+    },
+    "cell_lines": [
+      "CL1",
+      "CL2"
+    ],
+    "formation_lines": {
+      "CL1": [
+        "FL1",
+        "FL2"
+      ],
+      "CL2": [
+        "FL3",
+        "FL4"
+      ]
+    },
+    "pack_lines": {
+      "CL1": "PL1",
+      "CL2": "PL2"
+    },
+    "vehicle_lines": {
+      "PL1": "VA1",
+      "PL2": "VA2"
+    },
+    "wirebond_stations": [
+      "PB-WB-01",
+      "PB-WB-02",
+      "PB-WB-03",
+      "PB-WB-04"
+    ],
+    "formation_channels_per_line": 128,
+    "cell_to_pack_days": 12,
+    "pack_to_vehicle_eol_days": 1,
+    "dispatch_days": [
+      1,
+      5
+    ],
+    "delivery_days": [
+      2,
+      7
+    ],
+    "live_subset_vehicles": 2000,
+    "live_subset_delivered": [
+      "2026-08-08",
+      "2026-10-23"
+    ],
+    "cities": [
+      {
+        "city": "Bengaluru",
+        "geohash5": "tdr1v",
+        "hot": false,
+        "share": 0.3
+      },
+      {
+        "city": "Pune",
+        "geohash5": "te7ud",
+        "hot": false,
+        "share": 0.15
+      },
+      {
+        "city": "Chennai",
+        "geohash5": "tf2cb",
+        "hot": true,
+        "share": 0.15
+      },
+      {
+        "city": "Hyderabad",
+        "geohash5": "tepfg",
+        "hot": true,
+        "share": 0.12
+      },
+      {
+        "city": "Delhi",
+        "geohash5": "ttnfv",
+        "hot": true,
+        "share": 0.13
+      },
+      {
+        "city": "Mumbai",
+        "geohash5": "te7mu",
+        "hot": false,
+        "share": 0.1
+      },
+      {
+        "city": "Ahmedabad",
+        "geohash5": "ts5em",
+        "hot": true,
+        "share": 0.05
+      }
+    ]
+  },
+  "pack": {
+    "_comment": "13s4p of 4680-format cells: ~90 Wh per cell, ~4.7 kWh, ~47 V nominal. Synthetic, sized from public 4680 specs for a two-wheeler pack.",
+    "cells_per_pack": 52,
+    "series": 13,
+    "parallel": 4,
+    "modules": 4,
+    "bonds_per_cell": 2
+  },
+  "cell": {
+    "_comment": "Synthetic 4680 nominal values (public teardown range 22.5-26 Ah, 3.6-3.7 V).",
+    "capacity_ah": {
+      "mean": 25.0,
+      "sd": 0.12
+    },
+    "ir_mohm": {
+      "mean": 1.8,
+      "sd": 0.05
+    },
+    "k_value_mv_day": {
+      "median": 0.05,
+      "gsd": 1.25
+    },
+    "nominal_v": 3.6,
+    "grading": {
+      "capacity_min": 24.62,
+      "ir_max": 1.96,
+      "k_max": 0.11
+    },
+    "xray_overhang_threshold": 1.0,
+    "xray_fail_rate": 0.009,
+    "subthreshold_overhang_rate": 0.003,
+    "image_sample_rate": 0.01,
+    "curve_points": 120,
+    "process_steps": [
+      "mixing",
+      "coating",
+      "calendering",
+      "winding",
+      "tab_welding",
+      "canning",
+      "electrolyte_fill",
+      "formation",
+      "aging",
+      "grading"
+    ]
+  },
+  "causes": {
+    "_comment": "Planted cause -> effect mechanisms. Truth is written to ref.generator_truth only; no feature reads it.",
+    "contaminated_powder_lots": [
+      {
+        "week_of": "2026-03-02",
+        "line": "CL1"
+      },
+      {
+        "week_of": "2026-04-13",
+        "line": "CL2"
+      },
+      {
+        "week_of": "2026-05-25",
+        "line": "CL1"
+      },
+      {
+        "week_of": "2026-06-22",
+        "line": "CL2"
+      },
+      {
+        "week_of": "2026-07-08",
+        "line": "CL1"
+      },
+      {
+        "week_of": "2026-09-14",
+        "line": "CL2"
+      }
+    ],
+    "powder_lot_days": 3,
+    "calender_drift": [
+      {
+        "start": "2026-03-18",
+        "days": 4,
+        "line": "CL2",
+        "shifts": [
+          "B"
+        ]
+      },
+      {
+        "start": "2026-04-22",
+        "days": 3,
+        "line": "CL1",
+        "shifts": [
+          "C"
+        ]
+      },
+      {
+        "start": "2026-05-12",
+        "days": 5,
+        "line": "CL2",
+        "shifts": [
+          "A",
+          "B"
+        ]
+      },
+      {
+        "start": "2026-06-08",
+        "days": 4,
+        "line": "CL1",
+        "shifts": [
+          "B"
+        ]
+      },
+      {
+        "start": "2026-06-29",
+        "days": 3,
+        "line": "CL2",
+        "shifts": [
+          "C"
+        ]
+      },
+      {
+        "start": "2026-07-13",
+        "days": 4,
+        "line": "CL1",
+        "shifts": [
+          "A"
+        ]
+      },
+      {
+        "start": "2026-09-28",
+        "days": 4,
+        "line": "CL2",
+        "shifts": [
+          "B"
+        ]
+      }
+    ],
+    "weak_bond_station": "PB-WB-03",
+    "weak_bond_periods": [
+      [
+        "2026-03-09",
+        "2026-03-21"
+      ],
+      [
+        "2026-05-04",
+        "2026-05-16"
+      ],
+      [
+        "2026-07-08",
+        "2026-07-22"
+      ],
+      [
+        "2026-09-21",
+        "2026-10-03"
+      ]
+    ],
+    "fast_charge_share": {
+      "alpha": 2.0,
+      "beta": 6.0
+    },
+    "aggressive_share": 0.22
+  },
+  "label": {
+    "target_rate": 0.09,
+    "band": [
+      0.08,
+      0.1
+    ],
+    "logit_base": -3.9,
+    "effects": {
+      "contaminated": 1.9,
+      "drift_spread": 1.3,
+      "subthreshold_overhang_per_cell": 1.1,
+      "weak_bond": 1.25,
+      "fast_charge_share": 1.6,
+      "hot_city": 0.45,
+      "aggressive": 0.35,
+      "capacity_spread_z": 0.25,
+      "k_tail_z": 0.2
+    },
+    "early_event_share": 0.12,
+    "event_types": [
+      "thermal_dtc",
+      "imbalance_dtc",
+      "battery_claim",
+      "edr_thermal"
+    ]
+  },
+  "faults": {
+    "_comment": "Planted data faults (PLAN.md section 16, config/expected_recon.json). Line-scoped faults hit line CL1 / PL1 only.",
+    "sap_delta_resend": "2026-11-07",
+    "sap_schema_change": "2026-11-08",
+    "mes_trailer_off_by_one": [
+      "2026-09-15",
+      "2026-11-07"
+    ],
+    "corrupt_xray_png": [
+      "2026-10-12",
+      "2026-11-08"
+    ],
+    "image_only_job_card": [
+      "2026-11-08"
+    ],
+    "genealogy_orphan_cell": [
+      "2026-10-20",
+      "2026-11-07"
+    ],
+    "vin_typo": [
+      "2026-10-28",
+      "2026-11-07"
+    ],
+    "pack_swap": {
+      "date": "2026-11-08",
+      "packs_assembled": "2026-09-01",
+      "line": "PL1"
+    },
+    "edr_late": {
+      "event_date": "2026-11-06",
+      "arrival_date": "2026-11-09"
+    },
+    "fahrenheit_firmware": {
+      "from": "2026-11-08",
+      "fw": "BMS-3.5.0-F",
+      "vehicles": 40
+    },
+    "stuck_soc": {
+      "date": "2026-11-09",
+      "vehicles": 3
+    },
+    "clock_skew": {
+      "date": "2026-11-09",
+      "station": "VA-EOL-02",
+      "seconds": 5400
+    }
+  },
+  "volumes": {
+    "service_interval_days": 90,
+    "service_jitter_days": 20,
+    "scanned_job_card_share": 0.1,
+    "battery_claim_share_of_events": 0.6,
+    "non_battery_claim_rate_90d": 0.03,
+    "teardown_share_of_battery_claims": 0.2,
+    "non_battery_edr_rate_90d": 0.06,
+    "edr_delay_hours": [
+      2,
+      72
+    ],
+    "non_battery_dtc_per_vehicle_month": 0.25,
+    "ride_hours_per_day": 1.2,
+    "telemetry_period_s": 30,
+    "sap_page_size": 1000
+  },
+  "impala": {
+    "host": "coordinator-federal-impala-1.dw-federal-cdp-env.dp5i-5vkq.cloudera.site",
+    "port": 443,
+    "http_path": "cliservice",
+    "auth_mechanism": "LDAP"
+  },
+  "dataviz_url": "https://viz-indianbank-spend-analytics.dw-federal-cdp-env.dp5i-5vkq.cloudera.site",
+  "dataviz_connection": "federal-impala-1",
+  "dataviz_pk_base": {
+    "core": 15000,
+    "uc01": 16000,
+    "uc02": 16500
+  },
+  "datalake_api": "https://federal-aw-dl-gateway.federal.dp5i-5vkq.cloudera.site/federal-aw-dl/cdp-proxy-api"
+}

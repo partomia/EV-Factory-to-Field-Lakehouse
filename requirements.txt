@@ -1,0 +1,13 @@
+# CAI sessions, jobs, model builds (cdsw-build.sh) and the application.
+# mlflow is pre-installed in Cloudera AI with mlflow-cml-plugin: do not add it here.
+numpy
+pandas
+pyarrow
+scikit-learn==1.9.1
+lightgbm==4.7.0
+joblib
+pyyaml
+requests
+streamlit>=1.32
+matplotlib
+impyla==0.21.0             # CDW Impala over HTTPS

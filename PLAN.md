@@ -187,10 +187,10 @@ per shift is ≈ 3.2k at initial load and 12 per date. Each row carries `channel
 
 | Cause | Episodes (history 2026-02-09 .. 2026-11-05) | Factory signal | Field effect |
 |---|---|---|---|
-| Cathode powder contamination | 5 supplier lots: weeks of 03-02, 04-13, 05-25, 06-29, 07-20 (last two feed the TEST window) | spectrometer anomaly; higher K-value at aging | self-discharge and thermal DTCs |
-| Calender roller drift | 6 episodes on different lines and shifts, 3–5 days each, spread Mar–Jul | film thickness drift | wider capacity spread in packs → imbalance |
+| Cathode powder contamination | 6 supplier lots: 03-02, 04-13, 05-25, 06-22, 07-08 (last two feed the TEST window), plus 09-14 (unmatured: the live demo's early warning) | spectrometer anomaly; higher K-value at aging | self-discharge and thermal DTCs |
+| Calender roller drift | 7 episodes on different lines and shifts, 3–5 days each: six Mar–Jul (last 07-13), one 09-28 (unmatured) | film thickness drift | wider capacity spread in packs → imbalance |
 | X-ray overhang just under threshold | steady 0.3 % of cells | sub-threshold overhang score | higher thermal / imbalance rate |
-| Weak wire-bond station `PB-WB-03` | 3 periods between maintenance events (Mar, May, Jul) | low minimum pull strength | cell-imbalance faults |
+| Weak wire-bond station `PB-WB-03` | 4 periods between maintenance events (Mar, May, Jul 08–22, Sep 21–Oct 03) | low minimum pull strength | cell-imbalance faults |
 | Usage modifiers | whole period | — | fast-charge share, hot geohashes, aggressive ride mode raise rates |
 
 `tests/test_cause_split_coverage.py` proves each cause has positives in TRAIN and TEST of the chosen split.
@@ -333,7 +333,7 @@ CAI `evx-uc01-06-score` → outcomes → recon; maintenance on its own schedule.
 | Source | Rows, initial load | Objects, initial load | Objects per business date |
 |---|---|---|---|
 | SAP OData pages (6 entity sets) | ≈ 120k | ≈ 1,700 pages | ≈ 6 |
-| Cell MES CSV (3 areas × 3 shifts) | ≈ 10M step rows | ≈ 2,430 | 9 |
+| Cell MES CSV (4 areas × 3 shifts × 2 lines) + QC CSV (3 shifts × 2 lines) | ≈ 10M step rows + ≈ 1.1M QC rows | ≈ 8,100 | 30 |
 | Formation curves (flagged + 1 %) | ≈ 25k curves × ≈ 600 points ≈ 15M points | ≈ 3,240 (per line per shift) | 12 |
 | QC verdict rows | ≈ 2.0M (X-ray + film) | in MES / stream | — |
 | X-ray PNGs (flagged ≈ 1.5 % + 1 % sample) | — | ≈ 25,000 | ≈ 120 |
@@ -486,6 +486,14 @@ approval list; skill enhancement; backbone design; resource increases under rule
 - **[CHANGE] OGX: only the skill commits.** The prompt's update of OGX `docs/USE_CASE_PLAYBOOK.md` is dropped (owner).
 - **WAP: option (a), branch WAP with the audit in Spark**, behind `publish()` (`docs/WAP_SPIKE.md`). One writer per
   gold table; Impala reads unpublished branches by snapshot id only; Atlas lineage is published by our code.
+- **Generator as built** (`generators/`, `cde/jobs/generate.py`): partitions are (cell line, pack-assembly month) plus
+  SUPPLY; fixed step offsets (electrode / assembly / QC +0, formation +1, aging and grading +11, pack +12, vehicle
+  EOL +13) so no two partitions write the same object. Cell production runs to the last live date; steps, packs and
+  vehicles dated after it stay WIP. Vehicle lines `VA1` / `VA2` follow pack lines `PL1` / `PL2`. Planted faults sit on
+  `CL1` / `PL1` only; the image-only job card is planted on 2026-11-08 only. Gold writes go through
+  `cde/jobs/publish.py` (not `lakehouse/publish.py`). The CI-scale run (0.05) gives ≈ 1.6k packs, ≈ 21.6k objects
+  and an 8.85 % matured incident rate (`label.logit_base` −3.9); the default-scale counts are confirmed by the first
+  CDE run.
 
 **Open (asked in the approval message, answered above):**
 1. `EVX_BRAND_NAME` value (or leave the neutral default).
