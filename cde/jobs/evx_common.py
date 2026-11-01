@@ -236,7 +236,17 @@ def write_partitions(df, table: str, partition_cols, props: dict | None = None) 
 
 
 def replace_table(df, table: str, partition_cols=(), props: dict | None = None) -> None:
-    _create(df, table, partition_cols, props).createOrReplace()
+    """Replace every row in one commit. An existing table is overwritten in place, not re-created: REPLACE
+    gives the table a new Atlas entity (its classifications, so its Ranger masks, are lost) and no parent
+    snapshot."""
+    from pyspark.sql import functions as F
+
+    spark = df.sparkSession
+    if table_exists(spark, table):
+        add_new_columns(spark, df, table)
+        df.writeTo(table).overwrite(F.lit(True))
+    else:
+        _create(df, table, partition_cols, props).create()
 
 
 def add_new_columns(spark, df, table: str) -> None:
