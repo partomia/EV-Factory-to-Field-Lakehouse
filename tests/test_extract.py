@@ -1,16 +1,19 @@
 """Format parsers and object validation (standard library; what bronze and extract run on executors)."""
 import json
 import random
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
 
 from extract.edr import EdrError, parse as parse_edr
 from extract.jcamp import JcampError, parse as parse_jcamp
+from extract.metrics import film_metrics, xray_metrics, xrf_peaks
 from extract.objects import validate
 from extract.png import PngError, png_decode
 from extract.records import delimited_rows, ndjson_rows, odata_page
 from generators.docs import edr_dump, jcamp, text_pdf, xrf_spectrum
+from generators.factory import film_png, xray_png
 from generators.formats import png_gray
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -78,3 +81,25 @@ def test_odata_page_keys_token_and_fields():
     assert p["entity_set"] == "A_MaterialDocument" and p["page"] == "001"
     assert p["rows"][0][3] == "49|0001" and "ZZ_NEW" in p["fields"]
     assert p["delta_token"].endswith("'D20261106MATE'")
+
+
+@pytest.mark.parametrize("overhang,blob", [(0.2, False), (0.75, True), (1.4, True)])
+def test_xray_overhang_blob(overhang, blob):
+    data, bbox = xray_png(SimpleNamespace(overhang=overhang), random.Random(7))
+    m = xray_metrics(*png_decode(data))
+    assert (m["overhang_px"] > 0) == blob == bool(bbox)
+    if blob:
+        assert m["overhang_box"] == bbox
+
+
+def test_film_patch_and_streaks():
+    clean = film_metrics(*png_decode(film_png("S1", 0.1, random.Random(3))))
+    bad = film_metrics(*png_decode(film_png("S2", 0.9, random.Random(3))))
+    assert not clean["defect_patch"] and bad["defect_patch"]
+    assert bad["streak_cols"] > clean["streak_cols"]
+
+
+def test_xrf_fe_peak_separates_contaminated_lots():
+    clean = xrf_peaks(*xrf_spectrum(random.Random(2), contaminated=False))
+    dirty = xrf_peaks(*xrf_spectrum(random.Random(2), contaminated=True))
+    assert dirty["fe_ka"] > 4 * clean["fe_ka"]

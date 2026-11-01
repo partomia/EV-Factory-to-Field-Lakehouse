@@ -109,31 +109,6 @@ def _compact(exprs: list):
 # ---------------------------------------------------------------- writes
 
 
-def write_dates(spark, df, table: str, dates: list[str]) -> None:
-    """Replace the given business dates of `table` with df in one commit (dates absent from df are emptied)."""
-    exists = C.table_exists(spark, table)
-    present = {r[0].isoformat() for r in df.select("_business_date").distinct().collect()} if exists else set()
-    missing = [d for d in dates if d not in present]
-    if exists and missing:
-        spark.sql(f"DELETE FROM {table} WHERE _business_date IN ({','.join(repr(d) for d in missing)})")
-    if exists:
-        if present:
-            df.writeTo(table).overwritePartitions()
-    else:
-        C.write_partitions(df, table, ["_business_date"])
-
-
-def replace_rows(spark, table: str, schema: str, where: str, rows: list, partition_cols=()) -> None:
-    C.ensure_table(spark, table, schema, partition_cols)
-    spark.sql(f"DELETE FROM {table} WHERE {where}")
-    if rows:
-        spark.createDataFrame(rows, schema).writeTo(table).append()
-
-
-def date_list(dates: list[str]) -> str:
-    return ",".join(f"DATE '{d}'" for d in dates)
-
-
 # ---------------------------------------------------------------- records
 
 
@@ -221,8 +196,8 @@ def ingest_records(spark, names, audit, contract: dict, landing: str, dates: lis
                             len(pg["rows"]), None, status, token_key if status == "LOADED" else
                             f"{token_key} already loaded" if status == "DUPLICATE_DELTA" else pg["error"], now))
         if sc_rows or C.table_exists(spark, sc_tbl):
-            replace_rows(spark, sc_tbl, SCHEMA_CHANGE_SCHEMA,
-                         f"entity = '{entity}' AND first_seen_date IN ({date_list(dates)})", sc_rows)
+            C.replace_rows(spark, sc_tbl, SCHEMA_CHANGE_SCHEMA,
+                         f"entity = '{entity}' AND first_seen_date IN ({C.date_list(dates)})", sc_rows)
         df = spark.createDataFrame(keep, "_source_file string, _source_row int, entity_set string, "
                                          "record_key string, delta_token string, payload string")
         parsed_cols = cols
@@ -257,14 +232,14 @@ def ingest_records(spark, names, audit, contract: dict, landing: str, dates: lis
     rows_in = checked.count()
     n_bad = bad.count()
     n_good = rows_in - n_bad
-    write_dates(spark, good, target, dates)
+    C.write_dates(spark, good, target, dates)
     q = names.t("bronze", "quarantine")
     C.ensure_table(spark, q, QUARANTINE_SCHEMA, ["_business_date"])
-    spark.sql(f"DELETE FROM {q} WHERE _entity = '{entity}' AND _business_date IN ({date_list(dates)})")
+    spark.sql(f"DELETE FROM {q} WHERE _entity = '{entity}' AND _business_date IN ({C.date_list(dates)})")
     if n_bad:
         bad.writeTo(q).append()
-    replace_rows(spark, names.t("ref", "file_control"), FILE_CONTROL_SCHEMA,
-                 f"entity = '{entity}' AND business_date IN ({date_list(dates)})", control)
+    C.replace_rows(spark, names.t("ref", "file_control"), FILE_CONTROL_SCHEMA,
+                 f"entity = '{entity}' AND business_date IN ({C.date_list(dates)})", control)
     reasons = (checked.where(F.size("_reject_reasons") > 0).select(F.explode("_reject_reasons").alias("r"))
                .groupBy("r").count().orderBy(F.desc("count")).limit(5).collect())
     msg = ", ".join(f"{r['r']}={r['count']}" for r in reasons) or "none"
@@ -365,10 +340,10 @@ def ingest_objects(spark, names, audit, landing: str, raw_root: str, dates: list
         list(pool.map(copy, to_copy))
     print(f"  raw store: {len(to_copy)} objects in {time.time() - t0:.0f}s", flush=True)
     df = spark.createDataFrame(rows, DOC_OBJECT_SCHEMA)
-    write_dates(spark, df, target, dates)
+    C.write_dates(spark, df, target, dates)
     q = names.t("bronze", "quarantine")
     C.ensure_table(spark, q, QUARANTINE_SCHEMA, ["_business_date"])
-    spark.sql(f"DELETE FROM {q} WHERE _entity = 'doc_object' AND _business_date IN ({date_list(dates)})")
+    spark.sql(f"DELETE FROM {q} WHERE _entity = 'doc_object' AND _business_date IN ({C.date_list(dates)})")
     if q_rows:
         spark.createDataFrame(q_rows, QUARANTINE_SCHEMA).writeTo(q).append()
     after = C.snapshot_id(spark, target)

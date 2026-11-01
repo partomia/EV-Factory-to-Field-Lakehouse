@@ -39,9 +39,37 @@ def check_bronze(spark) -> list[str]:
                  "AND NOT array_contains(_reject_reasons, 'object:PNG_TRUNCATED') GROUP BY 1, 2")
     if other:
         errors.append(f"unexpected quarantine {other}")
-    failed = rows("SELECT run_id, message FROM rsingh_evx_ref.load_audit WHERE status = 'FAILED'")
+    failed = rows("SELECT f.run_id, f.message FROM rsingh_evx_ref.load_audit f WHERE f.status = 'FAILED' "
+                  "AND NOT EXISTS (SELECT 1 FROM rsingh_evx_ref.load_audit s WHERE s.stage = f.stage "
+                  "AND s.status = 'COMPLETED' AND s.ended_at > f.ended_at)")
     if failed:
         errors.append(f"failed stages {failed}")
+    return errors
+
+
+def check_extract(spark) -> list[str]:
+    errors = []
+    failed = spark.sql("SELECT 'doc' t, count(*) n FROM rsingh_evx_silver.doc_extract WHERE status = 'FAILED' UNION ALL "
+                       "SELECT 'img', count(*) FROM rsingh_evx_silver.qc_image_metric WHERE status = 'FAILED' UNION ALL "
+                       "SELECT 'xrf', count(*) FROM rsingh_evx_silver.spectrum_feature WHERE status = 'FAILED' UNION ALL "
+                       "SELECT 'edr', count(*) FROM rsingh_evx_silver.edr_event WHERE status = 'FAILED'").collect()
+    if any(r["n"] for r in failed):
+        errors.append(f"extraction failures {[tuple(r) for r in failed]}")
+    ocr = [tuple(r) for r in spark.sql("SELECT CAST(_business_date AS STRING), count(*) FROM "
+                                       "rsingh_evx_silver.doc_extract WHERE method = 'OCR' GROUP BY 1").collect()]
+    if [d for d, _ in ocr] != ["2026-11-08"]:
+        errors.append(f"OCR job cards {ocr}")
+    swap = spark.sql("SELECT count(*) FROM rsingh_evx_silver.doc_extract WHERE method = 'OCR' "
+                     "AND get_json_object(fields, '$.service_type') = 'PACK REPLACEMENT'").collect()[0][0]
+    if swap != 1:
+        errors.append(f"OCR pack-swap job card read {swap} times")
+    n_obj = spark.sql("SELECT count(*) FROM rsingh_evx_bronze.doc_object WHERE ingest_status <> 'QUARANTINED'").collect()[0][0]
+    n_ext = spark.sql("SELECT (SELECT count(*) FROM rsingh_evx_silver.doc_extract) + "
+                      "(SELECT count(*) FROM rsingh_evx_silver.qc_image_metric) + "
+                      "(SELECT count(*) FROM rsingh_evx_silver.spectrum_feature) + "
+                      "(SELECT count(*) FROM rsingh_evx_silver.edr_event)").collect()[0][0]
+    if n_obj != n_ext:
+        errors.append(f"{n_obj} catalogued objects, {n_ext} extracted rows")
     return errors
 
 
@@ -49,7 +77,7 @@ def main(argv: list[str]) -> int:
     spark = local_spark(DATA / "warehouse")
     errors = []
     for layer in argv or ["bronze"]:
-        errors += {"bronze": check_bronze}[layer](spark)
+        errors += {"bronze": check_bronze, "extract": check_extract}[layer](spark)
     for e in errors:
         print(f"FAIL {e}")
     print("OK" if not errors else f"{len(errors)} check(s) failed")

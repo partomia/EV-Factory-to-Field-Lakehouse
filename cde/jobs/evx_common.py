@@ -251,6 +251,31 @@ def ensure_table(spark, table: str, schema: str, partition_cols=()) -> None:
         _create(spark.createDataFrame([], schema), table, partition_cols).create()
 
 
+def write_dates(spark, df, table: str, dates: list[str]) -> None:
+    """Replace the given business dates of `table` with df in one commit (dates absent from df are emptied)."""
+    exists = table_exists(spark, table)
+    present = {r[0].isoformat() for r in df.select("_business_date").distinct().collect()} if exists else set()
+    missing = [d for d in dates if d not in present]
+    if exists and missing:
+        spark.sql(f"DELETE FROM {table} WHERE _business_date IN ({','.join(repr(d) for d in missing)})")
+    if exists:
+        if present:
+            df.writeTo(table).overwritePartitions()
+    else:
+        write_partitions(df, table, ["_business_date"])
+
+
+def replace_rows(spark, table: str, schema: str, where: str, rows: list, partition_cols=()) -> None:
+    ensure_table(spark, table, schema, partition_cols)
+    spark.sql(f"DELETE FROM {table} WHERE {where}")
+    if rows:
+        spark.createDataFrame(rows, schema).writeTo(table).append()
+
+
+def date_list(dates: list[str]) -> str:
+    return ",".join(f"DATE '{d}'" for d in dates)
+
+
 # ---------------------------------------------------------------- audit
 
 
