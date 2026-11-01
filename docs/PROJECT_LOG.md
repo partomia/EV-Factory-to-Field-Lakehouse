@@ -37,3 +37,25 @@
   `INVALIDATE METADATA <db>.<table>` or `REFRESH <db>.<table>`.
 - Lesson: `cde run logs` defaults to `driver/stderr`. Job output printed with `print()` is in
   `--type driver/stdout`, and it can arrive as one long line with carriage returns.
+
+## 2026-11-01 12:10 IST - Generator on CDE (default scale)
+
+- Local CI scale (0.05): 1.6k packs, 21.6k objects, deterministic across runs; the Spark path (`cde/jobs/generate.py`)
+  writes byte-identical objects to the plain runner. 11 unit tests pass; GitHub Actions green.
+- Fixed before the first CDE run: cell production stopped 12 days before the last live date (no cell files on the
+  live dates); material lots all started on the same days (no goods receipt on 2026-11-08, so the schema-change
+  field had no rows). Late contamination and drift episodes were moved into the matured window (the old July 20
+  / 27 episodes delivered after the 2026-08-07 label cutoff); one unmatured episode of each added in September.
+- **CDE job** `rsingh-evx-generate` (driver 2 / 8 GB, 3 executors 2 / 8 GB: 8 cores / 32 GB). Headroom checked
+  first: no active runs; 05:40 UTC, clear of the 21:00 / 22:00 UTC sibling schedules.
+- Run **982** (logit base −3.9): succeeded, 1,231 s. 18,335 packs, 9,658 matured, 760 positives = **7.87 %**, below
+  the 8–10 % band and the 800-positive floor.
+- Run **983** (logit base −3.74, CSV exports repartitioned by date, manifests from a thread pool): succeeded,
+  996 s. **18,335 packs, 9,658 matured, 863 positives = 8.94 %**; by cause contaminated 108, drift 110, overhang
+  169, weak bond 81, usage 395. Every planted cause has positives in July deliveries (the TEST window).
+  Objects 74,489 + 4,111 manifests under `rsingh_evx/generated/`: X-ray PNG 40,220, job-card PDF 15,222, cell MES
+  6,528, formation curves 3,281, EDR 1,775, cell QC 1,650, pack NDJSON 1,578, vehicle NDJSON 1,572, OData 1,103.
+  Truth: `rsingh_evx_ref.generator_truth_pack` 18,335, `generator_truth_batch` 1,650, `generator_fleet` 17,646.
+- Lesson: the streamed `driver/stdout` log lost the final result lines (and cut one long line at ≈ 1.2 KB). The
+  complete log is in `cde run logs --id <n> --download-all`.
+- Lesson: Spark CSV `partitionBy(date)` without a repartition committed 5.7k part files one by one (minutes).
