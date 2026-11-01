@@ -94,3 +94,28 @@
 - Lesson: `blob` and `fields` are reserved words in Impala; quote or rename them in ad-hoc SQL.
 - Lesson: `cde run logs --download-all` hung once after a long run; the streamed stdout had the short marker
   lines, so print results as short marker lines and fall back to the streamed log.
+
+## 2026-11-01 19:45 IST - Silver on CDE; generator id collisions found; master locally
+
+- **CDE job** `rsingh-evx-silver` (driver 2 / 8 GB, 3 executors 2 / 8 GB). **Run 988** (2026-02-09..11-05):
+  succeeded, 12:51 to 13:03 UTC (520 s). 19 tables, no `_dq_issues` rows: cell_step 10,114,249, qc_inspection
+  1,032,581, formation curve points 4,751,400, telematics 1,926,341, pack_build 17,963, pack_cell 934,076,
+  vehicle_build 17,863, service_job 14,337, supplier_coa 604, quality_report 104, six SAP entity tables.
+- The per-key dedup dropped rows it should not have: dtc_event 35, warranty_claim 1, sap_inspection_lot 16.
+  Impala showed the cause: generator ids built from `vin[-9:]` repeat between pack lines 1 and 2 (DTC, EDR, job
+  card, claim, teardown ids), and inspection-lot numbers repeat across materials with the same lot suffix and
+  day. Registrations (4 random digits per city), rider ids and motor / MCU serials could collide too. All are now
+  unique by construction (line digit + EOL date + sequence; material index in lot numbers);
+  `test_source_keys_unique_per_date` parses every generated file with the bronze parsers and fails on the old
+  generator. The silver results of run 988 are superseded by the regenerate below.
+- Planted date-keyed faults are placed once per generator partition, so a date can hold several (CI scale: 3 VIN
+  typos, 5 image-only cards, 2 orphan cells). The generator now records each instance
+  (`ref.generator_truth_fault`); the local checks compare catches with that list.
+- **Master** (`cde/jobs/build_master.py`) locally over the CI windows 2026-09-01..09-16 and 2026-10-24..11-08
+  (wide enough to hold the cells behind their packs): every planted orphan cell, VIN typo (REVIEW, not merged)
+  and pack swap (two link versions per vehicle, removed pack verified) caught, nothing else; `check_local`
+  bronze, extract, silver, master OK; 25 unit tests pass. Pushed `01d39a1`.
+- Regenerate chain started on CDE (ids changed, so every layer is rebuilt): generate run **989** at 14:14 UTC, no
+  active runs before it.
+- Lesson: a per-key dedup that reports what it dropped is a cheap generator test; a non-zero count on synthetic
+  data with no planted duplicates is a bug upstream, not noise.
