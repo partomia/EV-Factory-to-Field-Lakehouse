@@ -90,7 +90,7 @@ def main(argv=None) -> int:
         else:
             spark = spark or local_spark(Path(args.warehouse))
             job = {"bronze": "ingest_bronze", "extract": "extract_unstructured", "silver": "build_silver",
-                   "master": "build_master", "gold": "build_gold"}[stage]
+                   "master": "build_master", "gold": "build_gold", "recon": "recon"}[stage]
             extra = ["--raw", str(DATA / "raw"), "--threads", "8"] if stage == "bronze" else []
             importlib.import_module(job).run(spark, rng + paths + extra)
         print(f"== {stage} done in {time.time() - t0:.0f}s", flush=True)

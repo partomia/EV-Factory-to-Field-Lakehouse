@@ -38,3 +38,6 @@ jobs:
           python scripts/run_local.py --stages gold --from 2026-10-24 --to 2026-11-08
           python scripts/check_local.py bronze extract silver master gold
           python scripts/run_semantic.py --engine spark
+          python scripts/run_local.py --stages recon --from 2026-09-01 --to 2026-09-16
+          # window B recon starts at 10-29: the 10-28 VIN typo's EOL record is older than the window
+          python scripts/run_local.py --stages recon --from 2026-10-29 --to 2026-11-08

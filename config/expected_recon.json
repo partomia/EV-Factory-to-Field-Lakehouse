@@ -1,0 +1,30 @@
+{
+  "_comment": "Expected reconciliation (PLAN.md section 16). Every exception recon.py observes must match a row here (layer, entity, check, business date); every row whose dates are loaded and whose check is built (milestone reached) must be observed. Layers are as built: the corrupt PNG is rejected at bronze (object decode), not at extract. All data is synthetic.",
+  "faults": [
+    {"id": 1, "fault": "SAP delta page re-sent", "dates": ["2026-11-07"], "layer": "bronze", "entity": "sap_odata_record",
+     "check": "delta-token duplicate", "outcome": "EXPLAINED", "explanation": "page dropped, counted in ref.file_control", "milestone": "M1"},
+    {"id": 2, "fault": "MES CSV trailer off by one", "dates": ["2026-09-15", "2026-11-07"], "layer": "bronze", "entity": "cell_mes_step",
+     "check": "trailer count", "outcome": "MISMATCH", "explanation": "file quarantined (formation area, shift B, line CL1)", "milestone": "M1"},
+    {"id": 3, "fault": "Corrupt X-ray PNG", "dates": ["2026-10-12", "2026-11-08"], "layer": "bronze", "entity": "doc_object",
+     "check": "decode", "outcome": "EXPLAINED", "explanation": "object quarantined, verdict row kept (image_status MISSING)", "milestone": "M1"},
+    {"id": 4, "fault": "Job card with no text layer", "dates": ["2026-11-08"], "layer": "extract", "entity": "doc_extract",
+     "check": "text layer", "outcome": "EXPLAINED", "explanation": "OCR fallback", "milestone": "M1"},
+    {"id": 5, "fault": "Genealogy to a non-existent cell", "dates": ["2026-10-20", "2026-11-07"], "layer": "master", "entity": "genealogy",
+     "check": "orphan cell", "outcome": "MISMATCH", "explanation": "pack genealogy ORPHAN_CELL, the pack abstains", "milestone": "M1"},
+    {"id": 6, "fault": "Firmware reporting degrees F", "dates": ["2026-11-08", "2026-11-09", "2026-11-10"], "layer": "silver", "entity": "telematics",
+     "check": "unit sanity", "outcome": "EXPLAINED", "explanation": "converted, guardrail event", "milestone": "M2"},
+    {"id": 7, "fault": "Stuck SoC sensor", "dates": ["2026-11-09"], "layer": "silver", "entity": "telematics",
+     "check": "stuck sensor", "outcome": "EXPLAINED", "explanation": "flagged, abstain", "milestone": "M2"},
+    {"id": 8, "fault": "EDR dumps 3 days late", "dates": ["2026-11-09"], "layer": "gold", "entity": "fact_edr_event",
+     "check": "late reprocess", "outcome": "EXPLAINED", "explanation": "ref.reprocess_log", "milestone": "M2"},
+    {"id": 9, "fault": "VIN typo DMS vs EOL", "dates": ["2026-10-28", "2026-11-07"], "layer": "master", "entity": "identity_review",
+     "check": "identity match", "outcome": "EXPLAINED", "explanation": "review queue, not merged", "milestone": "M1"},
+    {"id": 10, "fault": "Pack swapped between two vehicles", "dates": ["2026-11-08"], "layer": "gold", "entity": "dim_vehicle",
+     "check": "link change", "outcome": "EXPLAINED", "explanation": "two SCD2 versions per vehicle", "milestone": "M1"},
+    {"id": 11, "fault": "Clock skew on station VA-EOL-02", "dates": ["2026-11-09"], "layer": "silver", "entity": "line_event",
+     "check": "skew", "outcome": "EXPLAINED", "explanation": "corrected offset", "milestone": "M2"},
+    {"id": 12, "fault": "Schema evolution ZZ_MOISTURE_PPM", "dates": ["2026-11-08"], "layer": "bronze", "entity": "sap_odata_record",
+     "check": "contract diff", "outcome": "EXPLAINED", "explanation": "ref.schema_change, mapped in silver", "milestone": "M1"}
+  ],
+  "built_milestones": ["M1"]
+}
