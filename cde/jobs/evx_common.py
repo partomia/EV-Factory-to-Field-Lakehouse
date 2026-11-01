@@ -239,8 +239,17 @@ def replace_table(df, table: str, partition_cols=(), props: dict | None = None) 
     _create(df, table, partition_cols, props).createOrReplace()
 
 
+def add_new_columns(spark, df, table: str) -> None:
+    """Additive schema change (a minor contract version): columns df has and the table lacks are added."""
+    have = {f.name.lower() for f in spark.table(table).schema.fields}
+    new = [f for f in df.schema.fields if f.name.lower() not in have]
+    if new:
+        spark.sql(f"ALTER TABLE {table} ADD COLUMNS ({', '.join(f'`{f.name}` {f.dataType.simpleString()}' for f in new)})")
+
+
 def append(df, table: str, partition_cols=()) -> None:
     if table_exists(df.sparkSession, table):
+        add_new_columns(df.sparkSession, df, table)
         df.writeTo(table).append()
     else:
         _create(df, table, partition_cols).create()
@@ -260,6 +269,7 @@ def write_dates(spark, df, table: str, dates: list[str]) -> None:
         spark.sql(f"DELETE FROM {table} WHERE _business_date IN ({','.join(repr(d) for d in missing)})")
     if exists:
         if present:
+            add_new_columns(spark, df, table)
             df.writeTo(table).overwritePartitions()
     else:
         write_partitions(df, table, ["_business_date"])

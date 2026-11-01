@@ -207,6 +207,15 @@ def check_gold(spark) -> list[str]:
     late = rows(f"SELECT count(*) FROM {g}.fact_edr_event WHERE arrival_lag_days < 0")
     if late != [(0,)]:
         errors.append("EDR events that arrive before they happen")
+    import json
+
+    batches = {r["batch_id"]: (r["production_date"], r["shift"]) for f in
+               (DATA / "generated" / "_truth" / "truth_batch").glob("part-*.json")
+               for r in map(json.loads, f.read_text().splitlines())}
+    shifted = [b for b, d, s in rows(f"SELECT DISTINCT batch_id, CAST(production_date AS STRING), shift "
+                                     f"FROM {g}.fact_cell_grading WHERE mixing_ts IS NOT NULL") if batches.get(b) != (d, s)]
+    if shifted:
+        errors.append(f"cell production date / shift differ from the generator for batches {shifted[:3]}")
     return errors
 
 

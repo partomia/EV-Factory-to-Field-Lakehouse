@@ -69,6 +69,20 @@ def scd2(events, key: str, tracked: list[str], order=("valid_from", "_seq")):
         .drop("_state", "_next_from", "_prev_state", "_seq")
 
 
+def production_day(ts: str, shifts: dict, utc_offset_min: int = 330):
+    """UTC timestamp -> (production date, shift). The production day starts with the first shift in factory
+    local time (IST, no DST), so a night shift that runs past midnight belongs to the day it started."""
+    first = min(h0 for h0, _ in shifts.values())
+    local = F.col(ts) + F.expr(f"INTERVAL {utc_offset_min} MINUTES")
+    hour = (F.hour(local) - first + 24) % 24
+    shift = None
+    for name, (h0, h1) in sorted(shifts.items(), key=lambda kv: kv[1][0]):
+        cond = (hour >= h0 - first) & (hour < h1 - first)
+        shift = F.when(cond, name) if shift is None else shift.when(cond, name)
+    return (F.to_date(F.col(ts) + F.expr(f"INTERVAL {utc_offset_min - 60 * first} MINUTES")),
+            shift.otherwise(None))
+
+
 def dim_date(start: date, end: date, history_end: str):
     from pyspark.sql import SparkSession
 
@@ -217,9 +231,13 @@ def run(spark, argv=None) -> dict:
         aggs.append(F.max(F.when(F.col("step") == "formation", F.col("params")["channel"])).alias("formation_channel"))
         aggs.append(F.max(F.when(F.col("step") == "formation", F.col("station"))).alias("formation_station"))
         aggs.append(F.max(F.when(F.col("step") == "mixing", F.col("params")["powder_lot"])).alias("powder_lot"))
-        fcg = graded.join(steps.groupBy("cell_id").agg(*aggs), "cell_id", "left")
+        aggs.append(F.min(F.when(F.col("step") == "mixing", F.col("start_ts"))).alias("mixing_ts"))
+        pday, pshift = production_day("mixing_ts", cal["shifts"])
+        fcg = graded.join(steps.groupBy("cell_id").agg(*aggs), "cell_id", "left") \
+            .withColumn("production_date", pday).withColumn("shift", pshift)
         pub(fcg, Spec("fact_cell_grading", ["cell_id"], transform="aggregate",
-                      checks={"grade_known": "grade IN ('A', 'B', 'REJECT')"}), [names.t("silver", "cell_step")])
+                      checks={"grade_known": "grade IN ('A', 'B', 'REJECT')", "shift_known": "shift IS NOT NULL OR mixing_ts IS NULL"}),
+            [names.t("silver", "cell_step")])
 
         qc = silver("qc_inspection", upto=False)
         img = silver("qc_image_metric").where(F.col("status") == "EXTRACTED").select(
@@ -241,7 +259,8 @@ def run(spark, argv=None) -> dict:
                              "n_cell_batches", "majority_cell_batch", "majority_cells")
         fitted = veh.select(F.col("eol_pack_serial").alias("pack_serial"), F.col("vin").alias("eol_vin"))
         fpe = pb.drop("_warnings", "_dq_issues", "_source_file", "_source_row", "_record_hash") \
-            .join(gen_cols, "pack_serial", "left").join(fitted, "pack_serial", "left")
+            .join(gen_cols, "pack_serial", "left").join(fitted, "pack_serial", "left") \
+            .withColumn("production_date", production_day("eol_test_ts", cal["shifts"])[0])
         pub(fpe, Spec("fact_pack_eol", ["pack_serial"], transform="enrich",
                       checks={"cells": f"n_cells = {cfg['pack']['cells_per_pack']}"}),
             [names.t("silver", "pack_build"), names.t("master", "pack"), names.t("master", "vehicle")])
