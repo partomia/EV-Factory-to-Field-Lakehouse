@@ -103,7 +103,7 @@ def run(spark, argv=None) -> dict:
     p = C.base_parser(__doc__.split("\n\n")[0])
     args = C.parse(p, argv)
     names = C.Names(args.db_prefix)
-    C.ensure_databases(spark, names, ("gold", "ref"))
+    C.ensure_databases(spark, names, ("gold", "semantic", "ref"))
     days = C.date_range(args.date_from, args.date_to)
     dates = [d.isoformat() for d in days]
     as_of = args.date_to

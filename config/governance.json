@@ -1,0 +1,71 @@
+{
+  "_comment": "Atlas classifications, the EVX Data Products glossary and Ranger tag masking for the rsingh_evx_* databases, applied by scripts/governance.py. Only EVX_* classifications, the EVX glossary and rsingh-evx-* policies are created or changed; other projects' tags and policies are left alone. All data is synthetic.",
+  "atlas_cluster": "cm",
+  "databases": [
+    "rsingh_evx_bronze",
+    "rsingh_evx_silver",
+    "rsingh_evx_master",
+    "rsingh_evx_gold",
+    "rsingh_evx_semantic"
+  ],
+  "classifications": {
+    "EVX_SENSITIVE_PII": {
+      "description": "Identifies a person (rider name, vehicle registration, technician code): masked users see a hash, so counts and joins still work (DPDP personal data)",
+      "mask": {"dataMaskType": "hive:MASK_HASH"}
+    },
+    "EVX_SENSITIVE_CONTACT": {
+      "description": "Rider contact details (phone, email, address, pincode): letters become x, digits n",
+      "mask": {"dataMaskType": "hive:MASK"}
+    },
+    "EVX_SENSITIVE_LOCATION": {
+      "description": "Precise rider home location: masked users see NULL (analysts use geohash5, about 5 km)",
+      "mask": {"dataMaskType": "hive:MASK_NULL"}
+    }
+  },
+  "columns": {
+    "full_name": "EVX_SENSITIVE_PII",
+    "registration_no": "EVX_SENSITIVE_PII",
+    "registration": "EVX_SENSITIVE_PII",
+    "technician": "EVX_SENSITIVE_PII",
+    "phone": "EVX_SENSITIVE_CONTACT",
+    "email": "EVX_SENSITIVE_CONTACT",
+    "address_line": "EVX_SENSITIVE_CONTACT",
+    "pincode": "EVX_SENSITIVE_CONTACT",
+    "home_lat": "EVX_SENSITIVE_LOCATION",
+    "home_lon": "EVX_SENSITIVE_LOCATION"
+  },
+  "masking": {
+    "service": "cm_tag",
+    "policy_prefix": "rsingh-evx-sensitive-",
+    "masked_users": ["federal01", "federal07"],
+    "_comment": "rsingh is in no masking policy and sees clear values"
+  },
+  "glossary": {
+    "name": "EVX Data Products",
+    "description": "Data products and certified KPIs of the EV Factory-to-Field Lakehouse (synthetic data). One term per domain, assigned to the domain's gold tables, and one per certified KPI (config/kpi.json), assigned to its semantic views.",
+    "domains": [
+      {"name": "EVX Supply Batch", "owner": "Supplier Quality",
+       "description": "Suppliers and supplier material batches from SAP, CoA PDFs and XRF spectra; batch quality status is SCD2 (received, released, suspect from a supplier 8D).",
+       "assigned_to": ["rsingh_evx_gold.dim_supplier", "rsingh_evx_gold.dim_material_batch"]},
+      {"name": "EVX Cell Grade", "owner": "Cell Quality",
+       "description": "Cell MES steps, formation and grading measurements, X-ray and film inspections with image metrics.",
+       "assigned_to": ["rsingh_evx_gold.dim_cell", "rsingh_evx_gold.fact_cell_process", "rsingh_evx_gold.fact_cell_grading",
+                       "rsingh_evx_gold.fact_qc_inspection", "rsingh_evx_gold.dim_station"]},
+      {"name": "EVX Pack Genealogy", "owner": "Pack & Vehicle Quality",
+       "description": "Packs and vehicles (SCD2 on fitment, pack swaps and BMS firmware), pack and vehicle EOL tests, and the pack to cell to material-lot genealogy.",
+       "assigned_to": ["rsingh_evx_gold.dim_pack", "rsingh_evx_gold.dim_vehicle", "rsingh_evx_gold.fact_pack_eol",
+                       "rsingh_evx_gold.fact_vehicle_eol", "rsingh_evx_gold.bridge_genealogy"]},
+      {"name": "EVX Field Event", "owner": "Fleet Reliability",
+       "description": "Vehicle daily telematics, DTCs (battery-related and safety-floor flags) and EDR events, which arrive up to 72 hours late by design.",
+       "assigned_to": ["rsingh_evx_gold.fact_vehicle_daily", "rsingh_evx_gold.fact_dtc", "rsingh_evx_gold.fact_edr_event"]},
+      {"name": "EVX Warranty Claim", "owner": "Service & Warranty",
+       "description": "Riders (personal data, masked), service job cards (PDF and scanned) and warranty claims, with the VIN resolved through master.xref.",
+       "assigned_to": ["rsingh_evx_gold.dim_rider", "rsingh_evx_gold.fact_service_job", "rsingh_evx_gold.fact_warranty_claim"]}
+    ],
+    "kpi_assigned_to": {
+      "FPY_CELL": ["kpi_fpy_cell", "v_cell_first_pass"],
+      "FPY_PACK": ["kpi_fpy_pack"],
+      "FIR90": ["kpi_fir90_build_week", "kpi_fir90_supplier_batch", "v_vehicle_fir90"]
+    }
+  }
+}

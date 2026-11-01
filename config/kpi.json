@@ -1,0 +1,41 @@
+{
+  "_comment": "Certified KPIs. Each is defined once here, implemented by its certified views in sql/semantic/ and checked by run_semantic.py --steps kpi_check; scripts/governance.py publishes each as a term of the EVX Data Products glossary. TTC is added with the uc01 worklist (phase 7).",
+  "kpis": [
+    {
+      "kpi_code": "FPY_CELL",
+      "name": "Cell first-pass yield",
+      "definition": "Share of graded cells that pass first time: not graded REJECT and no X-ray FAIL. Cells are not reworked, so the first pass is the only pass. Cells whose process start is not loaded are left out.",
+      "formula": "cells_first_pass / cells_graded",
+      "grain": "production day (IST, starting with shift A) x cell line x shift x formation station",
+      "certified_view": "kpi_fpy_cell",
+      "owner": "Cell Quality",
+      "version": "1.0",
+      "certified_on": "2026-11-01",
+      "glossary_term": "EVX Cell first-pass yield"
+    },
+    {
+      "kpi_code": "FPY_PACK",
+      "name": "Pack first-pass yield",
+      "definition": "Share of packs that pass the pack end-of-line test first time.",
+      "formula": "packs_first_pass / packs_tested",
+      "grain": "production day x pack line x shift x wire-bond station",
+      "certified_view": "kpi_fpy_pack",
+      "owner": "Pack & Vehicle Quality",
+      "version": "1.0",
+      "certified_on": "2026-11-01",
+      "glossary_term": "EVX Pack first-pass yield"
+    },
+    {
+      "kpi_code": "FIR90",
+      "name": "Field incident rate within 90 days",
+      "definition": "Vehicles with a battery-related warranty claim (resolved to the VIN through master.xref) failing within 90 days of entering service, per 1,000 vehicles that have been in service 90 days by the data's as-of date. In service from delivery, else vehicle EOL.",
+      "formula": "1000 * vehicles_failed / vehicles_matured",
+      "grain": "build week of vehicle EOL; supplier batch (majority cathode powder lot of the pack fitted at EOL)",
+      "certified_view": "kpi_fir90_build_week",
+      "owner": "Fleet Reliability",
+      "version": "1.0",
+      "certified_on": "2026-11-01",
+      "glossary_term": "EVX Field incident rate (90 days)"
+    }
+  ]
+}
