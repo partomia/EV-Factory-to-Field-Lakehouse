@@ -59,3 +59,38 @@
 - Lesson: the streamed `driver/stdout` log lost the final result lines (and cut one long line at ≈ 1.2 KB). The
   complete log is in `cde run logs --id <n> --download-all`.
 - Lesson: Spark CSV `partitionBy(date)` without a repartition committed 5.7k part files one by one (minutes).
+
+## 2026-11-01 13:25 IST - Regenerate (film noise) and land history
+
+- Local bronze on CI scale found every blank electrode-film PNG flagged `DUPLICATE` (identical bytes). Film images
+  now carry sensor noise. Run **984** (`rsingh-evx-generate`, same arguments as 983) regenerated; succeeded at
+  07:21 UTC with the same counts and truth as 983.
+- **CDE job** `rsingh-evx-land` (driver 2 / 4 GB, 1 executor 1 / 2 GB). Run **985** (`--from 2026-02-09 --to
+  2026-11-05`): succeeded, 07:21 to 07:48 UTC. **270 dates, 73,565 files, 2,291 MB** copied to
+  `rsingh_evx/landing/`, each date with a `_manifest.json` (counts, sizes, SHA-256).
+- Local extract (phase 3b) on the CI windows: every catalogued object extracted (130 live, 207 September),
+  5 image-only job cards read by OCR on 2026-11-08 including the pack-swap card, the truncated PNG not extracted.
+- Lesson: unit tests on the generator's own images found two metric bugs the sample run hid: the film defect is a
+  drawn frame (≈80 bright pixels), not a filled patch, and a speckled can-wall pixel widened the X-ray box. Test
+  extractors against generated objects for every planted case, not only on a sample.
+- Lesson: a CDE job on a git repository resource takes `--application-file` relative to the repository
+  (`cde/jobs/x.py`), not the `/app/mount/...` path; the absolute path fails with `object not found in the tree`.
+
+## 2026-11-01 14:40 IST - Bronze and extract history on CDE
+
+- Repository synced at `84fb1cc`. No active runs before either submission.
+- **Bronze run 986** (`rsingh-evx-bronze`, 2026-02-09..11-05): succeeded, 07:45 to 08:24 UTC (1,772 s of job
+  time; the object fingerprint pass over 2.3 GB took 643 s). MES 10,114,966 in / 10,114,249 ok / 717 quarantined
+  (the planted 2026-09-15 trailer mismatch, the only MISMATCH of 8,028 controlled files); QC 1,032,581;
+  formation curve points 4,751,400; telematics 1,926,341; OData 11,544; pack / vehicle documents 17,963 / 17,863;
+  warranty 1,291. Objects 57,177: 57,176 VALID, 1 `PNG_TRUNCATED` (the planted 2026-10-12 X-ray). Impala
+  counts (table-scoped `INVALIDATE METADATA`) equal the Spark counts; quarantine 718.
+- **CDE job** `rsingh-evx-extract` (driver 2 / 8 GB, 3 executors 2 / 8 GB). **Run 987** (same window): succeeded,
+  08:27 to 08:50 UTC. doc_extract 15,045 (all text layer; the image-only cards are live-only), qc_image_metric
+  40,302, spectrum_feature 181, edr_event 1,648 = 57,176, equal to the VALID objects; no FAILED rows.
+- Extraction against the generator's QC records: an overhang blob in every image the generator drew one in
+  (9,157 FAIL + 110 sub-threshold), box identical in all 9,267, no blob in 30,430 clean images. XRF Fe peak
+  274–380 on exactly 6 lots (the 6 contaminated lots) against 17–56 elsewhere. Films: 106 of 605 with a defect frame.
+- Lesson: `blob` and `fields` are reserved words in Impala; quote or rename them in ad-hoc SQL.
+- Lesson: `cde run logs --download-all` hung once after a long run; the streamed stdout had the short marker
+  lines, so print results as short marker lines and fall back to the streamed log.
