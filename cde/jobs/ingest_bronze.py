@@ -195,9 +195,8 @@ def ingest_records(spark, names, audit, contract: dict, landing: str, dates: lis
             control.append((C.batch_id(C.parse_date(day)), C.parse_date(day), src, entity, fname, pg["error"] is None,
                             len(pg["rows"]), None, status, token_key if status == "LOADED" else
                             f"{token_key} already loaded" if status == "DUPLICATE_DELTA" else pg["error"], now))
-        if sc_rows or C.table_exists(spark, sc_tbl):
-            C.replace_rows(spark, sc_tbl, SCHEMA_CHANGE_SCHEMA,
-                         f"entity = '{entity}' AND first_seen_date IN ({C.date_list(dates)})", sc_rows)
+        C.replace_rows(spark, sc_tbl, SCHEMA_CHANGE_SCHEMA,
+                       f"entity = '{entity}' AND first_seen_date IN ({C.date_list(dates)})", sc_rows)
         df = spark.createDataFrame(keep, "_source_file string, _source_row int, entity_set string, "
                                          "record_key string, delta_token string, payload string")
         parsed_cols = cols

@@ -52,8 +52,10 @@ SCHEMA = ("run_id string, business_date date, layer string, entity string, check
           "expected bigint, status string, fault_id int, detail string, logged_at timestamp")
 
 
-def exceptions_sql(n: C.Names, dl: str) -> list[tuple[str, str]]:
-    """(layer, SQL returning business_date, entity, check, n, detail) for each exception source."""
+def exceptions_sql(n: C.Names, dl: str) -> list[tuple[str, str, str]]:
+    """(layer, SQL returning business_date, entity, check, n, detail, table read) for each exception source.
+    A source table that does not exist yet (schema_change is written only when a new field is seen, and the
+    planted one is on a live date) contributes nothing; a fault whose date is in the window then stays MISSING."""
     b, s, m, g, r = (n.db(x) for x in ("bronze", "silver", "master", "gold", "ref"))
     fc = ",".join(f"'{x}'" for x in FILE_OK)
     rv = ",".join(f"'{x}'" for x in REVIEW_MATCH)
@@ -61,25 +63,28 @@ def exceptions_sql(n: C.Names, dl: str) -> list[tuple[str, str]]:
         ("bronze", f"SELECT business_date, entity, CASE status WHEN 'MISMATCH' THEN 'trailer count' "
                    f"WHEN 'DUPLICATE_DELTA' THEN 'delta-token duplicate' ELSE concat('file ', lower(status)) END, "
                    f"count(*), concat_ws('; ', collect_list(source_file)) FROM {r}.file_control "
-                   f"WHERE business_date IN ({dl}) AND status NOT IN ({fc}) GROUP BY 1, 2, 3"),
+                   f"WHERE business_date IN ({dl}) AND status NOT IN ({fc}) GROUP BY 1, 2, 3", f"{r}.file_control"),
         ("bronze", f"SELECT _business_date, _entity, CASE WHEN _entity = 'doc_object' THEN 'decode' ELSE 'contract' END, "
                    f"count(*), concat_ws('; ', collect_set(array_join(_reject_reasons, ','))) FROM {b}.quarantine "
-                   f"WHERE _business_date IN ({dl}) AND NOT exists(_reject_reasons, x -> x LIKE 'file:%') GROUP BY 1, 2, 3"),
+                   f"WHERE _business_date IN ({dl}) AND NOT exists(_reject_reasons, x -> x LIKE 'file:%') GROUP BY 1, 2, 3",
+         f"{b}.quarantine"),
         ("bronze", f"SELECT first_seen_date, entity, 'contract diff', count(*), concat_ws('; ', collect_list(field)) "
-                   f"FROM {r}.schema_change WHERE first_seen_date IN ({dl}) GROUP BY 1, 2, 3"),
+                   f"FROM {r}.schema_change WHERE first_seen_date IN ({dl}) GROUP BY 1, 2, 3", f"{r}.schema_change"),
         ("extract", f"SELECT _business_date, 'doc_extract', CASE WHEN status = 'FAILED' THEN 'extract failed' "
                     f"ELSE 'text layer' END, count(*), concat_ws('; ', collect_list(file_name)) FROM {s}.doc_extract "
-                    f"WHERE _business_date IN ({dl}) AND (method = 'OCR' OR status = 'FAILED') GROUP BY 1, 2, 3"),
+                    f"WHERE _business_date IN ({dl}) AND (method = 'OCR' OR status = 'FAILED') GROUP BY 1, 2, 3",
+         f"{s}.doc_extract"),
         ("extract", f"SELECT _business_date, 'qc_image_metric', 'extract failed', count(*), '' FROM {s}.qc_image_metric "
-                    f"WHERE _business_date IN ({dl}) AND status = 'FAILED' GROUP BY 1"),
+                    f"WHERE _business_date IN ({dl}) AND status = 'FAILED' GROUP BY 1", f"{s}.qc_image_metric"),
         ("master", f"SELECT first_seen_date, 'genealogy', 'orphan cell', count(*), concat_ws('; ', collect_list(pack_serial)) "
-                   f"FROM {m}.genealogy WHERE link_status = 'ORPHAN' AND first_seen_date IN ({dl}) GROUP BY 1"),
+                   f"FROM {m}.genealogy WHERE link_status = 'ORPHAN' AND first_seen_date IN ({dl}) GROUP BY 1",
+         f"{m}.genealogy"),
         ("master", f"SELECT first_seen_date, 'identity_review', 'identity match', count(*), "
                    f"concat_ws('; ', collect_list(concat(source_key, '~', candidate_id))) FROM {r}.identity_review "
-                   f"WHERE rule IN ({rv}) AND first_seen_date IN ({dl}) GROUP BY 1"),
+                   f"WHERE rule IN ({rv}) AND first_seen_date IN ({dl}) GROUP BY 1", f"{r}.identity_review"),
         ("gold", f"SELECT to_date(valid_from), 'dim_vehicle', 'link change', count(*), concat_ws('; ', collect_list(vin)) "
                  f"FROM {g}.dim_vehicle WHERE version > 1 AND pack_serial <> eol_pack_serial "
-                 f"AND to_date(valid_from) IN ({dl}) GROUP BY 1"),
+                 f"AND to_date(valid_from) IN ({dl}) GROUP BY 1", f"{g}.dim_vehicle"),
     ]
 
 
@@ -137,7 +142,8 @@ def run(spark, argv=None) -> dict:
                 rows.append((d, layer, label, "sum", int(round(b.get(d) or 0)), int(round(a.get(d) or 0)),
                              "MATCH" if a.get(d) == b.get(d) else "MISMATCH", None, f"{up} -> {down}"))
         observed = []
-        for layer, sql in exceptions_sql(n, dl) + [("silver", q) for q in silver_typing_sql(spark, n, dl)]:
+        sources = [(layer, sql) for layer, sql, table in exceptions_sql(n, dl) if C.table_exists(spark, table)]
+        for layer, sql in sources + [("silver", q) for q in silver_typing_sql(spark, n, dl)]:
             for d, entity, check, cnt, detail in spark.sql(sql).collect():
                 observed.append((d.isoformat(), layer, entity, check, cnt, (detail or "")[:500]))
         for d, layer, entity, check, cnt, status, fid, detail in classify(
