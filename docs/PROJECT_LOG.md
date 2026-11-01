@@ -119,3 +119,33 @@
   active runs before it.
 - Lesson: a per-key dedup that reports what it dropped is a cheap generator test; a non-zero count on synthetic
   data with no planted duplicates is a bug upstream, not noise.
+
+## 2026-11-01 21:20 IST - Regenerate and land on CDE; gold, semantic and SDX locally; SDX tags and masks live
+
+- **Generate run 989**: succeeded, 14:14 to 14:33 UTC (1,040 s): 74,489 objects, 4,111 manifests; truth 18,335
+  packs, 1,650 batches, 17,646 fleet rows, **15 planted fault instances** (`ref.generator_truth_fault`), label
+  rate 0.0894 (863 of 9,658 matured).
+- **Land run 990** (2026-02-09..11-05): succeeded, 14:34 to 15:18 UTC (2,606 s): 270 dates, 73,708 files,
+  2,291 MB. Bronze run **991** started 15:40 UTC.
+- **Gold** (`build_gold.py`, every table through `publish()`: Spark audit of null / duplicate keys and SQL
+  checks, then one commit): 5 dimensions, 3 SCD2 dimensions, the genealogy bridge, 11 facts. Locally over both
+  CI windows the gold checks pass: one current version per key and unbroken validity chains, current packs after
+  swaps equal the planted swaps, MISSING images equal the corrupt PNGs, ORPHAN_CELL packs equal the orphans, cell
+  production day and shift equal the generator's batch truth. Pushed `1b28dd9`, CI green. CDE job
+  `rsingh-evx-gold` created (driver 2 / 8 GB, 3 executors 2 / 8 GB).
+- **Semantic** (`sql/semantic/`, `scripts/run_semantic.py`): `kpi_fpy_cell`, `kpi_fpy_pack`,
+  `kpi_fir90_build_week`, `kpi_fir90_supplier_batch` and three base views; the consistency check compares each
+  KPI total with an independent count on gold and the two FIR90 cuts with each other. Local: all 11 checks OK,
+  cell FPY 0.9896, pack FPY 1.0; FIR90 has no matured vehicles in the CI windows (it is exercised on CDE).
+  Pushed `4c0e851`.
+- **SDX** (`scripts/governance.py`, adapted from OGX): `apply --only typedefs,masking` created
+  `EVX_SENSITIVE_PII` / `_CONTACT` / `_LOCATION` and Ranger `cm_tag` policies `rsingh-evx-sensitive-pii`
+  (MASK_HASH), `-contact` (MASK), `-location` (MASK_NULL) for `federal01`, `federal07`; then 16 columns tagged in
+  bronze `dms_riders` and silver `rider`, `service_job`; `verify` OK. Master, gold and semantic columns and the
+  glossary follow after their CDE runs. Pushed `881b71e`.
+- Lesson: a fact derived from an earlier step (cell production day from the mixing step) is unknown when that
+  step's date is outside the loaded window; local windows hit this, the full history does not. Check "known or
+  source not loaded" instead of "not null", and keep the KPI to rows whose grain is known.
+- Lesson: `writeTo().overwritePartitions()` does not add new columns to an existing Iceberg table; added
+  `add_new_columns` (ALTER TABLE ADD COLUMNS) before date writes and appends, the additive (minor) contract change.
+- Lesson: `cde run logs` stdout lags the run's end by about 20 s; the marker lines were missing on the first read.
