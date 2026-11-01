@@ -149,3 +149,30 @@
 - Lesson: `writeTo().overwritePartitions()` does not add new columns to an existing Iceberg table; added
   `add_new_columns` (ALTER TABLE ADD COLUMNS) before date writes and appends, the additive (minor) contract change.
 - Lesson: `cde run logs` stdout lags the run's end by about 20 s; the marker lines were missing on the first read.
+
+## 2026-11-01 22:35 IST - Bronze and extract rebuilt on CDE; recon; telemetry stream live on Kafka
+
+- **Bronze run 991** (2026-02-09..11-05): succeeded (1,716 s). MES 10,114,249 rows, 717 quarantined (the one
+  planted trailer-count file, 09-15); `doc_object` 57,320 objects, 1 `PNG_TRUNCATED` (the planted 10-12 PNG).
+- **Extract run 992**: succeeded, 16:12 to 16:39 UTC (1,570 s), 270 dates: `doc_extract` 15,188,
+  `qc_image_metric` 40,302, `spectrum_feature` 181, `edr_event` 1,648, each equal to its source count.
+- **Recon** (`cde/jobs/recon.py`, `config/expected_recon.json`): bronze to silver to gold counts and warranty sums,
+  every exception matched to a planted fault (EXPLAINED / MISMATCH with a fault id) or failing the run
+  (UNEXPECTED, MISSING). Local over both CI windows OK; pushed `b0caaee`. Job `rsingh-evx-recon` created.
+- **Telemetry stream** (Phase 6, pushed `06efc93`): seeded producer for the live subset (planted degrees-F firmware
+  from 11-08, stuck SoC on 11-09), per-minute control totals on `evx.control`; streaming bronze with one Iceberg
+  commit per micro-batch (snapshot property `evx.stream-batch`, a replayed batch is skipped) and a quarantine
+  table; 15-minute windows per VIN (10-minute watermark, degrees F normalised) MERGEd into
+  `silver.telemetry_window`. Local over 11-06..11-09: 268,994 messages, 0 quarantined, `check_local stream` OK.
+- **Live on CDE / Kafka**: `deploy_streaming.sh create` (jobs `rsingh-evx-stream-telemetry`, `-stream-agg`,
+  `-stream-produce`). Produce run **993** with `--setup`: topics `evx.vehicle.telemetry` (6 partitions) and
+  `evx.control` **CREATED** (the workload user holds create / write / read on `evx.*`, tested live), then 283,706
+  messages for 2,084 live vehicles on 11-06 in 16 s. Bronze drain **994**: one batch, 282,924 readings + 782
+  control, 0 quarantined. Window drain **995**: 12,938 windows. Impala: 0 minutes whose control total differs from
+  bronze, every event id unique, window `sum(n)` = 282,924, no degrees-F or stuck-SoC windows (none planted on
+  11-06), max cell temperature 44.3 C.
+- Silver run **996** (2026-02-09..11-05) started 17:04 UTC.
+- Lesson: Kafka on 9093 is closed from the laptop; produce from a CDE Spark job (`df.write.format("kafka")`) and
+  create topics with the Kafka AdminClient over py4j from the same job, so no client or CA is needed locally.
+- Lesson: a drain of two chained available-now streams must run in order; the window job started alongside the
+  bronze job would see an empty bronze table and finish with nothing. `drain` now waits for each run.

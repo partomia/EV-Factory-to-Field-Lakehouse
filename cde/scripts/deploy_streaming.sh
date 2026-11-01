@@ -59,6 +59,7 @@ running_ids() {
 }
 
 run_id() { python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])'; }
+run_status() { cde run describe --id "$1" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["status"])'; }
 
 case "${ACTION}" in
   create)
@@ -74,9 +75,15 @@ case "${ACTION}" in
     done
     ;;
   drain)
+    # In order: the window job reads the bronze table, so it starts after the bronze drain has committed.
     for j in "${STREAMS[@]}"; do
-      if [[ -n "$(running_ids "$j")" ]]; then echo "$j: already running"; else
-        echo "$j: run $(cde job run --name "$j" --arg=--trigger --arg=available-now | run_id)"; fi
+      if [[ -n "$(running_ids "$j")" ]]; then echo "$j: already running"; exit 1; fi
+      id=$(cde job run --name "$j" --arg=--trigger --arg=available-now | run_id)
+      echo "$j: run ${id}"
+      for _ in $(seq 1 "${DRAIN_POLLS:-60}"); do
+        s=$(run_status "${id}"); [[ "$s" == starting || "$s" == running ]] || break; sleep 10
+      done
+      echo "$j: ${s}"; [[ "$s" == succeeded ]] || exit 1
     done
     ;;
   stop)
