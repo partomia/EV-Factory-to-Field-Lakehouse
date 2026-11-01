@@ -4,6 +4,8 @@
 lakehouse:
   generator:
     scale: 0.05
+  features:
+    hash_salt: ci
   landing: data/landing
   raw: data/raw
   reports: data/reports

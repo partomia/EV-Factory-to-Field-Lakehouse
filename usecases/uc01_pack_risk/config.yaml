@@ -1,0 +1,7 @@
+# uc01 pack field-risk. The DAG (phase 8) builds a feature task from every enabled use case.
+use_case: uc01
+name: pack_risk
+enabled: true
+head: pack_risk_eol
+feature_table: pack_factory_v1
+example_table: uc01_pack_eol_example
