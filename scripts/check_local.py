@@ -216,6 +216,11 @@ def check_gold(spark) -> list[str]:
                                      f"FROM {g}.fact_cell_grading WHERE mixing_ts IS NOT NULL") if batches.get(b) != (d, s)]
     if shifted:
         errors.append(f"cell production date / shift differ from the generator for batches {shifted[:3]}")
+    if spark.catalog.tableExists(f"{g}.fact_telemetry_window"):
+        got, want = rows(f"SELECT (SELECT count(*) FROM {g}.fact_telemetry_window), (SELECT count(*) FROM "
+                         f"rsingh_evx_silver.telemetry_window WHERE window_date IN ({', '.join(repr(d) for d in days)}))")[0]
+        if got != want or not got:
+            errors.append(f"fact_telemetry_window has {got} windows, silver {want} in the gold dates")
     return errors
 
 

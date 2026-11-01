@@ -271,6 +271,22 @@ def run(spark, argv=None) -> dict:
         pub(silver("telematics_daily", upto=False).drop("_warnings", "_dq_issues", "_source_file", "_source_row", "_record_hash"),
             Spec("fact_vehicle_daily", ["vin", "summary_date"], transform="consume"), [names.t("silver", "telematics_daily")])
 
+        tw_table = names.t("silver", "telemetry_window")
+        if spark.catalog.tableExists(tw_table):
+            tw = spark.table(tw_table).where(F.col("window_date").isin(days)) \
+                .withColumn("_business_date", F.col("window_date")).withColumnRenamed("_batch", "_batch_id")
+            ver = dvh.select("vin", "vehicle_sk", "pack_serial", F.col("valid_from").alias("_vf"), F.col("valid_to").alias("_vt"))
+            ftw = tw.alias("w").join(ver.alias("v"), (F.col("w.vin") == F.col("v.vin")) & (F.col("v._vf") <= F.col("w.window_start"))
+                                     & (F.col("v._vt").isNull() | (F.col("w.window_start") < F.col("v._vt"))), "left") \
+                .select("w.*", "v.vehicle_sk", "v.pack_serial") \
+                .join(dvh.select("vin", F.lit(True).alias("_in_master")).distinct(), "vin", "left") \
+                .withColumn("vehicle_status", F.when(F.col("vehicle_sk").isNotNull(), "KNOWN")
+                            .when(F.col("_in_master").isNull(), "NOT_IN_MASTER").otherwise("NO_VERSION")) \
+                .drop("_in_master")
+            pub(ftw, Spec("fact_telemetry_window", ["vin", "window_start"], transform="aggregate",
+                          checks={"version_at_window": "vehicle_status <> 'NO_VERSION'", "has_readings": "n > 0"}),
+                [tw_table, names.t("master", "vehicle"), names.t("master", "vehicle_pack_link")])
+
         dtc_ref = spark.createDataFrame([(k, v["system"], v["kind"], v["battery_related"], v["safety_floor"])
                                          for k, v in catalog["dtc"].items()],
                                         "dtc_code string, dtc_system string, dtc_kind string, battery_related boolean, "
