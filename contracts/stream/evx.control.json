@@ -1,0 +1,33 @@
+{
+ "topic": "evx.control",
+ "table": "stream_control",
+ "description": "Producer control totals per event minute and topic (synthetic)",
+ "fields": [
+  {
+   "name": "minute",
+   "type": "timestamp",
+   "required": true
+  },
+  {
+   "name": "topic",
+   "type": "string",
+   "required": true,
+   "pattern": "^evx\\."
+  },
+  {
+   "name": "total",
+   "type": "bigint",
+   "required": true
+  },
+  {
+   "name": "vehicles",
+   "type": "bigint",
+   "required": true
+  },
+  {
+   "name": "producer_run",
+   "type": "string",
+   "required": true
+  }
+ ]
+}

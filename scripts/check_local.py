@@ -219,12 +219,55 @@ def check_gold(spark) -> list[str]:
     return errors
 
 
+def check_stream(spark) -> list[str]:
+    """The telemetry stream after run_local --stages stream (one available-now batch per job)."""
+    from datetime import date
+
+    from stream.producer import telemetry as T
+
+    errors = []
+    b, s = "rsingh_evx_bronze", "rsingh_evx_silver"
+
+    def rows(sql):
+        return [tuple(x) for x in spark.sql(sql).collect()]
+
+    diff = rows(f"SELECT count(*) FROM (SELECT c.minute, c.total, coalesce(r.n, 0) n FROM {b}.stream_control c "
+                f"LEFT JOIN (SELECT date_trunc('minute', event_ts) m, count(*) n FROM {b}.telemetry_reading GROUP BY 1) r "
+                f"ON r.m = c.minute) WHERE total <> n")
+    if diff != [(0,)]:
+        errors.append(f"{diff[0][0]} event minutes whose control total differs from bronze")
+    if rows(f"SELECT count(*) FROM {b}.stream_quarantine") != [(0,)]:
+        errors.append("stream messages quarantined")
+    got, sent = rows(f"SELECT (SELECT sum(n) FROM {s}.telemetry_window), (SELECT count(*) FROM {b}.telemetry_reading)")[0]
+    if got != sent:
+        errors.append(f"windows hold {got} readings, bronze {sent}")
+    fleet = T.fleet_from_files(DATA / "generated")
+    rode = {}
+    for d, vin in rows(f"SELECT DISTINCT CAST(event_date AS STRING), vin FROM {b}.telemetry_reading"):
+        rode.setdefault(d, set()).add(vin)
+    for d, vins in sorted(rode.items()):
+        want = T.planted(fleet, date.fromisoformat(d))
+        f_got = {r[0] for r in rows(f"SELECT DISTINCT vin FROM {s}.telemetry_window WHERE window_date = '{d}' "
+                                    "AND n_fahrenheit > 0")}
+        if f_got != want["fahrenheit"] & vins:
+            errors.append(f"{d}: degrees F windows for {sorted(f_got)[:3]}, planted {sorted(want['fahrenheit'] & vins)[:3]}")
+        stuck = {r[0] for r in rows(f"SELECT DISTINCT vin FROM {s}.telemetry_window WHERE window_date = '{d}' AND is_stuck_soc")}
+        long = {r[0] for r in rows(f"SELECT DISTINCT vin FROM {s}.telemetry_window WHERE window_date = '{d}' "
+                                   f"AND n >= 20 AND distance_km > 0")}
+        if not (stuck <= want["stuck_soc"] and want["stuck_soc"] & long <= stuck):
+            errors.append(f"{d}: stuck SoC windows for {sorted(stuck)}, planted {sorted(want['stuck_soc'])}")
+    hot = rows(f"SELECT max(cell_t_max) FROM {s}.telemetry_window")[0][0]
+    if hot is None or hot > 70:
+        errors.append(f"cell temperature after conversion up to {hot} C")
+    return errors
+
+
 def main(argv: list[str]) -> int:
     spark = local_spark(DATA / "warehouse")
     errors = []
     for layer in argv or ["bronze"]:
         errors += {"bronze": check_bronze, "extract": check_extract, "silver": check_silver,
-                   "master": check_master, "gold": check_gold}[layer](spark)
+                   "master": check_master, "gold": check_gold, "stream": check_stream}[layer](spark)
     for e in errors:
         print(f"FAIL {e}")
     print("OK" if not errors else f"{len(errors)} check(s) failed")

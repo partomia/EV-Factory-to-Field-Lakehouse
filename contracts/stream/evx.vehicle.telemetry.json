@@ -1,0 +1,105 @@
+{
+ "topic": "evx.vehicle.telemetry",
+ "table": "telemetry_reading",
+ "description": "Live-subset vehicle telemetry, one reading per 30 s while riding (synthetic)",
+ "fields": [
+  {
+   "name": "event_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "vin",
+   "type": "string",
+   "required": true,
+   "pattern": "^[A-HJ-NPR-Z0-9]{17}$"
+  },
+  {
+   "name": "event_ts",
+   "type": "timestamp",
+   "required": true
+  },
+  {
+   "name": "seq",
+   "type": "bigint",
+   "required": true
+  },
+  {
+   "name": "trip_no",
+   "type": "int",
+   "required": true
+  },
+  {
+   "name": "speed_kmh",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "odometer_km",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "soc_pct",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "pack_voltage_v",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "pack_current_a",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "cell_t_max",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "cell_t_min",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "cell_v_min_mv",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "cell_v_max_mv",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "bms_fw",
+   "type": "string",
+   "required": true,
+   "pattern": "^BMS-[0-9.]+(-F)?$"
+  },
+  {
+   "name": "geohash5",
+   "type": "string",
+   "required": true,
+   "pattern": "^[0-9b-hjkmnp-z]{5}$"
+  },
+  {
+   "name": "quality",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "GOOD",
+    "UNCERTAIN",
+    "BAD"
+   ]
+  },
+  {
+   "name": "producer_run",
+   "type": "string",
+   "required": true
+  }
+ ]
+}

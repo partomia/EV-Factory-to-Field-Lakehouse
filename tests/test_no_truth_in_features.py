@@ -4,7 +4,8 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ALLOWED = {"cde/jobs/generate.py", "generators/run.py"}
+ALLOWED = {"cde/jobs/generate.py", "generators/run.py",   # the synthetic source systems
+           "cde/jobs/stream_produce.py", "stream/producer/telemetry.py"}
 SCANNED = ("cde", "mlcore", "usecases", "cai", "app", "airflow", "stream", "extract")
 PATTERN = re.compile(r"generator_truth|generator_fleet|_truth/|truth_pack|truth_batch")
 

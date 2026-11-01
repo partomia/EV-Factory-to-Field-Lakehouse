@@ -87,6 +87,25 @@ def main(argv=None) -> int:
             run_local(DATA / "generated", cfg, keys)
         elif stage == "land":
             importlib.import_module("land_sources").main(rng + paths + ["--generated", str(DATA / "generated")])
+        elif stage == "stream":
+            import shutil
+
+            from stream.producer import telemetry
+
+            shutil.rmtree(DATA / "stream", ignore_errors=True)
+            days = C.date_range(C.parse_date(d0), C.parse_date(d1))
+            telemetry.main(["--out", str(DATA / "stream"), "--dates", ",".join(d.isoformat() for d in days)])
+            spark = spark or local_spark(Path(args.warehouse))
+            for cp in ("telemetry_bronze", "telemetry_agg"):   # local only: a rerun starts the stream afresh
+                shutil.rmtree(DATA / "checkpoints" / cp, ignore_errors=True)
+            for t in ("bronze.telemetry_reading", "bronze.stream_control", "bronze.stream_quarantine",
+                      "silver.telemetry_window"):
+                spark.sql(f"DROP TABLE IF EXISTS {C.Names().t(*t.split('.'))}")
+            common = ["--checkpoints", str(DATA / "checkpoints"), "--trigger", "available-now"]
+            importlib.import_module("stream_telemetry_bronze").run(
+                spark, common + ["--source", "files", "--input", str(DATA / "stream")]).awaitTermination()
+            # tables created inside foreachBatch (a cloned session) are not visible to this session's catalog
+            importlib.import_module("stream_telemetry_agg").run(spark.newSession(), common).awaitTermination()
         else:
             spark = spark or local_spark(Path(args.warehouse))
             job = {"bronze": "ingest_bronze", "extract": "extract_unstructured", "silver": "build_silver",

@@ -94,6 +94,11 @@ def contracts() -> dict:
             for p in sorted((repo_root() / "contracts" / "sources").glob("*.json"))}
 
 
+def stream_contracts() -> dict:
+    """contracts/stream/<topic>.json by topic."""
+    return {p.stem: json.loads(p.read_text()) for p in sorted((repo_root() / "contracts" / "stream").glob("*.json"))}
+
+
 def object_contracts() -> dict:
     return {p.stem: json.loads(p.read_text()) for p in sorted((repo_root() / "contracts" / "objects").glob("*.json"))}
 

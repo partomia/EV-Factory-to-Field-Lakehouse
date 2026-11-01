@@ -1,0 +1,30 @@
+{
+  "_comment": "Kafka topics, the telemetry producer and the CDE streaming jobs. M1 streams evx.vehicle.telemetry and evx.control; DTC, QC and line topics are added in M2. All data is synthetic.",
+  "topics": {
+    "telemetry": {"name": "evx.vehicle.telemetry", "partitions": 6, "replication": 3, "retention_hours": 168},
+    "control": {"name": "evx.control", "partitions": 1, "replication": 3, "retention_hours": 168}
+  },
+  "producer": {
+    "interval_s": 30,
+    "trips_per_day": [1, 3],
+    "trip_start_hours_ist": [[7.5, 10.0], [12.0, 15.0], [17.5, 21.0]],
+    "avg_speed_kmh": 22,
+    "late_fraction": 0.01,
+    "late_seconds": [120, 480],
+    "very_late_fraction": 0.001,
+    "very_late_seconds": [900, 1800],
+    "out_of_order_fraction": 0.02,
+    "control_hold_s": 1805
+  },
+  "spark": {
+    "kafka_package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.4",
+    "trigger_seconds": 60,
+    "watermark": "10 minutes",
+    "window": "15 minutes",
+    "min_readings_per_window": 10,
+    "stuck_soc_min_readings": 20,
+    "starting_offsets": "earliest",
+    "max_offsets_per_trigger": 300000
+  },
+  "units": {"fahrenheit_fw_suffix": "-F"}
+}
