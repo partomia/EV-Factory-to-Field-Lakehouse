@@ -293,7 +293,7 @@
       0.08,
       0.1
     ],
-    "logit_base": -3.9,
+    "logit_base": -3.74,
     "effects": {
       "contaminated": 1.9,
       "drift_spread": 1.3,

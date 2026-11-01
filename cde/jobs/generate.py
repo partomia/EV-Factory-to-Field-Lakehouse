@@ -63,8 +63,8 @@ def write_exports(spark, out: str, rows_rdd) -> dict:
     for table, (cols, _) in TABLES.items():
         sub = rows_rdd.filter(lambda r, t=table: r[0] == t).map(lambda r, t=table: (*r[1], row_date(t, r[1])))
         df = spark.createDataFrame(sub, ", ".join(f"`{c}` string" for c in cols) + ", business_date string")
-        df.write.mode("overwrite").partitionBy("business_date").option("header", True) \
-            .csv(f"{out}/{table}")
+        df.repartition("business_date").write.mode("overwrite").partitionBy("business_date") \
+            .option("header", True).csv(f"{out}/{table}")
         for day, n in df.groupBy("business_date").count().collect():
             counts[(table, day)] = [1, int(n)]
     return counts
@@ -107,7 +107,12 @@ def main(argv=None, spark=None) -> int:
     n = write_objects(fs, out, files, args.threads)
     print(f"  objects  {n} written in {time.time() - t0:.0f}s", flush=True)
     counts.update(write_exports(spark, out, recs.filter(lambda r: r[0] == "row").map(lambda r: (r[1], r[2]))))
-    write_manifests(lambda rel, text: fs.write_text(f"{out}/{rel}", text), counts)
+    with ThreadPoolExecutor(max_workers=args.threads) as pool:
+        jobs = []
+        write_manifests(lambda rel, text: jobs.append(pool.submit(fs.write_text, f"{out}/{rel}", text)), counts)
+        for f in jobs:
+            f.result()
+    print(f"  exports and {len(counts)} manifests in {time.time() - t0:.0f}s", flush=True)
 
     truth_stats = {}
     if not args.no_truth:
@@ -130,8 +135,12 @@ def main(argv=None, spark=None) -> int:
         a = by_source.setdefault(src, [0, 0])
         a[0] += n_obj
         a[1] += size
-    print("GENERATE_RESULT " + json.dumps({"scale": scale, "seconds": round(time.time() - t0),
-                                          "sources": by_source, "truth": truth_stats}, default=str), flush=True)
+    # one short line each: CDE log lines are cut at about 1 KB
+    print(f"GENERATE_RESULT scale={scale} seconds={round(time.time() - t0)}", flush=True)
+    for src, (n_obj, size) in sorted(by_source.items()):
+        print(f"GENERATE_SOURCE {src} {n_obj} {size}", flush=True)
+    for k, v in truth_stats.items():
+        print(f"GENERATE_TRUTH {k} {json.dumps(v, default=str)}", flush=True)
     return 0
 
 
