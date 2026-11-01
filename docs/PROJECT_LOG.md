@@ -176,3 +176,31 @@
   create topics with the Kafka AdminClient over py4j from the same job, so no client or CA is needed locally.
 - Lesson: a drain of two chained available-now streams must run in order; the window job started alongside the
   bronze job would see an empty bronze table and finish with nothing. `drain` now waits for each run.
+
+## 2026-11-02 00:25 IST - History chain on CDE; semantic KPIs and the glossary live
+
+- **Silver run 996** (2026-02-09..11-05): succeeded, 17:03 to 17:19 UTC (756 s), 270 dates, no unmapped documents.
+- **Master run 997** (as of 2026-11-05): succeeded, 17:32 to 17:40 UTC (300 s). 1,022,861 cells, 934,076 genealogy
+  links (1 ORPHAN), 17,963 packs (1 ORPHAN_CELL), 17,863 vehicles (1 REVIEW, 17,171 MATCHED, 691 NO_DMS),
+  identity review VIN_EDIT and NO_SUCH_CELL.
+- **Gold run 998**: succeeded, 17:41 to 17:49 UTC (415 s), 270 dates. `fact_cell_process` 10,114,249,
+  `fact_cell_grading` 968,517, `fact_pack_eol` 17,963, `fact_vehicle_daily` 1,926,341.
+  `fact_telemetry_window` is empty: telemetry starts 2026-11-06, after this window.
+- **Recon run 999** failed: `ref.schema_change` does not exist, because bronze creates it only when a new field
+  is seen and the planted one (`ZZ_MOISTURE_PPM`) is on 2026-11-08. Fixed in `7201c05` (skip a missing exception
+  source; bronze now creates the empty table). **Recon run 1000** succeeded, 18:11 to 18:17 UTC (321 s):
+  4,489 MATCH, 2 EXPLAINED, 2 MISMATCH, 1 INFO, 0 failing. The four history faults: trailer 09-15 (fault 2),
+  corrupt PNG 10-12 (fault 3), orphan cell 10-20 (fault 5), VIN typo 10-28 (fault 9).
+- **Semantic on Impala** (`run_semantic.py`): 7 views. All 11 checks OK. Cell FPY 0.9700 (939,453 of 968,517),
+  pack FPY 0.9997 (17,957 of 17,963), FIR90 53.53 per 1,000 (517 of 9,658 matured vehicles). The week cut and
+  the supplier-batch cut agree.
+- **SDX** `governance.py apply`: 10 more columns tagged (gold rider and service job, master and gold vehicle
+  registration) and glossary "EVX Data Products" (5 domain terms on the gold tables, 3 KPI terms on the semantic
+  views). `verify` OK. Masking policies were already in place, so the new tags are masked for federal01 and federal07.
+- **Against generator truth** (history only): cells 1,022,861 = sum of batch truth; cell production date and shift
+  disagree on 0 batches; pack EOL result disagrees on 0 packs; the history orphan and the history VIN typo match
+  exactly. Truth lists 17,957 packs in the window and gold has 17,963: the 6 extra are the EOL failures, which the
+  generator does not write into `generator_truth_pack`.
+- Lesson: an exception table created only when the exception happens is absent on a window that predates it, and a
+  recon that queries it unconditionally fails before it can report anything. Skip a missing source (a fault whose
+  date is inside the window still comes out MISSING) and create the empty table on every run.
