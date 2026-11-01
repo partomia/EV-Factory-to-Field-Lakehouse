@@ -31,6 +31,6 @@ jobs:
       - name: Generate, land and bronze on local Spark + Iceberg (history sample and the first live dates)
         run: |
           python -m generators.run --out data/generated --scale 0.05 > /dev/null
-          python scripts/run_local.py --stages land,bronze,extract --from 2026-09-14 --to 2026-09-16
-          python scripts/run_local.py --stages land,bronze,extract --from 2026-11-05 --to 2026-11-08
-          python scripts/check_local.py bronze extract
+          python scripts/run_local.py --stages land,bronze,extract,silver --from 2026-09-14 --to 2026-09-16
+          python scripts/run_local.py --stages land,bronze,extract,silver --from 2026-11-05 --to 2026-11-08
+          python scripts/check_local.py bronze extract silver

@@ -89,7 +89,7 @@ def main(argv=None) -> int:
             importlib.import_module("land_sources").main(rng + paths + ["--generated", str(DATA / "generated")])
         else:
             spark = spark or local_spark(Path(args.warehouse))
-            job = {"bronze": "ingest_bronze", "extract": "extract_unstructured"}[stage]
+            job = {"bronze": "ingest_bronze", "extract": "extract_unstructured", "silver": "build_silver"}[stage]
             extra = ["--raw", str(DATA / "raw"), "--threads", "8"] if stage == "bronze" else []
             importlib.import_module(job).run(spark, rng + paths + extra)
         print(f"== {stage} done in {time.time() - t0:.0f}s", flush=True)
