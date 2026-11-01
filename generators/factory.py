@@ -212,6 +212,8 @@ def generate_partition(plan: Plan, batches: list[Batch]):
                 corrupt = b.line == "CL1" and b.day in corrupt_png_dates and b.day not in corrupt_done
                 corrupt_done.add(b.day) if corrupt else None
                 data, bbox = xray_png(c, r, corrupt=corrupt)
+                if corrupt:
+                    yield ("truth_fault", {"fault": "corrupt_xray_png", "date": b.day.isoformat(), "key": c.cell_id})
                 img_ref = f"qc_xray/{b.day}/{c.cell_id}.png"
                 yield ("file", img_ref, data)
             qc.setdefault((b.day, b.shift), []).append(
@@ -295,6 +297,8 @@ def _pack(plan, b: Batch, group: list[Cell], pack_line, veh_line, pack_seq, pack
                       "position": j + 1})
     if day in orphan_dates and seq == 1 and pack_line == "PL1":
         cells[7]["cell_id"] = f"{group[7].batch.batch_id}9{group[7].idx:03d}X"
+        yield ("truth_fault", {"fault": "genealogy_orphan_cell", "date": day.isoformat(), "key": pack_id,
+                               "value": cells[7]["cell_id"]})
     s0, s1 = shift_window(day, b.shift, shifts)
     t_eol = s0 + timedelta(minutes=(seq * 7) % int((s1 - s0).total_seconds() // 60))
     fw = "BMS-3.4.2" if day >= d("2026-07-01") else "BMS-3.4.1"
@@ -331,8 +335,8 @@ def _pack(plan, b: Batch, group: list[Cell], pack_line, veh_line, pack_seq, pack
     rv = rng("vehicle", vin)
     vdoc = {
         "doc_type": "VEHICLE_EOL", "synthetic": True, "vin": vin, "vehicle_line": veh_line, "model": "S-4.7",
-        "eol_ts": ts(t_v), "pack_serial": pack_id, "motor_serial": f"MT{vday:%y%m%d}{seq:04d}",
-        "mcu_serial": f"MC{vday:%y%m%d}{seq:04d}", "vcu_fw": "VCU-2.8.0", "bms_fw": fw,
+        "eol_ts": ts(t_v), "pack_serial": pack_id, "motor_serial": f"MT{pack_line[-1]}{vday:%y%m%d}{seq:04d}",
+        "mcu_serial": f"MC{pack_line[-1]}{vday:%y%m%d}{seq:04d}", "vcu_fw": "VCU-2.8.0", "bms_fw": fw,
         "tests": {"functional": "PASS", "brake_n": round(rv.gauss(820, 20), 1),
                   "insulation_mohm": round(rv.gauss(480, 30), 1), "charge_handshake": "PASS"},
         "result": "PASS",

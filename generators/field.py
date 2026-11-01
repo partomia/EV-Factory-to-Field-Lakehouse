@@ -58,6 +58,17 @@ RIDER_COLS = ("RIDER_ID", "FULL_NAME", "PHONE", "EMAIL", "ADDRESS_LINE", "CITY",
               "HOME_LON", "GEOHASH5", "VIN", "REGISTRATION_NO", "DELIVERY_DATE", "DEALER_CODE", "CONSENT_MARKETING")
 
 
+def vkey(vin: str) -> str:
+    """The unique part of a VIN (line digit, EOL date, sequence); the last 9 characters repeat across lines."""
+    return vin[4] + vin[-11:]
+
+
+def registration(rto: str, vin: str) -> str:
+    """<RTO><series><4 digits>, unique per vehicle: the series counts EOL days, the digits are line and sequence."""
+    n = (date(2000 + int(vin[6:8]), int(vin[8:10]), int(vin[10:12])) - date(2026, 1, 1)).days
+    return f"{rto}{chr(65 + n // 26 % 26)}{chr(65 + n % 26)}{vin[4]}{int(vin[-5:]) % 1000:03d}"
+
+
 def _swap2(vin: str) -> str:
     """The planted VIN typo: two adjacent serial characters transposed."""
     s = list(vin)
@@ -127,13 +138,14 @@ def generate_vehicles(plan: Plan, packs: list[dict]):
             "aggressive": 1.0 if r.random() < cfg["causes"]["aggressive_share"] else 0.0,
             "daily_km": max(5.0, r.gauss(28, 8)),
         }
-        rider_id = f"RD{stable_int('rider', vin) % 10**9:09d}"
-        reg = f"{RTO[city['city']]}EV{stable_int('reg', vin) % 10**4:04d}"
+        rider_id = f"RD{vkey(vin)}"
+        reg = registration(RTO[city['city']], vin)
         dealer = f"DL-{city['city'][:3].upper()}-{stable_int('dealer', vin) % 7 + 1:02d}"
         dms_vin = vin
         if delivery in vin_typo_dates and delivery not in typo_done and pack["pack_line"] == "PL1":
             dms_vin = _swap2(vin)
             typo_done.add(delivery)
+            yield ("truth_fault", {"fault": "vin_typo", "date": delivery.isoformat(), "key": dms_vin, "value": vin})
         name = f"{r.choice(FIRST)} {r.choice(LAST)}"
         yield ("row", "dms_riders", (
             rider_id, name, f"+91-9{stable_int('ph', vin) % 10**9:09d}",
@@ -206,7 +218,7 @@ def generate_vehicles(plan: Plan, packs: list[dict]):
         for j, (when, code, desc, sev) in enumerate(sorted(dtcs)):
             if when.date() > hist_end:
                 continue
-            yield ("row", "dtc_history", (f"DTC-{vin[-9:]}-{j:03d}", vin, when.isoformat(timespec="seconds"),
+            yield ("row", "dtc_history", (f"DTC-{vkey(vin)}-{j:03d}", vin, when.isoformat(timespec="seconds"),
                                           code, desc, sev, round(profile["daily_km"] * (when.date() - delivery).days, 1),
                                           pack["bms_fw"], "LEGACY"))
 
@@ -227,7 +239,7 @@ def generate_vehicles(plan: Plan, packs: list[dict]):
                 arrival = t_ev + delay
             if arrival.date() > end:
                 continue
-            eid = f"EDR{vin[-9:]}{j:02d}"
+            eid = f"EDR{vkey(vin)}{j:02d}"
             yield ("file", f"edr/{arrival.date()}/{vin}_{eid}.edr",
                    edr_dump(vin, eid, trig, int(t_ev.timestamp() * 1000), _edr_samples(r, trig, pack, profile)))
 
@@ -248,12 +260,14 @@ def generate_vehicles(plan: Plan, packs: list[dict]):
                          "PACK INSPECTION KIT"))
         if vin in swap_vins and swap:
             other = [p for p in swap_pair if p["vin"] != vin][0]
+            if d(swap["date"]) <= end:
+                yield ("truth_fault", {"fault": "pack_swap", "date": swap["date"], "key": vin, "value": other["pack_id"]})
             jobs.append((d(swap["date"]), "PACK REPLACEMENT", "Pack swap during workshop rework",
                          f"Removed pack {pack['pack_id']}. Installed pack {other['pack_id']}.", f"PACK {other['pack_id']}"))
         for j, (day, stype, complaint, diag, parts) in enumerate(sorted(jobs)):
             if day > end:
                 continue
-            job_id = f"JC{vin[-9:]}{j:02d}"
+            job_id = f"JC{vkey(vin)}{j:02d}"
             fields = [("Job card no", job_id), ("Date", day.isoformat()), ("VIN", dms_vin), ("Registration", reg),
                       ("Odometer km", f"{profile['daily_km'] * (day - delivery).days:.0f}"), ("Service type", stype),
                       ("Service centre", dealer), ("Technician", f"T-{stable_int('tech', job_id) % 90 + 10}"),
@@ -262,6 +276,7 @@ def generate_vehicles(plan: Plan, packs: list[dict]):
             image_only = day in image_only_dates and day not in image_only_done and pack["pack_line"] == "PL1"
             if image_only:
                 image_only_done.add(day)
+                yield ("truth_fault", {"fault": "image_only_job_card", "date": day.isoformat(), "key": job_id})
                 data = scanned_pdf("Service job card", fields, sections, seed=stable_int(job_id) % 10**6)
             else:
                 data = text_pdf("Service job card", fields, sections)
@@ -281,7 +296,7 @@ def generate_vehicles(plan: Plan, packs: list[dict]):
         for j, (c_day, f_day, cat, code, pn, pdesc, hrs, amt) in enumerate(claims):
             if c_day > end:
                 continue
-            claim_id = f"WC{vin[-9:]}{j:02d}"
+            claim_id = f"WC{vkey(vin)}{j:02d}"
             yield ("row", "warranty_claims", (claim_id, vin, c_day.isoformat(), f_day.isoformat(),
                                               round(profile["daily_km"] * (f_day - delivery).days, 1), cat, code, pn,
                                               pdesc, hrs, round(amt * r.uniform(0.9, 1.1)), "SUBMITTED", dealer))
@@ -289,7 +304,7 @@ def generate_vehicles(plan: Plan, packs: list[dict]):
                 t_day = c_day + timedelta(days=r.randint(15, 35))
                 if t_day <= end:
                     cat_txt, findings = ROOT_CAUSE_TEXT[event["cause"]]
-                    doc_id = f"TD{vin[-9:]}{j:02d}"
+                    doc_id = f"TD{vkey(vin)}{j:02d}"
                     yield ("file", f"supplier_8d/{t_day}/{doc_id}.pdf", text_pdf(
                         "Field return teardown report",
                         [("Report no", doc_id), ("Report date", t_day.isoformat()), ("Report type", "TEARDOWN"),

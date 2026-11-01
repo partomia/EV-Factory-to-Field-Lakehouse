@@ -108,3 +108,48 @@ def test_label_stats_on_matured_packs():
     ]
     s = label_stats(packs)
     assert (s["matured"], s["positives"], s["by_cause"]["drift"]) == (3, 1, 1)
+
+
+def test_vehicle_ids_unique_across_lines():
+    from datetime import date, timedelta
+
+    from generators.field import registration, vkey
+
+    vins = [f"XEVS{line}K{date(2026, 2, 21) + timedelta(days=k):%y%m%d}{seq:05d}"
+            for line in (1, 2) for k in range(0, 270, 3) for seq in range(1, 120)]
+    assert len({vkey(v) for v in vins}) == len(vins)
+    assert len({registration("KA01", v) for v in vins}) == len(vins)
+
+
+def test_source_keys_unique_per_date(generated):
+    """What silver deduplicates on (contract key per business date) must be unique in what the generator writes."""
+    from collections import Counter
+
+    import evx_common as C
+    from extract.records import delimited_rows, ndjson_rows, odata_page
+
+    out, _ = generated
+    contracts = C.contracts()
+    seen = 0
+    for name, c in contracts.items():
+        pos = [2 + [col["name"] for col in c["columns"]].index(k) for k in c["key"]]
+        keys = Counter()
+        files = set(out.glob(f"{c['source']}/*/{c['file_glob']}")) | set(out.glob(f"{name}/business_date=*/part-*.csv"))
+        for f in sorted(files):
+            day = f.parent.name.replace("business_date=", "")
+            text = f.read_text()
+            if c["format"] == "odata":
+                if "_resent_" in f.name:
+                    continue
+                p = odata_page(f"{c['source']}/{day}/{f.name}", text, c)
+                rows = [(r[0], r[1], p["entity_set"], r[3]) for r in p["rows"]]
+                pos = [2, 3]
+            elif c["format"] == "ndjson":
+                rows = ndjson_rows(str(f), text, c)
+            else:
+                rows, _ = delimited_rows(f"{c['source']}/{day}/{f.name}", text, c)
+            keys.update((day,) + tuple(r[i] for i in pos) for r in rows)
+        dup = [k for k, n in keys.items() if n > 1]
+        assert not dup, f"{name}: {len(dup)} duplicate keys, e.g. {dup[:3]}"
+        seen += len(keys)
+    assert seen > 10_000

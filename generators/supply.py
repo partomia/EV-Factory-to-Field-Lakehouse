@@ -26,6 +26,9 @@ PLANT = "EV01"
 CELL_MATNR = "MAT-CELL-4680"
 
 
+MAT_INDEX = {m: i for i, m in enumerate(MATERIALS)}  # lot ids repeat their suffix across materials
+
+
 def odata_date(day: date) -> str:
     ms = int(datetime(day.year, day.month, day.day, tzinfo=timezone.utc).timestamp() * 1000)
     return f"/Date({ms})/"
@@ -71,14 +74,14 @@ def generate_supply(plan: Plan):
                                 "HSDAT": odata_date(gr_day - timedelta(days=r.randint(5, 20))),
                                 "VFDAT": odata_date(gr_day + timedelta(days=365)), "LICHA": vendor_batch})
         qty = round(r.uniform(800, 1400), 1)
-        add(gr_day, "A_MaterialDocument", {"MBLNR": f"49{stable_int('gr', lot.lot_id) % 10**8:08d}", "MJAHR": str(gr_day.year),
+        add(gr_day, "A_MaterialDocument", {"MBLNR": f"49{MAT_INDEX[lot.material]}{lot.lot_id[-5:]}00", "MJAHR": str(gr_day.year),
                                            "ZEILE": "0001", "BWART": "101", "MATNR": lot.material, "CHARG": lot.lot_id,
                                            "LIFNR": lot.vendor, "MENGE": str(qty), "MEINS": "KG",
                                            "BUDAT": odata_date(gr_day), "AUFNR": ""})
         d50 = r.gauss(9.5, 0.3)
         fe = r.gauss(17.0, 2.0) if lot.contaminated else r.gauss(8.0, 1.5)
         moist = r.gauss(180, 25)
-        insp = {"PRUEFLOS": f"89{lot.first_day:%y%m%d}{lot.lot_id[-5:]}", "CHARG": lot.lot_id, "MATNR": lot.material,
+        insp = {"PRUEFLOS": f"89{lot.first_day:%y%m%d}{MAT_INDEX[lot.material]}{lot.lot_id[-5:]}", "CHARG": lot.lot_id, "MATNR": lot.material,
                 "ART": "01", "ENSTEHDAT": odata_date(gr_day), "QM_D50_UM": f"{d50:.2f}",
                 "QM_IMPURITY_FE_PPM": f"{fe:.1f}", "VCODE": "A"}
         if schema_change and gr_day >= schema_change:

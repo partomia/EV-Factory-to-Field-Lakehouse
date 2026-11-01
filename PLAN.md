@@ -398,6 +398,11 @@ realised rate outside 8–10 % fails the calibration test.
 | 11 | Clock skew on station `VA-EOL-02` | 2026-11-09 | silver | `twin.line_event` | skew | EXPLAINED (corrected offset) |
 | 12 | Schema evolution `ZZ_MOISTURE_PPM` | 2026-11-08 | bronze | `supply.qm_lot` | contract diff | EXPLAINED (`ref.schema_change`) |
 
+**As built:** a fault keyed on a date (VIN typo, image-only job card, orphan cell, corrupt X-ray, pack swap) is
+planted once per generator partition (cell line × assembly month) that has a candidate on that date, so a date can
+carry more than one instance. Every instance is recorded in `rsingh_evx_ref.generator_truth_fault` (locally
+`_truth/truth_fault/`), and the checks compare what each layer caught with that list.
+
 An unlisted MISMATCH fails the run; a listed row that is not seen fails it too. History rows (2, 3, 5, 9) make
 the M1 guardrails visible in the M1 demo; the others belong to the M2 live dates.
 

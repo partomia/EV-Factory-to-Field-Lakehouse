@@ -27,7 +27,7 @@ import evx_common as C  # noqa: E402
 from generators.run import TABLES, as_strings, partition_records, prepare, row_date, write_manifests  # noqa: E402
 
 TRUTH_TABLES = {"truth_pack": "generator_truth_pack", "truth_batch": "generator_truth_batch",
-                "fleet": "generator_fleet"}
+                "fleet": "generator_fleet", "truth_fault": "generator_truth_fault"}
 
 
 def _records(cfg: dict):
