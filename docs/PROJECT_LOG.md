@@ -204,3 +204,18 @@
 - Lesson: an exception table created only when the exception happens is absent on a window that predates it, and a
   recon that queries it unconditionally fails before it can report anything. Skip a missing source (a fault whose
   date is inside the window still comes out MISSING) and create the empty table on every run.
+
+## 2026-11-02 00:40 IST - Factory features for pack_risk_eol on CDE
+
+- **Feature job** `rsingh-evx-uc01-features` run **1001**: succeeded, 18:58 to 19:04 UTC.
+  `features.pack_factory_v1` has 17,863 vehicles (one per current vehicle, every pack linked to 52 cells) and no
+  label columns. `gold.uc01_pack_eol_example` carries the label. Hash salt `platform` (CI uses `ci`, so a
+  laptop-built hash cannot be served). Pushed `5cdc9f0`.
+- Matured vehicles 9,658, the same count as FIR90. Positives among them: **863**, the generator's planted label
+  rate (0.0894). 1,071 vehicles have a battery event inside 90 days including those not yet matured.
+  Genealogy open: 1, the planted orphan. Local CI run: 191 rows, salt `ci`, checks passed; 38 tests pass.
+- The safety floor at EOL is 0. A powder lot is built before any vehicle from it has failed in the field, so a
+  sibling's thermal event is never known at this vehicle's EOL. Scoring will apply the floor from thermal events
+  known at the score date. It is not a feature.
+- Lesson: the shared feature table and the label live apart, and a test checks that the factory SQL names no
+  outcome table (`fact_dtc`, warranty, EDR, telematics).
