@@ -302,3 +302,18 @@
   (`7f51-ocyo-dtha-8lr5`) failed in about 30 s because the runtime has no streamlit and an application does not
   run `cdsw-build.sh`. The launcher now installs streamlit and impyla when they are missing.
 - The three dashboards are not imported yet.
+
+## 2026-11-02 13:05 IST - consumption layer: CAI docs, demo notebook, dashboards live
+
+- **README_CAI.md:** model selection before deployment (three candidates, logistic wins on OOF PR-AUC), gate checks,
+  rejection paths (stricter gate, CI salt, non-regression), and what register/deploy refuses.
+- **notebooks/cai_demo.ipynb:** Spend-style walkthrough — load champion metrics, candidate chart, gate PASS,
+  in-memory AUROC 0.90 rejection, Impala decision counts, optional `evx-uc01-service` call when keys are set.
+- **tests/test_cai_selection.py:** gate PASS on the published champion; AUROC 0.90 and PR-AUC regression reject.
+- **Semantic views** `dash_pack_risk`, `dash_supplier_batch` (`sql/semantic/20_*.sql`, `21_*.sql`) for dashboards
+  and the workbench batch page grain.
+- **dataviz/build_dashboard.py:** three dashboards imported to Data Visualization (keys 15000+, connection
+  `federal-impala-1`). `--check` passed all 19 visuals on Impala. Titles: EVX Factory Quality & Yield, EVX
+  Traceability & Containment, EVX Fleet Reliability.
+- **README.md:** pointers to PLAN, README_CAI, the notebook, workbench and dashboards.
+- Workbench URL still returns HTTP 302 (healthy without SSO).

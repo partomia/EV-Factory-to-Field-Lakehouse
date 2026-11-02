@@ -27,20 +27,6 @@ CFG = lakehouse_config()
 PREFIX = CFG.get("db_prefix", "rsingh_evx")
 GOLD, SEMANTIC = f"{PREFIX}_gold", f"{PREFIX}_semantic"
 
-
-def discover(root: Path, gold: str, semantic: str) -> list[tuple[str, object]]:
-    """(title, render) from each enabled-looking use-case page module, in path order."""
-    found = []
-    for path in sorted((root / "usecases").glob("*/app_page.py")):
-        spec = importlib.util.spec_from_file_location(f"evx_page_{path.parent.name}", path)
-        if spec is None or spec.loader is None:
-            continue
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        found.extend(mod.pages(gold, semantic))
-    return found
-
-
 _CONN = threading.local()
 
 

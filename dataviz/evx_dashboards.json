@@ -1,0 +1,622 @@
+{
+ "segments": [],
+ "staticasset": [],
+ "dashboards": [
+  {
+   "model": "reports.report",
+   "pk": 15000,
+   "fields": {
+    "report_name": "EVX Factory Quality & Yield",
+    "report_description": "README_CAI.md",
+    "dataset": 15100,
+    "workspace": 1,
+    "report_type": "dashboard",
+    "report_mode": null,
+    "dashboard_url_name": "",
+    "report_data": "{\"report_title\": \"EVX Factory Quality & Yield\", \"numColumns\": 64, \"report_subtitle\": \"Cell and pack first-pass yield from factory grading and EOL\", \"dashboard_widgets\": [{\"col\": 1, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-1-widget-15201\"}, {\"col\": 17, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-2-widget-15202\"}, {\"col\": 33, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-3-widget-15203\"}, {\"col\": 49, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-4-widget-15204\"}, {\"col\": 1, \"row\": 11, \"size_x\": 32, \"size_y\": 22, \"id\": \"uri-5-widget-15205\"}, {\"col\": 33, \"row\": 11, \"size_x\": 32, \"size_y\": 22, \"id\": \"uri-6-widget-15206\"}, {\"col\": 1, \"row\": 33, \"size_x\": 64, \"size_y\": 28, \"id\": \"uri-7-widget-15207\"}], \"dashboard_sheets\": [{\"sheet_id\": 1, \"order\": 1, \"sheet_handle_title\": \"Factory yield\", \"behaviors\": {}, \"visual_widgets\": [{\"col\": 1, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-1-widget-15201\"}, {\"col\": 17, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-2-widget-15202\"}, {\"col\": 33, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-3-widget-15203\"}, {\"col\": 49, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-4-widget-15204\"}, {\"col\": 1, \"row\": 11, \"size_x\": 32, \"size_y\": 22, \"id\": \"uri-5-widget-15205\"}, {\"col\": 33, \"row\": 11, \"size_x\": 32, \"size_y\": 22, \"id\": \"uri-6-widget-15206\"}, {\"col\": 1, \"row\": 33, \"size_x\": 64, \"size_y\": 28, \"id\": \"uri-7-widget-15207\"}], \"control_widgets\": []}], \"user_settings\": {\"dashboard_width\": \"1280\", \"display_filters\": \"true\", \"permit_csv_download_dashboard\": \"true\"}, \"global_control_widgets\": [], \"control_widgets\": [], \"click_behavior\": {}}",
+    "shared_visual_dashboards": "[]",
+    "parent_report": null,
+    "uuid": "cbc65fb4-3950-524d-8248-65dfb93c3d26",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": null
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15100,
+   "fields": {
+    "report_name": "EVX Traceability & Containment",
+    "report_description": "README_CAI.md",
+    "dataset": 15104,
+    "workspace": 1,
+    "report_type": "dashboard",
+    "report_mode": null,
+    "dashboard_url_name": "",
+    "report_data": "{\"report_title\": \"EVX Traceability & Containment\", \"numColumns\": 64, \"report_subtitle\": \"Powder lots, genealogy gaps and the champion worklist\", \"dashboard_widgets\": [{\"col\": 1, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-1-widget-15301\"}, {\"col\": 17, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-2-widget-15302\"}, {\"col\": 33, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-3-widget-15303\"}, {\"col\": 49, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-4-widget-15304\"}, {\"col\": 1, \"row\": 11, \"size_x\": 64, \"size_y\": 24, \"id\": \"uri-5-widget-15305\"}, {\"col\": 1, \"row\": 35, \"size_x\": 64, \"size_y\": 28, \"id\": \"uri-6-widget-15306\"}], \"dashboard_sheets\": [{\"sheet_id\": 1, \"order\": 1, \"sheet_handle_title\": \"Containment\", \"behaviors\": {}, \"visual_widgets\": [{\"col\": 1, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-1-widget-15301\"}, {\"col\": 17, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-2-widget-15302\"}, {\"col\": 33, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-3-widget-15303\"}, {\"col\": 49, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-4-widget-15304\"}, {\"col\": 1, \"row\": 11, \"size_x\": 64, \"size_y\": 24, \"id\": \"uri-5-widget-15305\"}, {\"col\": 1, \"row\": 35, \"size_x\": 64, \"size_y\": 28, \"id\": \"uri-6-widget-15306\"}], \"control_widgets\": []}], \"user_settings\": {\"dashboard_width\": \"1280\", \"display_filters\": \"true\", \"permit_csv_download_dashboard\": \"true\"}, \"global_control_widgets\": [], \"control_widgets\": [], \"click_behavior\": {}}",
+    "shared_visual_dashboards": "[]",
+    "parent_report": null,
+    "uuid": "2bac444a-1808-5c14-b057-7d8adf409052",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": null
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15200,
+   "fields": {
+    "report_name": "EVX Fleet Reliability",
+    "report_description": "README_CAI.md",
+    "dataset": 15102,
+    "workspace": 1,
+    "report_type": "dashboard",
+    "report_mode": null,
+    "dashboard_url_name": "",
+    "report_data": "{\"report_title\": \"EVX Fleet Reliability\", \"numColumns\": 64, \"report_subtitle\": \"Field incident rate within 90 days in service\", \"dashboard_widgets\": [{\"col\": 1, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-1-widget-15401\"}, {\"col\": 17, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-2-widget-15402\"}, {\"col\": 33, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-3-widget-15403\"}, {\"col\": 1, \"row\": 11, \"size_x\": 32, \"size_y\": 22, \"id\": \"uri-4-widget-15404\"}, {\"col\": 33, \"row\": 11, \"size_x\": 32, \"size_y\": 22, \"id\": \"uri-5-widget-15405\"}, {\"col\": 1, \"row\": 33, \"size_x\": 64, \"size_y\": 28, \"id\": \"uri-6-widget-15406\"}], \"dashboard_sheets\": [{\"sheet_id\": 1, \"order\": 1, \"sheet_handle_title\": \"Field reliability\", \"behaviors\": {}, \"visual_widgets\": [{\"col\": 1, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-1-widget-15401\"}, {\"col\": 17, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-2-widget-15402\"}, {\"col\": 33, \"row\": 1, \"size_x\": 16, \"size_y\": 10, \"id\": \"uri-3-widget-15403\"}, {\"col\": 1, \"row\": 11, \"size_x\": 32, \"size_y\": 22, \"id\": \"uri-4-widget-15404\"}, {\"col\": 33, \"row\": 11, \"size_x\": 32, \"size_y\": 22, \"id\": \"uri-5-widget-15405\"}, {\"col\": 1, \"row\": 33, \"size_x\": 64, \"size_y\": 28, \"id\": \"uri-6-widget-15406\"}], \"control_widgets\": []}], \"user_settings\": {\"dashboard_width\": \"1280\", \"display_filters\": \"true\", \"permit_csv_download_dashboard\": \"true\"}, \"global_control_widgets\": [], \"control_widgets\": [], \"click_behavior\": {}}",
+    "shared_visual_dashboards": "[]",
+    "parent_report": null,
+    "uuid": "3df6383c-cc05-5ff0-b407-9cc94ed33ff2",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": null
+   }
+  }
+ ],
+ "appgroupmembership": [],
+ "reportannotation": [],
+ "events": [],
+ "customcss": [],
+ "reportimage": [],
+ "dateranges": [],
+ "visuals": [
+  {
+   "model": "reports.report",
+   "pk": 15201,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Factory Quality & Yield / Factory yield",
+    "dataset": 15100,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Cells graded\", \"report_subtitle\": \"\", \"dashboard_id\": 15000, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"sum([cells_graded])\", \"expression_for_trigger\": \"sum([cells_graded])\", \"expr_hasagg\": true, \"col_alias\": \"Cells\", \"dataset_colname\": \"Cells\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"sum([cells_graded]) as 'sub:Cells'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "465d0e18-a5a2-5143-94c9-0b76abf22bec",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15202,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Factory Quality & Yield / Factory yield",
+    "dataset": 15100,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Cell first-pass yield\", \"report_subtitle\": \"\", \"dashboard_id\": 15000, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"round(100 * sum([cells_first_pass]) / sum([cells_graded]), 1)\", \"expression_for_trigger\": \"round(100 * sum([cells_first_pass]) / sum([cells_graded]), 1)\", \"expr_hasagg\": true, \"col_alias\": \"FPY %\", \"dataset_colname\": \"FPY %\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"round(100 * sum([cells_first_pass]) / sum([cells_graded]), 1) as 'sub:FPY %'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "dd1f9bba-68bf-55ac-8d03-425c6d0412be",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15203,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Factory Quality & Yield / Factory yield",
+    "dataset": 15101,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Packs tested\", \"report_subtitle\": \"\", \"dashboard_id\": 15000, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"sum([packs_tested])\", \"expression_for_trigger\": \"sum([packs_tested])\", \"expr_hasagg\": true, \"col_alias\": \"Packs\", \"dataset_colname\": \"Packs\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"sum([packs_tested]) as 'sub:Packs'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "8e0e64c1-3b06-56f8-bdc1-1efdacef28e1",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15204,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Factory Quality & Yield / Factory yield",
+    "dataset": 15101,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Pack first-pass yield\", \"report_subtitle\": \"\", \"dashboard_id\": 15000, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"round(100 * sum([packs_first_pass]) / sum([packs_tested]), 1)\", \"expression_for_trigger\": \"round(100 * sum([packs_first_pass]) / sum([packs_tested]), 1)\", \"expr_hasagg\": true, \"col_alias\": \"FPY %\", \"dataset_colname\": \"FPY %\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"round(100 * sum([packs_first_pass]) / sum([packs_tested]), 1) as 'sub:FPY %'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "b79fce6b-cd2f-574f-9ea1-0b8bec48efc5",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15205,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Factory Quality & Yield / Factory yield",
+    "dataset": 15100,
+    "workspace": 1,
+    "report_type": "trellis-lines",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Cell FPY by production date\", \"report_subtitle\": \"\", \"dashboard_id\": 15000, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"x_shelf\": [{\"dataset_colname\": \"production_date\", \"dataset_coltype\": \"DATE\", \"expression_for_trigger\": \"[production_date]\", \"col_alias\": \"Date\"}], \"y_shelf\": [{\"custom_expr\": \"avg([fpy])\", \"expression_for_trigger\": \"avg([fpy])\", \"expr_hasagg\": true, \"col_alias\": \"FPY\", \"dataset_colname\": \"FPY\", \"dataset_coltype\": \"DOUBLE\"}], \"color_shelf\": [], \"tooltip_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"trellis-lines\", \"saved_shelf_sources\": {\"[production_date] as 'sub:Date'\": \"x_shelf\", \"avg([fpy]) as 'sub:FPY'\": \"y_shelf\"}, \"shelves\": [{\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"color_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"trellis-lines\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "63cc9131-4ad3-51e6-b868-afe2b635eb1e",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15206,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Factory Quality & Yield / Factory yield",
+    "dataset": 15101,
+    "workspace": 1,
+    "report_type": "trellis-lines",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Pack FPY by production date\", \"report_subtitle\": \"\", \"dashboard_id\": 15000, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"x_shelf\": [{\"dataset_colname\": \"production_date\", \"dataset_coltype\": \"DATE\", \"expression_for_trigger\": \"[production_date]\", \"col_alias\": \"Date\"}], \"y_shelf\": [{\"custom_expr\": \"avg([fpy])\", \"expression_for_trigger\": \"avg([fpy])\", \"expr_hasagg\": true, \"col_alias\": \"FPY\", \"dataset_colname\": \"FPY\", \"dataset_coltype\": \"DOUBLE\"}], \"color_shelf\": [], \"tooltip_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"trellis-lines\", \"saved_shelf_sources\": {\"[production_date] as 'sub:Date'\": \"x_shelf\", \"avg([fpy]) as 'sub:FPY'\": \"y_shelf\"}, \"shelves\": [{\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"color_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"trellis-lines\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "e07dfdd3-3cf8-51ec-9572-df26062eb0c8",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15207,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Factory Quality & Yield / Factory yield",
+    "dataset": 15100,
+    "workspace": 1,
+    "report_type": "table",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Cell FPY by line and shift (latest week)\", \"report_subtitle\": \"\", \"dashboard_id\": 15000, \"limit\": 500, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [{\"dataset_colname\": \"production_date\", \"dataset_coltype\": \"DATE\", \"expression_for_trigger\": \"[production_date]\", \"col_alias\": \"Date\", \"order\": {\"priority\": 1, \"ascending\": true}}, {\"dataset_colname\": \"line\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[line]\", \"col_alias\": \"Line\"}, {\"dataset_colname\": \"shift\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[shift]\", \"col_alias\": \"Shift\"}, {\"dataset_colname\": \"formation_station\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[formation_station]\", \"col_alias\": \"Station\"}], \"aggregates_shelf\": [{\"custom_expr\": \"sum([cells_graded])\", \"expression_for_trigger\": \"sum([cells_graded])\", \"expr_hasagg\": true, \"col_alias\": \"Graded\", \"dataset_colname\": \"Graded\", \"dataset_coltype\": \"DOUBLE\", \"order\": {\"priority\": 1, \"ascending\": false}}, {\"custom_expr\": \"sum([cells_first_pass])\", \"expression_for_trigger\": \"sum([cells_first_pass])\", \"expr_hasagg\": true, \"col_alias\": \"First pass\", \"dataset_colname\": \"First pass\", \"dataset_coltype\": \"DOUBLE\"}, {\"custom_expr\": \"avg([fpy])\", \"expression_for_trigger\": \"avg([fpy])\", \"expr_hasagg\": true, \"col_alias\": \"FPY\", \"dataset_colname\": \"FPY\", \"dataset_coltype\": \"DOUBLE\"}], \"filters_shelf\": [], \"core\": {\"viz_type\": \"table\", \"saved_shelf_sources\": {\"[production_date] as 'sub:Date'\": \"dimensions_shelf\", \"[line] as 'sub:Line'\": \"dimensions_shelf\", \"[shift] as 'sub:Shift'\": \"dimensions_shelf\", \"[formation_station] as 'sub:Station'\": \"dimensions_shelf\", \"sum([cells_graded]) as 'sub:Graded'\": \"aggregates_shelf\", \"sum([cells_first_pass]) as 'sub:First pass'\": \"aggregates_shelf\", \"avg([fpy]) as 'sub:FPY'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"table\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "aff180af-0060-59ea-b753-bf62b40746d7",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15301,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Traceability & Containment / Containment",
+    "dataset": 15101,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Packs with open genealogy\", \"report_subtitle\": \"\", \"dashboard_id\": 15100, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"sum([packs_genealogy_open])\", \"expression_for_trigger\": \"sum([packs_genealogy_open])\", \"expr_hasagg\": true, \"col_alias\": \"Open\", \"dataset_colname\": \"Open\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"sum([packs_genealogy_open]) as 'sub:Open'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "4bafbe2c-c04b-5909-bf40-69082388708a",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15302,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Traceability & Containment / Containment",
+    "dataset": 15104,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Worklist vehicles\", \"report_subtitle\": \"\", \"dashboard_id\": 15100, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"sum(CASE WHEN [decision] = 'WORKLIST' THEN 1 ELSE 0 END)\", \"expression_for_trigger\": \"sum(CASE WHEN [decision] = 'WORKLIST' THEN 1 ELSE 0 END)\", \"expr_hasagg\": true, \"col_alias\": \"Worklist\", \"dataset_colname\": \"Worklist\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"sum(CASE WHEN [decision] = 'WORKLIST' THEN 1 ELSE 0 END) as 'sub:Worklist'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "e565d0e9-4706-52c6-a6f1-c4cd5dd55bda",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15303,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Traceability & Containment / Containment",
+    "dataset": 15104,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Safety-floor vehicles\", \"report_subtitle\": \"\", \"dashboard_id\": 15100, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"sum([safety_floor])\", \"expression_for_trigger\": \"sum([safety_floor])\", \"expr_hasagg\": true, \"col_alias\": \"Safety floor\", \"dataset_colname\": \"Safety floor\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"sum([safety_floor]) as 'sub:Safety floor'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "4d98c013-d4fa-5fa2-9d73-cae90ceca063",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15304,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Traceability & Containment / Containment",
+    "dataset": 15104,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Abstained (band or OOD)\", \"report_subtitle\": \"\", \"dashboard_id\": 15100, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"sum(CASE WHEN [decision] = 'ABSTAIN' THEN 1 ELSE 0 END)\", \"expression_for_trigger\": \"sum(CASE WHEN [decision] = 'ABSTAIN' THEN 1 ELSE 0 END)\", \"expr_hasagg\": true, \"col_alias\": \"Abstain\", \"dataset_colname\": \"Abstain\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"sum(CASE WHEN [decision] = 'ABSTAIN' THEN 1 ELSE 0 END) as 'sub:Abstain'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "a1fbb0cf-7c45-5216-8047-84836cb15497",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15305,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Traceability & Containment / Containment",
+    "dataset": 15105,
+    "workspace": 1,
+    "report_type": "trellis-bars",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Vehicles by powder lot (top 25 by worklist)\", \"report_subtitle\": \"\", \"dashboard_id\": 15100, \"limit\": 25, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"x_shelf\": [{\"dataset_colname\": \"supplier_batch\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[supplier_batch]\", \"col_alias\": \"Powder lot\", \"order\": {\"priority\": 1, \"ascending\": true}}], \"y_shelf\": [{\"custom_expr\": \"sum([vehicles])\", \"expression_for_trigger\": \"sum([vehicles])\", \"expr_hasagg\": true, \"col_alias\": \"Vehicles\", \"dataset_colname\": \"Vehicles\", \"dataset_coltype\": \"DOUBLE\"}, {\"custom_expr\": \"sum([worklist_vehicles])\", \"expression_for_trigger\": \"sum([worklist_vehicles])\", \"expr_hasagg\": true, \"col_alias\": \"Worklist\", \"dataset_colname\": \"Worklist\", \"dataset_coltype\": \"DOUBLE\"}, {\"custom_expr\": \"sum([safety_floor_vehicles])\", \"expression_for_trigger\": \"sum([safety_floor_vehicles])\", \"expr_hasagg\": true, \"col_alias\": \"Safety floor\", \"dataset_colname\": \"Safety floor\", \"dataset_coltype\": \"DOUBLE\"}], \"color_shelf\": [], \"tooltip_shelf\": [], \"drill_shelf\": [], \"label_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"trellis-bars\", \"saved_shelf_sources\": {\"[supplier_batch] as 'sub:Powder lot'\": \"x_shelf\", \"sum([vehicles]) as 'sub:Vehicles'\": \"y_shelf\", \"sum([worklist_vehicles]) as 'sub:Worklist'\": \"y_shelf\", \"sum([safety_floor_vehicles]) as 'sub:Safety floor'\": \"y_shelf\"}, \"shelves\": [{\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"color_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"drill_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"trellis-bars\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "2ffe67f4-d2b6-5982-99a0-2ac06855fc51",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15306,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Traceability & Containment / Containment",
+    "dataset": 15104,
+    "workspace": 1,
+    "report_type": "table",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Highest-risk vehicles (worklist and safety floor)\", \"report_subtitle\": \"\", \"dashboard_id\": 15100, \"limit\": 200, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [{\"dataset_colname\": \"vin\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[vin]\", \"col_alias\": \"VIN\"}, {\"dataset_colname\": \"pack_serial\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[pack_serial]\", \"col_alias\": \"Pack\"}, {\"dataset_colname\": \"decision\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[decision]\", \"col_alias\": \"Decision\"}, {\"dataset_colname\": \"reason\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[reason]\", \"col_alias\": \"Reason\"}, {\"dataset_colname\": \"priority\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[priority]\", \"col_alias\": \"Priority\"}], \"aggregates_shelf\": [{\"custom_expr\": \"max([score])\", \"expression_for_trigger\": \"max([score])\", \"expr_hasagg\": true, \"col_alias\": \"Score\", \"dataset_colname\": \"Score\", \"dataset_coltype\": \"DOUBLE\", \"order\": {\"priority\": 1, \"ascending\": false}}], \"filters_shelf\": [{\"custom_expr\": \"[decision] IN ('WORKLIST', 'SAFETY_FLOOR')\", \"expression_for_trigger\": \"[decision] IN ('WORKLIST', 'SAFETY_FLOOR')\", \"filter_input\": {}, \"filter_data\": [], \"dataset_colname\": \"\", \"dataset_coltype\": \"STRING\", \"filter_column\": \"\"}], \"core\": {\"viz_type\": \"table\", \"saved_shelf_sources\": {\"[vin] as 'sub:VIN'\": \"dimensions_shelf\", \"[pack_serial] as 'sub:Pack'\": \"dimensions_shelf\", \"[decision] as 'sub:Decision'\": \"dimensions_shelf\", \"[reason] as 'sub:Reason'\": \"dimensions_shelf\", \"[priority] as 'sub:Priority'\": \"dimensions_shelf\", \"max([score]) as 'sub:Score'\": \"aggregates_shelf\", \"[decision] IN ('WORKLIST', 'SAFETY_FLOOR')\": \"filters_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"table\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "3d60a105-ba42-518c-80f3-4ee076bf8cb1",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15401,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Fleet Reliability / Field reliability",
+    "dataset": 15102,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Matured vehicles\", \"report_subtitle\": \"\", \"dashboard_id\": 15200, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"sum([vehicles_matured])\", \"expression_for_trigger\": \"sum([vehicles_matured])\", \"expr_hasagg\": true, \"col_alias\": \"Matured\", \"dataset_colname\": \"Matured\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"sum([vehicles_matured]) as 'sub:Matured'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "dbd64403-55e6-5afd-a67b-c3d34a6e085c",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15402,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Fleet Reliability / Field reliability",
+    "dataset": 15102,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Battery claims in 90 days\", \"report_subtitle\": \"\", \"dashboard_id\": 15200, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"sum([vehicles_failed])\", \"expression_for_trigger\": \"sum([vehicles_failed])\", \"expr_hasagg\": true, \"col_alias\": \"Failed\", \"dataset_colname\": \"Failed\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"sum([vehicles_failed]) as 'sub:Failed'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "7643015c-d3c5-5a88-a63d-bbd33d85b248",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15403,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Fleet Reliability / Field reliability",
+    "dataset": 15102,
+    "workspace": 1,
+    "report_type": "kpi",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"FIR90 per 1,000\", \"report_subtitle\": \"\", \"dashboard_id\": 15200, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [], \"aggregates_shelf\": [{\"custom_expr\": \"round(1000 * sum([vehicles_failed]) / sum([vehicles_matured]), 2)\", \"expression_for_trigger\": \"round(1000 * sum([vehicles_failed]) / sum([vehicles_matured]), 2)\", \"expr_hasagg\": true, \"col_alias\": \"FIR90\", \"dataset_colname\": \"FIR90\", \"dataset_coltype\": \"DOUBLE\"}], \"compare_shelf\": [], \"label_shelf\": [], \"tooltip_shelf\": [], \"x_shelf\": [], \"y_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"kpi\", \"saved_shelf_sources\": {\"round(1000 * sum([vehicles_failed]) / sum([vehicles_matured]), 2) as 'sub:FIR90'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"compare_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"kpi\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "ce350847-3493-5503-a7b7-677f2c3ace74",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15404,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Fleet Reliability / Field reliability",
+    "dataset": 15102,
+    "workspace": 1,
+    "report_type": "trellis-bars",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"FIR90 by build week\", \"report_subtitle\": \"\", \"dashboard_id\": 15200, \"limit\": 1000, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"x_shelf\": [{\"dataset_colname\": \"build_week\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[build_week]\", \"col_alias\": \"Build week\"}], \"y_shelf\": [{\"custom_expr\": \"avg([fir90_per_1000])\", \"expression_for_trigger\": \"avg([fir90_per_1000])\", \"expr_hasagg\": true, \"col_alias\": \"FIR90 per 1k\", \"dataset_colname\": \"FIR90 per 1k\", \"dataset_coltype\": \"DOUBLE\"}], \"color_shelf\": [], \"tooltip_shelf\": [], \"drill_shelf\": [], \"label_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"trellis-bars\", \"saved_shelf_sources\": {\"[build_week] as 'sub:Build week'\": \"x_shelf\", \"avg([fir90_per_1000]) as 'sub:FIR90 per 1k'\": \"y_shelf\"}, \"shelves\": [{\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"color_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"drill_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"trellis-bars\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "4d3f4362-80aa-53b3-a63c-ac1e02b87851",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15405,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Fleet Reliability / Field reliability",
+    "dataset": 15103,
+    "workspace": 1,
+    "report_type": "trellis-bars",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"FIR90 by supplier batch (top 20 lots)\", \"report_subtitle\": \"\", \"dashboard_id\": 15200, \"limit\": 20, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"x_shelf\": [{\"dataset_colname\": \"supplier_batch\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[supplier_batch]\", \"col_alias\": \"Powder lot\", \"order\": {\"priority\": 1, \"ascending\": true}}], \"y_shelf\": [{\"custom_expr\": \"avg([fir90_per_1000])\", \"expression_for_trigger\": \"avg([fir90_per_1000])\", \"expr_hasagg\": true, \"col_alias\": \"FIR90 per 1k\", \"dataset_colname\": \"FIR90 per 1k\", \"dataset_coltype\": \"DOUBLE\"}], \"color_shelf\": [], \"tooltip_shelf\": [], \"drill_shelf\": [], \"label_shelf\": [], \"filters_shelf\": [], \"core\": {\"viz_type\": \"trellis-bars\", \"saved_shelf_sources\": {\"[supplier_batch] as 'sub:Powder lot'\": \"x_shelf\", \"avg([fir90_per_1000]) as 'sub:FIR90 per 1k'\": \"y_shelf\"}, \"shelves\": [{\"name\": \"x_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"y_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"color_shelf\", \"shelf_type\": 1, \"column_type\": 3}, {\"name\": \"tooltip_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"drill_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"label_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"trellis-bars\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "8c8c9610-5662-53e7-a0c0-dd2f85247f47",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  },
+  {
+   "model": "reports.report",
+   "pk": 15406,
+   "fields": {
+    "report_name": "",
+    "report_description": "EVX Fleet Reliability / Field reliability",
+    "dataset": 15103,
+    "workspace": 1,
+    "report_type": "table",
+    "report_mode": "",
+    "dashboard_url_name": "",
+    "report_data": "{\"report_data\": {\"report_title\": \"Supplier batches ranked by FIR90\", \"report_subtitle\": \"\", \"dashboard_id\": 15200, \"limit\": 40, \"sample_pct\": \"Off\", \"selected_segments\": [], \"report_derived_data\": [], \"click_behaviors\": {}, \"sort_orders_asc\": {}, \"user_settings\": {}, \"dimensions_shelf\": [{\"dataset_colname\": \"supplier_batch\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[supplier_batch]\", \"col_alias\": \"Powder lot\"}, {\"dataset_colname\": \"batch_status\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[batch_status]\", \"col_alias\": \"Status\"}, {\"dataset_colname\": \"supplier_id\", \"dataset_coltype\": \"STRING\", \"expression_for_trigger\": \"[supplier_id]\", \"col_alias\": \"Supplier\"}], \"aggregates_shelf\": [{\"custom_expr\": \"sum([vehicles_matured])\", \"expression_for_trigger\": \"sum([vehicles_matured])\", \"expr_hasagg\": true, \"col_alias\": \"Matured\", \"dataset_colname\": \"Matured\", \"dataset_coltype\": \"DOUBLE\", \"order\": {\"priority\": 1, \"ascending\": false}}, {\"custom_expr\": \"sum([vehicles_failed])\", \"expression_for_trigger\": \"sum([vehicles_failed])\", \"expr_hasagg\": true, \"col_alias\": \"Failed\", \"dataset_colname\": \"Failed\", \"dataset_coltype\": \"DOUBLE\"}, {\"custom_expr\": \"avg([fir90_per_1000])\", \"expression_for_trigger\": \"avg([fir90_per_1000])\", \"expr_hasagg\": true, \"col_alias\": \"FIR90 per 1k\", \"dataset_colname\": \"FIR90 per 1k\", \"dataset_coltype\": \"DOUBLE\"}], \"filters_shelf\": [], \"core\": {\"viz_type\": \"table\", \"saved_shelf_sources\": {\"[supplier_batch] as 'sub:Powder lot'\": \"dimensions_shelf\", \"[batch_status] as 'sub:Status'\": \"dimensions_shelf\", \"[supplier_id] as 'sub:Supplier'\": \"dimensions_shelf\", \"sum([vehicles_matured]) as 'sub:Matured'\": \"aggregates_shelf\", \"sum([vehicles_failed]) as 'sub:Failed'\": \"aggregates_shelf\", \"avg([fir90_per_1000]) as 'sub:FIR90 per 1k'\": \"aggregates_shelf\"}, \"shelves\": [{\"name\": \"dimensions_shelf\", \"shelf_type\": 1, \"column_type\": 1}, {\"name\": \"aggregates_shelf\", \"shelf_type\": 1, \"column_type\": 2}, {\"name\": \"filters_shelf\", \"shelf_type\": 2, \"column_type\": 3}]}}, \"report_type\": \"table\"}",
+    "shared_visual_dashboards": null,
+    "parent_report": null,
+    "uuid": "7ea42fc7-47bb-5ec0-8110-a4c310f1cfc4",
+    "imported_uuid": null,
+    "has_css_styles": false,
+    "report_search_text": ""
+   }
+  }
+ ],
+ "colorpalette": [],
+ "appgroups": [],
+ "datasets": [
+  {
+   "model": "datasets.dataset",
+   "pk": 15100,
+   "fields": {
+    "dataconnection": 2,
+    "dataset_name": "EVX - Cell FPY",
+    "dataset_type": "singletable",
+    "dataset_detail": "rsingh_evx_semantic.kpi_fpy_cell",
+    "dataset_description": "rsingh_evx_semantic.kpi_fpy_cell (sql/semantic)",
+    "dataset_info": "[{\"tablename\": \"rsingh_evx_semantic.kpi_fpy_cell\", \"columns\": [{\"alias\": \"production_date\", \"type\": \"DATE\", \"name\": \"production_date\", \"isdim\": true}, {\"alias\": \"line\", \"type\": \"STRING\", \"name\": \"line\", \"isdim\": true}, {\"alias\": \"shift\", \"type\": \"STRING\", \"name\": \"shift\", \"isdim\": true}, {\"alias\": \"formation_station\", \"type\": \"STRING\", \"name\": \"formation_station\", \"isdim\": true}, {\"alias\": \"cells_graded\", \"type\": \"BIGINT\", \"name\": \"cells_graded\", \"isdim\": false}, {\"alias\": \"cells_first_pass\", \"type\": \"BIGINT\", \"name\": \"cells_first_pass\", \"isdim\": false}, {\"alias\": \"fpy\", \"type\": \"DOUBLE\", \"name\": \"fpy\", \"isdim\": false}, {\"alias\": \"cells_without_xray\", \"type\": \"BIGINT\", \"name\": \"cells_without_xray\", \"isdim\": false}]}]",
+    "dataset_tablenames": "[\"rsingh_evx_semantic.kpi_fpy_cell\"]",
+    "uuid": "0924cfec-e037-5f61-bb93-1c0b5048fcf6",
+    "imported_uuid": null,
+    "cache_sequence": 0,
+    "dataset_settings": "{}",
+    "search_enabled": false,
+    "dashboards": [
+     15000
+    ],
+    "version_id": 15100,
+    "version_group_id": 15100,
+    "is_active_version": true,
+    "version_name": "evx-factory-to-field",
+    "is_named_version": false
+   }
+  },
+  {
+   "model": "datasets.dataset",
+   "pk": 15101,
+   "fields": {
+    "dataconnection": 2,
+    "dataset_name": "EVX - Pack FPY",
+    "dataset_type": "singletable",
+    "dataset_detail": "rsingh_evx_semantic.kpi_fpy_pack",
+    "dataset_description": "rsingh_evx_semantic.kpi_fpy_pack (sql/semantic)",
+    "dataset_info": "[{\"tablename\": \"rsingh_evx_semantic.kpi_fpy_pack\", \"columns\": [{\"alias\": \"production_date\", \"type\": \"DATE\", \"name\": \"production_date\", \"isdim\": true}, {\"alias\": \"pack_line\", \"type\": \"STRING\", \"name\": \"pack_line\", \"isdim\": true}, {\"alias\": \"shift\", \"type\": \"STRING\", \"name\": \"shift\", \"isdim\": true}, {\"alias\": \"wb_station\", \"type\": \"STRING\", \"name\": \"wb_station\", \"isdim\": true}, {\"alias\": \"packs_tested\", \"type\": \"BIGINT\", \"name\": \"packs_tested\", \"isdim\": false}, {\"alias\": \"packs_first_pass\", \"type\": \"BIGINT\", \"name\": \"packs_first_pass\", \"isdim\": false}, {\"alias\": \"fpy\", \"type\": \"DOUBLE\", \"name\": \"fpy\", \"isdim\": false}, {\"alias\": \"packs_genealogy_open\", \"type\": \"BIGINT\", \"name\": \"packs_genealogy_open\", \"isdim\": false}]}]",
+    "dataset_tablenames": "[\"rsingh_evx_semantic.kpi_fpy_pack\"]",
+    "uuid": "12258d18-15ee-54c0-aa60-916566022f21",
+    "imported_uuid": null,
+    "cache_sequence": 0,
+    "dataset_settings": "{}",
+    "search_enabled": false,
+    "dashboards": [
+     15000,
+     15100
+    ],
+    "version_id": 15101,
+    "version_group_id": 15101,
+    "is_active_version": true,
+    "version_name": "evx-factory-to-field",
+    "is_named_version": false
+   }
+  },
+  {
+   "model": "datasets.dataset",
+   "pk": 15102,
+   "fields": {
+    "dataconnection": 2,
+    "dataset_name": "EVX - FIR90 by build week",
+    "dataset_type": "singletable",
+    "dataset_detail": "rsingh_evx_semantic.kpi_fir90_build_week",
+    "dataset_description": "rsingh_evx_semantic.kpi_fir90_build_week (sql/semantic)",
+    "dataset_info": "[{\"tablename\": \"rsingh_evx_semantic.kpi_fir90_build_week\", \"columns\": [{\"alias\": \"build_week\", \"type\": \"STRING\", \"name\": \"build_week\", \"isdim\": true}, {\"alias\": \"vehicles_matured\", \"type\": \"BIGINT\", \"name\": \"vehicles_matured\", \"isdim\": false}, {\"alias\": \"vehicles_failed\", \"type\": \"BIGINT\", \"name\": \"vehicles_failed\", \"isdim\": false}, {\"alias\": \"fir90_per_1000\", \"type\": \"DOUBLE\", \"name\": \"fir90_per_1000\", \"isdim\": false}]}]",
+    "dataset_tablenames": "[\"rsingh_evx_semantic.kpi_fir90_build_week\"]",
+    "uuid": "4deac2c9-6467-56b6-9d1f-27a33c602631",
+    "imported_uuid": null,
+    "cache_sequence": 0,
+    "dataset_settings": "{}",
+    "search_enabled": false,
+    "dashboards": [
+     15200
+    ],
+    "version_id": 15102,
+    "version_group_id": 15102,
+    "is_active_version": true,
+    "version_name": "evx-factory-to-field",
+    "is_named_version": false
+   }
+  },
+  {
+   "model": "datasets.dataset",
+   "pk": 15103,
+   "fields": {
+    "dataconnection": 2,
+    "dataset_name": "EVX - FIR90 by supplier batch",
+    "dataset_type": "singletable",
+    "dataset_detail": "rsingh_evx_semantic.kpi_fir90_supplier_batch",
+    "dataset_description": "rsingh_evx_semantic.kpi_fir90_supplier_batch (sql/semantic)",
+    "dataset_info": "[{\"tablename\": \"rsingh_evx_semantic.kpi_fir90_supplier_batch\", \"columns\": [{\"alias\": \"supplier_batch\", \"type\": \"STRING\", \"name\": \"supplier_batch\", \"isdim\": true}, {\"alias\": \"supplier_id\", \"type\": \"STRING\", \"name\": \"supplier_id\", \"isdim\": true}, {\"alias\": \"vendor_batch\", \"type\": \"STRING\", \"name\": \"vendor_batch\", \"isdim\": true}, {\"alias\": \"batch_status\", \"type\": \"STRING\", \"name\": \"batch_status\", \"isdim\": true}, {\"alias\": \"vehicles_matured\", \"type\": \"BIGINT\", \"name\": \"vehicles_matured\", \"isdim\": false}, {\"alias\": \"vehicles_failed\", \"type\": \"BIGINT\", \"name\": \"vehicles_failed\", \"isdim\": false}, {\"alias\": \"fir90_per_1000\", \"type\": \"DOUBLE\", \"name\": \"fir90_per_1000\", \"isdim\": false}]}]",
+    "dataset_tablenames": "[\"rsingh_evx_semantic.kpi_fir90_supplier_batch\"]",
+    "uuid": "9a6d2a38-ad43-5e90-96d4-97d218028d86",
+    "imported_uuid": null,
+    "cache_sequence": 0,
+    "dataset_settings": "{}",
+    "search_enabled": false,
+    "dashboards": [
+     15200
+    ],
+    "version_id": 15103,
+    "version_group_id": 15103,
+    "is_active_version": true,
+    "version_name": "evx-factory-to-field",
+    "is_named_version": false
+   }
+  },
+  {
+   "model": "datasets.dataset",
+   "pk": 15104,
+   "fields": {
+    "dataconnection": 2,
+    "dataset_name": "EVX - Pack risk decisions",
+    "dataset_type": "singletable",
+    "dataset_detail": "rsingh_evx_semantic.dash_pack_risk",
+    "dataset_description": "rsingh_evx_semantic.dash_pack_risk (sql/semantic)",
+    "dataset_info": "[{\"tablename\": \"rsingh_evx_semantic.dash_pack_risk\", \"columns\": [{\"alias\": \"vin\", \"type\": \"STRING\", \"name\": \"vin\", \"isdim\": true}, {\"alias\": \"pack_serial\", \"type\": \"STRING\", \"name\": \"pack_serial\", \"isdim\": true}, {\"alias\": \"score\", \"type\": \"DOUBLE\", \"name\": \"score\", \"isdim\": false}, {\"alias\": \"decision\", \"type\": \"STRING\", \"name\": \"decision\", \"isdim\": true}, {\"alias\": \"reason\", \"type\": \"STRING\", \"name\": \"reason\", \"isdim\": true}, {\"alias\": \"priority\", \"type\": \"STRING\", \"name\": \"priority\", \"isdim\": true}, {\"alias\": \"model_action\", \"type\": \"STRING\", \"name\": \"model_action\", \"isdim\": true}, {\"alias\": \"safety_floor\", \"type\": \"BIGINT\", \"name\": \"safety_floor\", \"isdim\": true}, {\"alias\": \"genealogy_open\", \"type\": \"BIGINT\", \"name\": \"genealogy_open\", \"isdim\": true}, {\"alias\": \"ood_flag\", \"type\": \"TINYINT\", \"name\": \"ood_flag\", \"isdim\": true}]}]",
+    "dataset_tablenames": "[\"rsingh_evx_semantic.dash_pack_risk\"]",
+    "uuid": "96ea9a53-aeaf-5805-b28b-d7f54f83d750",
+    "imported_uuid": null,
+    "cache_sequence": 0,
+    "dataset_settings": "{}",
+    "search_enabled": false,
+    "dashboards": [
+     15100
+    ],
+    "version_id": 15104,
+    "version_group_id": 15104,
+    "is_active_version": true,
+    "version_name": "evx-factory-to-field",
+    "is_named_version": false
+   }
+  },
+  {
+   "model": "datasets.dataset",
+   "pk": 15105,
+   "fields": {
+    "dataconnection": 2,
+    "dataset_name": "EVX - Supplier batch containment",
+    "dataset_type": "singletable",
+    "dataset_detail": "rsingh_evx_semantic.dash_supplier_batch",
+    "dataset_description": "rsingh_evx_semantic.dash_supplier_batch (sql/semantic)",
+    "dataset_info": "[{\"tablename\": \"rsingh_evx_semantic.dash_supplier_batch\", \"columns\": [{\"alias\": \"supplier_batch\", \"type\": \"STRING\", \"name\": \"supplier_batch\", \"isdim\": true}, {\"alias\": \"batch_status\", \"type\": \"STRING\", \"name\": \"batch_status\", \"isdim\": true}, {\"alias\": \"supplier_id\", \"type\": \"STRING\", \"name\": \"supplier_id\", \"isdim\": true}, {\"alias\": \"cells\", \"type\": \"BIGINT\", \"name\": \"cells\", \"isdim\": false}, {\"alias\": \"packs\", \"type\": \"BIGINT\", \"name\": \"packs\", \"isdim\": false}, {\"alias\": \"vehicles\", \"type\": \"BIGINT\", \"name\": \"vehicles\", \"isdim\": false}, {\"alias\": \"worklist_vehicles\", \"type\": \"BIGINT\", \"name\": \"worklist_vehicles\", \"isdim\": false}, {\"alias\": \"safety_floor_vehicles\", \"type\": \"BIGINT\", \"name\": \"safety_floor_vehicles\", \"isdim\": false}]}]",
+    "dataset_tablenames": "[\"rsingh_evx_semantic.dash_supplier_batch\"]",
+    "uuid": "954b332d-63a9-521b-a314-093bd964805c",
+    "imported_uuid": null,
+    "cache_sequence": 0,
+    "dataset_settings": "{}",
+    "search_enabled": false,
+    "dashboards": [
+     15100
+    ],
+    "version_id": 15105,
+    "version_group_id": 15105,
+    "is_active_version": true,
+    "version_name": "evx-factory-to-field",
+    "is_named_version": false
+   }
+  }
+ ],
+ "version": {
+  "Arcviz Version": "8.1.4.1000",
+  "Raw Timestamp of last commit": "1789380895",
+  "Timestamp of last commit": "Mon Sep 14 12:14:55 2026 +0200",
+  "SHA of last commit": "f57d558a7dcd7cda432e8fffd9d3c1fc60cdfad9",
+  "Description": "8.1.4.1000-4"
+ }
+}
