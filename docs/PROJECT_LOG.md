@@ -361,3 +361,5 @@
 - CAI job **evx-walkthrough-check** (`gyh5-1h8i-p29z-v6xx`), script **`ci/run_walkthrough.py`**: Impala SQL
   for both workbenches passes on the project kernel; log at **`outputs/walkthrough.log`**. First run failed
   on gitignored `metrics.json`; fixed to use tracked **`baseline.json`** only on CAI.
+- Sync **8pzgir6rynll3cz4** (→ **`e3fc8cc`**). Walkthrough run **fmxb1ej5mhp8s7us** **ENGINE_SUCCEEDED**:
+  all Impala checks pass; **`outputs/walkthrough.log`** on the project.
