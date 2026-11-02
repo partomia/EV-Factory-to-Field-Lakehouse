@@ -342,3 +342,13 @@
 - Pushed **`64dfc37`**. Sync job **evx-uc01-00-sync-code** run **uv3m2g0n3tblcrvo** succeeded (~325 s,
   project at `64dfc37`). CAI job **stop-evx-project** created (`f8xt-2tvp-mlxy-igtq`). Live check:
   both workbench apps running, model `evx-uc01-service` deployed.
+
+## 2026-11-02 15:25 IST - M1 walkthrough pass and OGX skill structural update #1
+
+- **`scripts/m1_walkthrough_check.py`**: automated walkthrough — HTTP 200 on both workbench URLs; all quality
+  and vision Impala SQL; 19/19 dashboard visuals; decision counts 17,863; champion logistic. Results in
+  **`docs/M1_WALKTHROUGH_RESULTS.md`**.
+- **OGX skill** (`tools/cursor-skills/cloudera-usecase-builder/`): M1 structural update — EVX in reference table,
+  two entry modes, milestone workflow, resource/model rules, **`lakehouse-backbone.md`**, expanded **`templates.md`**
+  (consumers, platform resources, approval ceilings), EVX lessons in **`reference.md`**. Symlink:
+  `~/.cursor/skills/cloudera-usecase-builder`.

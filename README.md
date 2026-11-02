@@ -13,5 +13,6 @@ Synthetic EV battery factory-to-field lakehouse on Cloudera (CDE, Impala, CAI, D
 | Sync CAI project from git | `python ci/setup_cai.py` then job `evx-uc01-00-sync-code` |
 | M1 presenter runbook | [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md) |
 | Start / stop the live demo | `python scripts/platform_ctl.py status` then `start` or `stop` |
+| M1 walkthrough check (Impala + CDV) | `.venv/bin/python scripts/m1_walkthrough_check.py` — [results](docs/M1_WALKTHROUGH_RESULTS.md) |
 
 Data is synthetic. Do not present it as a customer's production data.
