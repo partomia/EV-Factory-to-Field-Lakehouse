@@ -219,3 +219,20 @@
   known at the score date. It is not a feature.
 - Lesson: the shared feature table and the label live apart, and a test checks that the factory SQL names no
   outcome table (`fact_dtc`, warranty, EDR, telematics).
+
+## 2026-11-02 08:30 IST - pack_risk_eol trained; the gate passes
+
+- Feature rebuild **1016** (02:50 to 02:55 UTC) replaced the X-ray and film features. The first version used the
+  sampled image's pixel overhang and joined film rows on cell id, and neither moved. The inspection score does:
+  X-ray score max separates the overhang cause (AUROC 0.94) and the batch film score separates drift (0.99).
+  K-value separates contamination (0.99) and minimum wire-bond pull separates the weak bond (0.97). Usage, 395 of
+  the 863 positives, has no factory trace.
+- **Train** on the 9,657 matured packs with complete genealogy (the one orphan abstains). Split by majority cell
+  batch, latest 196 batches are TEST (1,983 packs, 217 positives), 785 batches are TRAIN (7,675 packs, 646
+  positives, at least 122 in each of 5 folds). Mixed packs 9.6 %. Every planted cause has positives on both sides.
+- Out-of-fold PR-AUC: logistic 0.263, histogram gradient boosting 0.212, LightGBM 0.210. **Logistic wins.**
+  AUROC 0.695, PR-AUC lift 3.13 over the 8.4 % base rate, calibration error 0.006. The gate passes
+  (`usecases/uc01_pack_risk/baseline.json`, schema hash `576d28e42713`). Worklist threshold 0.139 (top 10 % of
+  calibrated out-of-fold scores), abstain band down to 0.051. The model file stays in
+  `outputs/uc01/pack_risk_eol/` and is not in git. A CI-salt run cannot be deployed: the hash salt differs.
+- Pushed `a31733a`.

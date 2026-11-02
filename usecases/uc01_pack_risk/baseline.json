@@ -1,0 +1,10 @@
+{
+  "winner": "logistic",
+  "oof_pr_auc": 0.26339936227627064,
+  "oof_auroc": 0.6948894165568827,
+  "oof_pr_lift": 3.1293964480965593,
+  "oof_ece": 0.006358535733974128,
+  "schema_hash": "576d28e42713c9f5ea833489f86585815e31e2b5eeb6c8bc9a9b3b6c9e007feb",
+  "hash_salt": "platform",
+  "feature_set": "pack_factory_v1"
+}

@@ -6,7 +6,8 @@ uc01 factory features at vehicle EOL, and the training example that carries the 
   gold.uc01_pack_eol_example     the same row plus the label and the safety floor.
 
 Features: grading spread across the pack's cells (capacity, IR, K-value), a robust formation
-z-score against the cell's own batch median, X-ray and film failures, wire-bond minimum pull,
+z-score against the cell's own batch median, the X-ray overhang score (mean and max) and the
+batch's film-inspection score, wire-bond minimum pull,
 the supplier batch's quality status in the SCD2 version valid at eol_ts, station and shift.
 The Isolation Forest on formation summaries is fit in the train step, on TRAIN batches only.
 
