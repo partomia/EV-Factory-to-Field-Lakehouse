@@ -31,7 +31,7 @@ NUMERIC = [
     "wb_pull_min_g", "n_linked", "n_graded", "n_grade_missing", "genealogy_open",
     "cap_mean", "cap_std", "cap_p10", "cap_p90", "ir_mean", "ir_p90", "k_mean", "k_p90",
     "n_reject", "n_grade_b", "ce_mean", "ce_std", "formation_z_max",
-    "n_xray_fail", "n_film_fail", "overhang_mean", "batch_suspect",
+    "n_xray_fail", "n_film_fail", "overhang_mean", "overhang_max", "film_score_max", "batch_suspect",
 ]
 FEATURE_COLUMNS = CATEGORICAL + NUMERIC
 # Field outcomes. The factory query must not name these tables (tests/test_uc01_features.py).
@@ -54,22 +54,24 @@ ce_mad AS (
     FROM {g}.fact_cell_grading c JOIN ce_med m ON c.batch_id = m.batch_id
     WHERE c.ce IS NOT NULL GROUP BY m.batch_id, m.ce_med
 ),
-qc_cell AS (
-    SELECT cell_id,
-           max(CASE WHEN inspection = 'XRAY' AND verdict = 'FAIL' THEN 1 ELSE 0 END) AS xray_fail,
-           max(CASE WHEN inspection = 'FILM' AND verdict = 'FAIL' THEN 1 ELSE 0 END) AS film_fail,
-           max(CASE WHEN inspection = 'XRAY' THEN overhang_px END) AS overhang_px
-    FROM {g}.fact_qc_inspection GROUP BY cell_id
+xray AS (
+    SELECT cell_id, max(CASE WHEN verdict = 'FAIL' THEN 1 ELSE 0 END) AS xray_fail, max(score) AS overhang
+    FROM {g}.fact_qc_inspection WHERE inspection = 'XRAY' GROUP BY cell_id
+),
+film AS (
+    SELECT batch_id, max(score) AS film_score, sum(CASE WHEN verdict = 'FAIL' THEN 1 ELSE 0 END) AS film_fail
+    FROM {g}.fact_qc_inspection WHERE inspection = 'FILM' GROUP BY batch_id
 ),
 cells AS (
     SELECT g.pack_serial, c.capacity_ah, c.ir_mohm, c.k_value_mv_day, c.ce, c.grade, c.powder_lot,
            CASE WHEN c.ce IS NULL OR m.ce_mad IS NULL OR m.ce_mad = 0 THEN 0.0
                 ELSE abs(c.ce - m.ce_med) / m.ce_mad END AS formation_z,
-           coalesce(q.xray_fail, 0) AS xray_fail, coalesce(q.film_fail, 0) AS film_fail, q.overhang_px
+           coalesce(q.xray_fail, 0) AS xray_fail, q.overhang, f.film_score, coalesce(f.film_fail, 0) AS film_fail
     FROM {g}.bridge_genealogy g
     LEFT JOIN {g}.fact_cell_grading c ON c.cell_id = g.cell_id
     LEFT JOIN ce_mad m ON m.batch_id = c.batch_id
-    LEFT JOIN qc_cell q ON q.cell_id = g.cell_id
+    LEFT JOIN xray q ON q.cell_id = g.cell_id
+    LEFT JOIN film f ON f.batch_id = c.batch_id
 ),
 pack_cells AS (
     SELECT pack_serial, count(*) AS n_linked, count(capacity_ah) AS n_graded,
@@ -80,7 +82,8 @@ pack_cells AS (
            sum(CASE WHEN grade = 'REJECT' THEN 1 ELSE 0 END) AS n_reject,
            sum(CASE WHEN grade = 'B' THEN 1 ELSE 0 END) AS n_grade_b,
            avg(ce) AS ce_mean, stddev_samp(ce) AS ce_std, max(formation_z) AS formation_z_max,
-           sum(xray_fail) AS n_xray_fail, sum(film_fail) AS n_film_fail, avg(overhang_px) AS overhang_mean
+           sum(xray_fail) AS n_xray_fail, max(film_fail) AS n_film_fail, avg(overhang) AS overhang_mean,
+           max(overhang) AS overhang_max, max(film_score) AS film_score_max
     FROM cells GROUP BY pack_serial
 ),
 powder AS (
@@ -111,7 +114,8 @@ SELECT v.vin, v.pack_serial, v.eol_date AS as_of, v.eol_ts, v.in_service_date, p
        c.cap_mean, coalesce(c.cap_std, 0) AS cap_std, c.cap_p10, c.cap_p90, c.ir_mean, c.ir_p90,
        c.k_mean, c.k_p90, coalesce(c.n_reject, 0) AS n_reject, coalesce(c.n_grade_b, 0) AS n_grade_b,
        c.ce_mean, coalesce(c.ce_std, 0) AS ce_std, coalesce(c.formation_z_max, 0) AS formation_z_max,
-       coalesce(c.n_xray_fail, 0) AS n_xray_fail, coalesce(c.n_film_fail, 0) AS n_film_fail, c.overhang_mean,
+       coalesce(c.n_xray_fail, 0) AS n_xray_fail, coalesce(c.n_film_fail, 0) AS n_film_fail,
+       c.overhang_mean, c.overhang_max, c.film_score_max,
        coalesce(b.quality_status, 'UNKNOWN') AS batch_status,
        CASE WHEN b.quality_status = 'SUSPECT' THEN 1 ELSE 0 END AS batch_suspect
 FROM veh v

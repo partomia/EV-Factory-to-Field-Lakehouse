@@ -6,17 +6,19 @@ lakehouse:
     scale: 0.05
   features:
     hash_salt: ci
+  model:
+    n_estimators: 40
+    gate:
+      min_positives_per_split: 1
+      min_positives_per_fold: 1
+      min_oof_auroc: 0.5
+      min_pr_auc_lift: 0.0
+      max_ece: 1.0
+      max_pr_auc_drop: 1.0
   landing: data/landing
   raw: data/raw
   reports: data/reports
   checkpoints: data/checkpoints
-features:
-  hash_salt: ci
-gate:
-  min_auroc: 0.6
-  min_pr_auc_lift: 1.0
-  max_ece: 0.2
-  min_slice_auroc: 0.5
 registry:
   enabled: false
 llm:

@@ -2,6 +2,22 @@
   "_comment": "Synthetic EV factory-to-field universe and lakehouse names. Every value here is synthetic, chosen from public specs where noted, and never the customer's data. scale multiplies the build rate (--scale); CI uses config/ci.yaml (scale 0.05).",
   "db_prefix": "rsingh_evx",
   "features": {"hash_salt": "platform"},
+  "model": {
+    "test_fraction": 0.2,
+    "folds": 5,
+    "worklist_fraction": 0.1,
+    "abstain_fraction": 0.2,
+    "n_estimators": 200,
+    "gate": {
+      "min_positives_per_split": 100,
+      "min_positives_per_fold": 100,
+      "min_oof_auroc": 0.65,
+      "min_pr_auc_lift": 1.5,
+      "max_ece": 0.08,
+      "max_pr_auc_drop": 0.02,
+      "mixed_pack_max": 0.15
+    }
+  },
   "seed": 20261101,
   "brand_default": "EVX Mobility",
   "landing": "s3a://federal-buk-574bcea0/data/IB/rsingh_evx/landing",
