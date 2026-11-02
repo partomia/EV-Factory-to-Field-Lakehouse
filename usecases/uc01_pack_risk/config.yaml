@@ -5,3 +5,4 @@ enabled: true
 head: pack_risk_eol
 feature_table: pack_factory_v1
 example_table: uc01_pack_eol_example
+score_table: uc01_pack_risk_score

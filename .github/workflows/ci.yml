@@ -41,6 +41,8 @@ jobs:
           python scripts/run_local.py --stages uc01_features
           # CI scale has no vehicle matured for 90 days, so the gate records SKIPPED and writes nothing deployable
           python -m usecases.uc01_pack_risk.train --source spark
+          # CI salt is not platform, so scoring refuses to load a model and records SKIPPED
+          python -m usecases.uc01_pack_risk.score
           python scripts/check_local.py bronze extract silver master gold
           python scripts/run_semantic.py --engine spark
           python scripts/run_local.py --stages recon --from 2026-09-01 --to 2026-09-16
