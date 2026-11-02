@@ -11,5 +11,7 @@ Synthetic EV battery factory-to-field lakehouse on Cloudera (CDE, Impala, CAI, D
 | Vision & documents workbench (images, EDR) | subdomain `evx-vision` — `app/launch_vision_app.py` |
 | Dashboards (Factory, Traceability, Fleet) | `dataviz/build_dashboard.py` |
 | Sync CAI project from git | `python ci/setup_cai.py` then job `evx-uc01-00-sync-code` |
+| M1 presenter runbook | [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md) |
+| Start / stop the live demo | `python scripts/platform_ctl.py status` then `start` or `stop` |
 
 Data is synthetic. Do not present it as a customer's production data.

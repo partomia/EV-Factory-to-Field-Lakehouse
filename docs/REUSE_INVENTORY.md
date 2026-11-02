@@ -66,7 +66,7 @@ Status: **verified read-only 2026-11-01** = checked against the live platform or
 | `cde/jobs/build_outcomes.py` → `cde/jobs/outcomes.py` | CXR | risk-ranked vs claim-driven replay, TTC, `daily_model_summary` | planned (phase 10) |
 | `gate/kpi_gate.py`, `features/feature_logic.py` hash, `serve/deploy_champion.py` | OGX | → `mlcore/` | planned (phase 7) |
 | `guardrails/*`, `config/guardrails.yaml` | OGX | EVX guardrails (section 10 of PLAN.md) | planned (phase 7, 10) |
-| `scripts/platform_ctl.py`, `config/platform.json`, `.cursor/rules/project-start-stop.mdc` | OGX | EVX names, `resources` block | planned (phase 2) |
+| `scripts/platform_ctl.py`, `config/platform.json`, `.cursor/rules/project-start-stop.mdc`, `ci/project_stop.py` | OGX | EVX names, two apps, `resources` block, `stop-evx-project` | adapted |
 | `scripts/run_local.py`, `scripts/run_semantic.py`, `scripts/governance.py` | OGX | EVX names, `--steps readiness` | planned (phase 2, 5) |
 | `dataviz/build_dashboard.py` | OGX | keys 15000+, per-use-case blocks | planned (phase 8) |
 | `nifi/deploy_flow.py` | OGX | `EVX - Alert Router` | planned (phase 9) |

@@ -1,0 +1,37 @@
+---
+description: How to start, stop or check the whole EVX project on Cloudera (scripts/platform_ctl.py)
+alwaysApply: true
+---
+
+# Starting and stopping the project
+
+When asked to start, stop, pause, resume or check the project (or "bring the demo up/down"),
+use `scripts/platform_ctl.py` from the repo root. Never improvise with raw API calls first.
+
+```bash
+set -a; source .env; set +a                        # credentials; never print them
+python scripts/platform_ctl.py status                # always first: show the user the state
+python scripts/platform_ctl.py stop --dry-run        # show the plan
+python scripts/platform_ctl.py stop                  # or: start
+python scripts/platform_ctl.py status                # always last: confirm every layer
+```
+
+- Default scope `project` touches only this demo (`config/platform.json`): CAI apps
+  **EVX Quality and Reliability Workbench** and **EVX Vision and Documents Workbench**, model
+  `evx-uc01-service`, CAI jobs whose names start with `evx-`, CDE `rsingh-evx-*` runs and the
+  nightly DAG schedule, NiFi group **EVX - Alert Router** (M2). Data, Kafka topics and
+  checkpoints are kept, so start resumes without gaps.
+- `--only cai,cde,nifi` limits layers. `--scope platform --yes-shared` also stops or starts the
+  shared Data Hubs (Kafka, NiFi, Flink), CDW `federal-impala-1`, CDE VC and the CAI workspace:
+  sibling demos use them, so ask the user explicitly before using it, every time.
+- CAI schedules are stopped by clearing the cron (API v2 ignores `paused`); start sets the crons
+  from `config/platform.json`. Read the state back; do not trust a 200.
+- `start` does not run the telemetry producer or unpause the DAG. Live stream for a demo:
+  `cde job run --name rsingh-evx-stream-produce --arg=--setup --arg=--dates --arg=2026-11-06`.
+  Nightly DAG: `cde/dags/evx_dag.py` window ends 2026-11-09 23:30 UTC; move dates before
+  resuming the schedule, then `./cde/scripts/deploy_dag.sh`.
+- Model endpoint restart takes ~1–3 min, each app ~30 s. Sync code after git push:
+  `python ci/setup_cai.py --run evx-uc01-00-sync-code`.
+- Scheduled one-off stop: CAI job `stop-evx-project` (`ci/project_stop.py`), schedule cleared;
+  set a dated cron to use it again.
+- Afterwards add a short entry to `docs/PROJECT_LOG.md` and update the README status line.

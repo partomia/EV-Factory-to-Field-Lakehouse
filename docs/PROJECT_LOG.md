@@ -317,3 +317,25 @@
   Traceability & Containment, EVX Fleet Reliability.
 - **README.md:** pointers to PLAN, README_CAI, the notebook, workbench and dashboards.
 - Workbench URL still returns HTTP 302 (healthy without SSO).
+
+## 2026-11-02 14:50 IST - CAI git sync and vision workbench
+
+- **ci/sync_code.py** (from OGX/Spend): `git fetch` + `reset --hard origin/main`, requirements hash install.
+  Job **evx-uc01-00-sync-code** (`eiud-f2y2-gtnx-w8k3`) run succeeded; project at **`9e48376`** (`outputs/git_sha.txt`).
+  **`notebooks/cai_demo.ipynb`** is on the project for notebook testing.
+- **ci/push_files.py**: laptop upload of tracked files when sync cannot run first (OGX pattern).
+- Second CAI application **EVX Vision and Documents Workbench** (`g1z8-ehs7-xdvz-jogt`), subdomain
+  **`evx-vision`**, script `app/launch_vision_app.py`, status running. Pages: Cell X-ray viewer, Film defect
+  gallery, EDR event replay (`usecases/uc01_pack_risk/media_page.py`). Semantic view **`media_xray`** (39,698 rows).
+
+## 2026-11-02 15:10 IST - M1 ops: platform_ctl, demo runbook, stop job
+
+- **`config/platform.json`**: project scope (two CAI apps, `evx-uc01-service`, `rsingh-evx-*` CDE jobs,
+  NiFi group name for M2), platform shared services, resource defaults/ceilings from PLAN section 18.
+- **`scripts/platform_ctl.py`** (from OGX): `status` / `stop` / `start`, project scope by default;
+  `--scope platform --yes-shared` for Data Hubs, CDW, CDE VC and CAI workspace. NiFi skipped until
+  `nifi/deploy_flow.py` exists.
+- **`ci/project_stop.py`** + CAI job **`stop-evx-project`**: one-off scheduled stop (`--only cai,nifi`),
+  clears its own cron after run.
+- **`.cursor/rules/project-start-stop.mdc`** and **`docs/DEMO_RUNBOOK.md`**: ~20-minute M1 walkthrough
+  (workbenches, dashboards, notebook, guardrails, `platform_ctl stop` at end).

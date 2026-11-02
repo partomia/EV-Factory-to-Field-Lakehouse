@@ -12,4 +12,6 @@ JOBS = [
      "cpu": 2, "memory": 8, "timeout": 3600, "schedule": None, "env": {}},
     {"name": "evx-uc01-05-register-deploy", "script": "ci/register_deploy.py", "parent": None,
      "cpu": 1, "memory": 4, "timeout": 5400, "schedule": None, "env": {}},
+    {"name": "stop-evx-project", "script": "ci/project_stop.py", "parent": None,
+     "cpu": 1, "memory": 4, "timeout": 3600, "schedule": None, "env": {}},
 ]
