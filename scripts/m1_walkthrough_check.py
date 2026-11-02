@@ -167,15 +167,19 @@ def check_cai_notebook_artifacts() -> None:
     metrics = ROOT / "outputs" / "uc01" / "pack_risk_eol" / "metrics.json"
     baseline = ROOT / "usecases" / "uc01_pack_risk" / "baseline.json"
     nb = ROOT / "notebooks" / "cai_demo.ipynb"
-    if metrics.is_file() and baseline.is_file():
-        m = json.loads(metrics.read_text())
-        b = json.loads(baseline.read_text())
-        if m.get("winner") == b.get("winner") == "logistic":
-            ok("Champion metrics + baseline", f"winner logistic, schema {b.get('schema_hash', '')[:12]}")
-        else:
-            bad("Champion alignment", "winner mismatch")
+    if not baseline.is_file():
+        bad("Champion baseline", "usecases/uc01_pack_risk/baseline.json missing")
     else:
-        bad("Champion files", "metrics.json or baseline.json missing locally")
+        b = json.loads(baseline.read_text())
+        detail = f"winner {b.get('winner')}, schema {str(b.get('schema_hash', ''))[:12]}"
+        if metrics.is_file():
+            m = json.loads(metrics.read_text())
+            if m.get("winner") == b.get("winner") == "logistic":
+                ok("Champion metrics + baseline", detail)
+            else:
+                bad("Champion alignment", "winner mismatch")
+        else:
+            ok("Champion baseline (git)", f"{detail}; metrics.json is laptop-only")
     if nb.is_file() and nb.stat().st_size > 5000:
         ok("cai_demo.ipynb", f"{nb.stat().st_size // 1024} KB")
     else:

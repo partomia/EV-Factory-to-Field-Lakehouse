@@ -10,7 +10,8 @@ Synthetic EV battery factory-to-field lakehouse on Cloudera (CDE, Impala, CAI, D
 | Quality workbench (Streamlit on CAI) | subdomain `evx-workbench` on the federal CAI workspace |
 | Vision & documents workbench (images, EDR) | subdomain `evx-vision` — `app/launch_vision_app.py` |
 | Dashboards (Factory, Traceability, Fleet) | `dataviz/build_dashboard.py` |
-| Sync CAI project from git | `python ci/setup_cai.py` then job `evx-uc01-00-sync-code` |
+| Sync CAI project from git | `python ci/setup_cai.py --run evx-uc01-00-sync-code` |
+| M1 walkthrough on CAI | `python ci/setup_cai.py --run evx-walkthrough-check` → `outputs/walkthrough.log` |
 | M1 presenter runbook | [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md) |
 | Start / stop the live demo | `python scripts/platform_ctl.py status` then `start` or `stop` |
 | M1 walkthrough check (Impala + CDV) | `.venv/bin/python scripts/m1_walkthrough_check.py` — [results](docs/M1_WALKTHROUGH_RESULTS.md) |

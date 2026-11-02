@@ -350,5 +350,14 @@
   **`docs/M1_WALKTHROUGH_RESULTS.md`**.
 - **OGX skill** (`tools/cursor-skills/cloudera-usecase-builder/`): M1 structural update — EVX in reference table,
   two entry modes, milestone workflow, resource/model rules, **`lakehouse-backbone.md`**, expanded **`templates.md`**
-  (consumers, platform resources, approval ceilings), EVX lessons in **`reference.md`**. Symlink:
+  (consumers, platform resources, approval ceilings), EVX lessons in   **`reference.md`**. Symlink:
   `~/.cursor/skills/cloudera-usecase-builder`.
+
+## 2026-11-02 15:32 IST - CAI sync and on-project walkthrough job
+
+- Sync runs **szu0p5sztw0plyvg** (→ `50f4993`), **z7xf0mdbttdw0au6** (→ `862724c`), **ge77ur3wvsn0usbn**
+  (→ `46d9eb1`). Project files verified: `scripts/m1_walkthrough_check.py`, `notebooks/cai_demo.ipynb`,
+  `outputs/git_sha.txt`.
+- CAI job **evx-walkthrough-check** (`gyh5-1h8i-p29z-v6xx`), script **`ci/run_walkthrough.py`**: Impala SQL
+  for both workbenches passes on the project kernel; log at **`outputs/walkthrough.log`**. First run failed
+  on gitignored `metrics.json`; fixed to use tracked **`baseline.json`** only on CAI.

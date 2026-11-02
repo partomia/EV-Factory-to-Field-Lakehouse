@@ -54,3 +54,13 @@ set -a; source .env; set +a
 4. Optional: one `evx-uc01-service` predict call from the notebook last cell.
 
 Follow [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) for narrative and timings (~20 min).
+
+## On CAI (after sync)
+
+```bash
+python3 ci/setup_cai.py --run evx-uc01-00-sync-code
+python3 ci/setup_cai.py --run evx-walkthrough-check
+```
+
+Job **`evx-walkthrough-check`** runs **`ci/run_walkthrough.py`** (Impala checks + notebook/baseline; HTTP and
+CDV `--check` run from the laptop). Results: **`outputs/walkthrough.log`** on the project.
