@@ -80,19 +80,27 @@ def wait(fn, ok: set, what: str, timeout: int) -> str:
     raise RuntimeError(f"{what} timed out after {timeout}s")
 
 
+def choose_runtime(candidates: list[tuple[str, str]], full: str | None, pinned: str) -> str:
+    """Pick the model image. `full` is the short release (ML_RUNTIME_FULL_VERSION), shared by every
+    runtime in that release, so the last match can be Scala. Use the pinned Python image when it is listed."""
+    images = [img for _, img in candidates if img]
+    if pinned in images or not full:
+        return pinned
+    python = [img for ver, img in candidates if ver == full and "python3.11" in img and "standard" in img and "cuda" not in img]
+    jupyter = [img for img in python if "jupyterlab" in img]
+    return (jupyter or python or [pinned])[-1]
+
+
 def _runtime(client) -> str:
     full = os.environ.get("ML_RUNTIME_FULL_VERSION")
-    if not full:
-        return RUNTIME
     try:
         resp = client.list_runtimes(page_size=100)
-        found = list(resp.runtimes or [])
-        exact = [r for r in found if getattr(r, "full_version", None) == full]
-        if exact:
-            return exact[-1].image_identifier
+        found = [(getattr(r, "full_version", "") or "", getattr(r, "image_identifier", "") or "")
+                 for r in (resp.runtimes or [])]
     except Exception as e:  # noqa: BLE001
         print(f"runtime lookup failed ({type(e).__name__}); using the pinned image", flush=True)
-    return RUNTIME
+        return RUNTIME
+    return choose_runtime(found, full, RUNTIME)
 
 
 def _deployment_after_deadline(client, pid, model_id, build_id):

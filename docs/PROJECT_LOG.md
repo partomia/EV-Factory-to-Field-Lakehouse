@@ -255,3 +255,25 @@
   `/scores/`. Run 1018 committed the score table and then failed the audit: `publish()` only accepts its
   declared transform types, and the write happens before that check. Run 1019 used `enrich` and succeeded.
 - Pushed `ecd0636`, `0dae11e`.
+
+## 2026-11-02 11:00 IST - pack_risk_eol registered and deployed
+
+- CAI project `rsingh-ev-factory-to-field` (private, from the public git URL). Registry model
+  `evx-uc01-pack-risk-eol` version 1, experiment `evx-uc01`. The same MLflow run does not create another version.
+  `ref.model_event` is still unwritten: the promotion job is the writer, and that job does not exist yet.
+- Service `evx-uc01-service` is deployed at 1 vCPU / 2 GB (build `d96b378c`, deployment `737799a5`, Python 3.11).
+  One call for VIN `XEVS1K26052000026` returned ABSTAIN / `abstain_band` / score 0.0513 / schema `576d28e42713` /
+  `action` NONE, the same row as `gold.uc01_pack_risk_score`.
+- The first builds used the PBJ Scala 2.12 workbench. `ML_RUNTIME_FULL_VERSION` is the short release
+  `2026.08.1-b5`, shared by every image in that release, and the last match was Scala. A 2 GB replica of that
+  image failed in about 30 s; a 4 GB one stayed `deploying` with `updated_at` advancing. The Python 3.11 image
+  deploys at the default 1 / 2. The runtime picker now keeps the pinned Python image.
+- The first Python replica stayed up and answered `No module named 'joblib'`. The job's pip install lands in
+  `~/.local`, which the model image does not use, and a build with no `cdsw-build.sh` finishes without installing
+  `requirements-model.txt`. `cdsw-build.sh` now installs those pinned wheels.
+- Sibling CAI resources stopped so this replica could be placed (owner approval, 2026-11-01). Applications:
+  Churn Retention Console, Churn Data Visualization, Spend Analytics Application - Live, OGX Integrity Workbench,
+  MCC Motor Claim Copilot. Model deployments: `credit-risk-model` (4 / 8), `churn-scorer` (4 / 16),
+  `spend-scorer` (4 / 16), `mcc-approval` (1 / 2). `spend-persona-registry` (1 / 2) was left deployed.
+  The CPU group `mlcpu-d697` was not resized (1 of 10 m5.2xlarge nodes). Restart the sibling apps and models
+  when this session no longer needs the quota.
