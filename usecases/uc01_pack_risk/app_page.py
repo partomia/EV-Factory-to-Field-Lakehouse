@@ -12,6 +12,14 @@ def lit(value) -> str:
     return "'" + str(value).replace("'", "") + "'"
 
 
+def _show_frame(st, frame) -> None:
+    """st.dataframe needs a pyarrow build that matches the runtime numpy; st.table always works."""
+    try:
+        st.dataframe(frame, use_container_width=True, hide_index=True)
+    except ImportError:
+        st.table(frame)
+
+
 def latest_scores(gold: str) -> str:
     """The newest score date. Impala rejects a scalar subquery in a JOIN's ON clause."""
     return (f"(SELECT * FROM {gold}.uc01_pack_risk_score "
@@ -165,20 +173,20 @@ def _render_worklist(q, gold: str, semantic: str) -> None:
     choice = st.selectbox("Decision", ["WORKLIST", "SAFETY_FLOOR", "ABSTAIN", "CLEAR", "all"])
     frame = q(worklist_sql(gold, semantic, order, None if choice == "all" else choice))
     st.caption(f"{len(frame)} vehicles. action is NONE on every row.")
-    st.dataframe(frame, use_container_width=True, hide_index=True)
+    _show_frame(st, frame)
 
 
 def _render_containment(q, gold: str, semantic: str) -> None:
     import streamlit as st
 
     batches = q(batches_sql(gold, semantic))
-    st.dataframe(batches, use_container_width=True, hide_index=True)
+    _show_frame(st, batches)
     if batches.empty:
         return
     batch = st.selectbox("Powder lot", list(batches["supplier_batch"]))
     row = batches.loc[batches["supplier_batch"] == batch].iloc[0].to_dict()
     st.info(explain_batch(row))
-    st.dataframe(q(batch_vehicles_sql(gold, semantic, batch)), use_container_width=True, hide_index=True)
+    _show_frame(st, q(batch_vehicles_sql(gold, semantic, batch)))
 
 
 def _render_pack(q, gold: str, semantic: str) -> None:
@@ -193,25 +201,25 @@ def _render_pack(q, gold: str, semantic: str) -> None:
     if vehicle.empty:
         st.warning("No current vehicle with that VIN.")
         return
-    st.dataframe(vehicle, use_container_width=True, hide_index=True)
+    _show_frame(st, vehicle)
     pack = str(vehicle.iloc[0]["pack_serial"])
     left, right = st.columns(2)
     left.subheader("Genealogy")
-    left.dataframe(q(genealogy_sql(gold, pack)), use_container_width=True, hide_index=True)
+    _show_frame(left, q(genealogy_sql(gold, pack)))
     right.subheader("Cell grading spread")
-    right.dataframe(q(grading_sql(gold, pack)), use_container_width=True, hide_index=True)
+    _show_frame(right, q(grading_sql(gold, pack)))
     st.subheader("X-ray verdicts and the extracted defect box")
     st.caption("The box is the field extracted from the image. The PNG stays in the landing zone.")
-    st.dataframe(q(xray_sql(gold, pack)), use_container_width=True, hide_index=True)
+    _show_frame(st, q(xray_sql(gold, pack)))
     st.subheader("Warranty claims")
-    st.dataframe(q(claims_sql(gold, vin)), use_container_width=True, hide_index=True)
+    _show_frame(st, q(claims_sql(gold, vin)))
     st.subheader("EDR events")
-    st.dataframe(q(edr_sql(gold, vin)), use_container_width=True, hide_index=True)
+    _show_frame(st, q(edr_sql(gold, vin)))
     trend = q(telemetry_sql(gold, vin))
     st.subheader("Daily telemetry")
     if not trend.empty:
         st.line_chart(trend, x="summary_date", y=["cell_t_max_c", "soc_max"])
-    st.dataframe(trend, use_container_width=True, hide_index=True)
+    _show_frame(st, trend)
 
 
 def pages(gold: str, semantic: str):

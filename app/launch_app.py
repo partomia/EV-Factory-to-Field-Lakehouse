@@ -34,21 +34,28 @@ def _note(msg: str) -> None:
         pass
 
 
+def _packages_ok() -> bool:
+    """st.dataframe needs pyarrow; recent pyarrow releases require numpy 2.x, which this runtime lacks."""
+    try:
+        import impala.dbapi  # noqa: F401
+        import pyarrow  # noqa: F401
+        import streamlit  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 def _ensure_app_packages() -> None:
     """The runtime has no streamlit. A model build's cdsw-build.sh does not run for an application."""
-    try:
-        import streamlit  # noqa: F401
-        import impala.dbapi  # noqa: F401
+    if _packages_ok():
         return
-    except ImportError:
-        pass
-    _note("pip install streamlit and impyla")
+    _note("pip install streamlit, impyla and pyarrow<18 (matches runtime numpy 1.26)")
     code = subprocess.call(
         [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--only-binary=:all:",
-         "streamlit>=1.32", "impyla==0.21.0"],
+         "--upgrade", "pyarrow>=14,<18", "pandas", "streamlit>=1.32", "impyla==0.21.0"],
         cwd=ROOT)
     _note(f"pip exit {code}")
-    if code != 0:
+    if code != 0 or not _packages_ok():
         raise SystemExit("pip install of the workbench packages failed")
 
 
