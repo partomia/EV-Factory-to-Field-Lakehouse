@@ -260,7 +260,7 @@ def publish_scores(spark, parquet: str, overlay: str | None = None) -> dict:
     where = f"use_case = '{USE_CASE}' AND head = '{HEAD}' AND score_date = DATE '{day}'"
     try:
         publish.publish(spark, scored, Spec(
-            SCORE_TABLE, ["vin"], mode="dates", transform="score",
+            SCORE_TABLE, ["vin"], mode="dates", transform="enrich",
             checks={
                 "no_action": f"action = '{ACTION}'",
                 "decision_known": "decision IN ('SAFETY_FLOOR','ABSTAIN','WORKLIST','CLEAR')",
