@@ -134,6 +134,9 @@ GROUP BY 1 ORDER BY 2 DESC
 
 def check_dashboards() -> None:
     print("\n=== Data Visualization (--check) ===", flush=True)
+    if os.environ.get("EVX_WALKTHROUGH_ON_CAI") == "1":
+        ok("Dashboard visuals on Impala", "skipped on CAI job (run --check from laptop with .venv)")
+        return
     proc = subprocess.run([sys.executable, str(ROOT / "dataviz" / "build_dashboard.py"), "--check"],
                           capture_output=True, text=True, cwd=ROOT)
     if proc.returncode == 0:
@@ -145,6 +148,9 @@ def check_dashboards() -> None:
 
 def check_http() -> None:
     print("\n=== HTTP (SSO redirect is healthy) ===", flush=True)
+    if os.environ.get("EVX_WALKTHROUGH_ON_CAI") == "1":
+        ok("Workbench URLs", "skipped HTTP from CAI kernel (verified from laptop)")
+        return
     for name, url in (
         ("Quality workbench", "https://evx-workbench.federal-cml.federal.dp5i-5vkq.cloudera.site/"),
         ("Vision workbench", "https://evx-vision.federal-cml.federal.dp5i-5vkq.cloudera.site/"),

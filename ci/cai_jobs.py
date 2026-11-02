@@ -14,6 +14,6 @@ JOBS = [
      "cpu": 1, "memory": 4, "timeout": 5400, "schedule": None, "env": {}},
     {"name": "stop-evx-project", "script": "ci/project_stop.py", "parent": None,
      "cpu": 1, "memory": 4, "timeout": 3600, "schedule": None, "env": {}},
-    {"name": "evx-walkthrough-check", "script": "scripts/m1_walkthrough_check.py", "parent": None,
+    {"name": "evx-walkthrough-check", "script": "ci/run_walkthrough.py", "parent": None,
      "cpu": 2, "memory": 8, "timeout": 3600, "schedule": None, "env": {}},
 ]
