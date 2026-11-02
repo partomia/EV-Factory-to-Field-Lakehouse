@@ -148,16 +148,32 @@ def _note(msg: str) -> None:
 def _import_joblib():
     try:
         import joblib
+        import sklearn
+        if sklearn.__version__ != "1.9.1":
+            raise ImportError(f"scikit-learn {sklearn.__version__}")
         return joblib
     except ImportError:
         import subprocess
         _note("pip install requirements-model.txt")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "-r", str(ROOT / "requirements-model.txt")])
+        proc = subprocess.Popen(
+            [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--only-binary=:all:",
+             "-r", str(ROOT / "requirements-model.txt")],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout:
+            _note("pip " + line.rstrip())
+        code = proc.wait()
+        if code != 0:
+            _note(f"pip exit {code}")
+            raise RuntimeError("pip install failed")
         import joblib
         return joblib
 
 
 def main() -> int:
+    try:
+        (ROOT / "evx_deploy.log").write_text("")
+    except OSError:
+        pass
     here = Path(globals().get("__file__", "nofile"))
     _note(f"cwd={os.getcwd()} root={ROOT} champion={CHAMPION.exists()} script={here}")
     models = ROOT / "models"
