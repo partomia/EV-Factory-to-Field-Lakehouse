@@ -136,11 +136,35 @@ def deploy(client, pid: str, comment: str) -> dict:
     return {"model_id": model.id, "build_id": build.id, "deployment_id": dep.id}
 
 
-def main() -> int:
-    import joblib
+def _note(msg: str) -> None:
+    print(msg, flush=True)
+    try:
+        with (ROOT / "evx_deploy.log").open("a") as f:
+            f.write(msg + "\n")
+    except OSError:
+        pass
 
+
+def _import_joblib():
+    try:
+        import joblib
+        return joblib
+    except ImportError:
+        import subprocess
+        _note("pip install requirements-model.txt")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "-r", str(ROOT / "requirements-model.txt")])
+        import joblib
+        return joblib
+
+
+def main() -> int:
+    here = Path(globals().get("__file__", "nofile"))
+    _note(f"cwd={os.getcwd()} root={ROOT} champion={CHAMPION.exists()} script={here}")
+    models = ROOT / "models"
+    _note("models=" + (", ".join(str(p.relative_to(ROOT)) for p in list(models.rglob("*"))[:30]) if models.exists() else "missing"))
+    joblib = _import_joblib()
     if not CHAMPION.exists():
-        print("SCORE_REFUSED models/champion/model.joblib is not in the project", flush=True)
+        _note("SCORE_REFUSED models/champion/model.joblib is not in the project")
         return 1
     artifact = joblib.load(CHAMPION)
     if artifact.get("hash_salt") != "platform" or not artifact.get("deployable"):

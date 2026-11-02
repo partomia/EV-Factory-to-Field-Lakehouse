@@ -33,6 +33,7 @@ metastore_db/
 derby.log
 logs/
 *.log
+evx_deploy.log
 
 # CAI home-directory state: kept out of model builds, which install only requirements-model.txt
 .local/
