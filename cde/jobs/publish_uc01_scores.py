@@ -5,7 +5,7 @@ The parquet is produced by usecases/uc01_pack_risk/score.py (the model never ent
 Mount it as a files resource and pass its path. This job checks the feature-hash lock again,
 then writes gold.uc01_pack_risk_score, gold.model_score and ref.guardrail_event.
 
-  spark-submit cde/jobs/publish_uc01_scores.py --input /scores/scores.parquet
+  spark-submit cde/jobs/publish_uc01_scores.py --input /app/mount/scores/scores.parquet
 """
 from __future__ import annotations
 

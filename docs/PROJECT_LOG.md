@@ -236,3 +236,22 @@
   calibrated out-of-fold scores), abstain band down to 0.051. The model file stays in
   `outputs/uc01/pack_risk_eol/` and is not in git. A CI-salt run cannot be deployed: the hash salt differs.
 - Pushed `a31733a`.
+
+## 2026-11-02 08:45 IST - pack_risk_eol scored; the M1 guardrails are on the history population
+
+- Scored all 17,863 vehicles in `features.pack_factory_v1` as of 2026-11-05 with the logistic champion
+  (schema `576d28e42713`, salt `platform`). The model file stays in `outputs/` and is not in git. The scored
+  parquet was uploaded as the CDE files resource `rsingh-evx-uc01-scores`. Job `rsingh-evx-uc01-score` run
+  **1019** published it: `gold.uc01_pack_risk_score` 17,863 rows, `gold.model_score` 17,863 rows,
+  `ref.guardrail_event` with one `feature_hash` PASS for the run. Impala matches. Every `action` is `NONE`.
+- Decisions: worklist 3,247 (score at or above 0.139), clear 3,105 (below 0.051), abstain 10,936, safety floor
+  575. The abstain split is the band 10,814, out-of-distribution 121, and the one open genealogy (the planted
+  orphan). The 575 safety-floor vehicles each had a thermal DTC or a thermal EDR on or before the score date;
+  they are P1 whatever the model score. That floor is not the end-of-line sibling flag, which is still 0.
+- The abstain band holds most of the population because isotonic calibration piles scores onto a few
+  probabilities. The median calibrated score is 0.051 and the 80th and 90th percentiles are both 0.139, so
+  the plateau between the two training thresholds is the band. The thresholds stay the training quantiles.
+- Run 1017 failed because a files resource mounted at prefix `/scores` is at `/app/mount/scores/`, not
+  `/scores/`. Run 1018 committed the score table and then failed the audit: `publish()` only accepts its
+  declared transform types, and the write happens before that check. Run 1019 used `enrich` and succeeded.
+- Pushed `ecd0636`, `0dae11e`.
