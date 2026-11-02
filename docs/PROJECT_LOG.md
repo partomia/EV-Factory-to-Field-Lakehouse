@@ -277,3 +277,28 @@
   `spend-scorer` (4 / 16), `mcc-approval` (1 / 2). `spend-persona-registry` (1 / 2) was left deployed.
   The CPU group `mlcpu-d697` was not resized (1 of 10 m5.2xlarge nodes). Restart the sibling apps and models
   when this session no longer needs the quota.
+
+## 2026-11-02 11:25 IST - nightly DAG registered, paused
+
+- CDE Airflow job `rsingh-evx-orchestration`, DAG `evx_factory_to_field`, file `cde/dags/evx_dag.py`.
+  Schedule 23:30 UTC. The window is the five live dates: the first interval ends 2026-11-06 and the last
+  starts 2026-11-09 (`schedule.start` 5 Nov 23:30, `schedule.end` 9 Nov 23:30). Paused, `nextExecution` empty,
+  no run started. Pushed `abaa30a`.
+- A scheduled run lands, bronzes, extracts, silvers, masters, drains that date's telemetry, then gold, then
+  each `usecases/*/config.yaml` with `enabled: true` (uc01 features and the score publish), then recon.
+  A manual run skips the telemetry replay. Generate is not a stage: the date's files have to be in the
+  generated tree before land. The score task republishes the champion parquet mounted on the score job.
+- Lesson: Impala rejects a scalar subquery in a JOIN `ON` clause. The newest score date has to be a derived
+  table in `FROM`, which is what the workbench queries do.
+
+## 2026-11-02 11:30 IST - workbench application running
+
+- CAI application `EVX Quality and Reliability Workbench` (`edb1-59tj-z3fm-gro9`), subdomain `evx-workbench`,
+  2 vCPU / 8 GB, status running. The URL answers 302 to the workbench login, which is the healthy check without
+  a browser session. Pages: Vehicle risk worklist, Batch containment, Pack 360, discovered from
+  `usecases/uc01_pack_risk/app_page.py`.
+- The same SQL on Impala returned a safety-floor vehicle (`action` NONE), 52 graded cells, the X-ray verdicts,
+  90 daily telemetry rows, and the top powder lots with worklist and safety-floor counts. The first application
+  (`7f51-ocyo-dtha-8lr5`) failed in about 30 s because the runtime has no streamlit and an application does not
+  run `cdsw-build.sh`. The launcher now installs streamlit and impyla when they are missing.
+- The three dashboards are not imported yet.
