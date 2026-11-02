@@ -66,6 +66,11 @@ def wait(fn, ok: set, what: str, timeout: int) -> str:
         status = _status(fn())
         if status != last:
             print(f"  {what}: {status}", flush=True)
+            try:
+                with (ROOT / "evx_deploy.log").open("a") as f:
+                    f.write(f"{what}: {status}\n")
+            except OSError:
+                pass
             last = status
         if status in ok:
             return status
@@ -178,18 +183,21 @@ def main() -> int:
     _note(f"cwd={os.getcwd()} root={ROOT} champion={CHAMPION.exists()} script={here}")
     models = ROOT / "models"
     _note("models=" + (", ".join(str(p.relative_to(ROOT)) for p in list(models.rglob("*"))[:30]) if models.exists() else "missing"))
+    _note("importing the model packages")
     joblib = _import_joblib()
     if not CHAMPION.exists():
         _note("SCORE_REFUSED models/champion/model.joblib is not in the project")
         return 1
+    _note("loading the champion")
     artifact = joblib.load(CHAMPION)
     if artifact.get("hash_salt") != "platform" or not artifact.get("deployable"):
-        print("SCORE_REFUSED model is not a deployable platform champion", flush=True)
+        _note("SCORE_REFUSED model is not a deployable platform champion")
         return 1
     import cmlapi
 
     client = cmlapi.default_client()
     pid = os.environ["CDSW_PROJECT_ID"]
+    _note("logging the MLflow run")
     run_id, experiment_id = log_winner(artifact)
     metrics = artifact.get("metrics") or {}
     tags = [{"key": k, "value": str(v)} for k, v in {
@@ -197,10 +205,12 @@ def main() -> int:
         "winner": artifact.get("winner"), "schema_hash": artifact["schema_hash"][:12],
         "oof_auroc": f"{float(metrics.get('oof_auroc', 0)):.4f}",
     }.items()]
+    _note("registering the champion")
     reg = register_version(client, name=REGISTRY_NAME, run_id=run_id, experiment_id=experiment_id,
                            project_id=pid, tags=tags, description="pack_risk_eol champion")
-    print(f"REGISTRY_RESULT name={REGISTRY_NAME} version={reg['number']} created={reg['created']}", flush=True)
+    _note(f"REGISTRY_RESULT name={REGISTRY_NAME} version={reg['number']} created={reg['created']}")
     comment = f"{artifact.get('winner')} schema {artifact['schema_hash'][:12]} auroc {float(metrics.get('oof_auroc', 0)):.3f}"
+    _note("building the endpoint")
     deploy(client, pid, comment)
     return 0
 
@@ -209,5 +219,12 @@ if __name__ == "__main__":
     try:
         finish(main())
     except Exception as e:  # noqa: BLE001
-        print(f"DEPLOY_FAILED {type(e).__name__}: {e}", flush=True)
+        import traceback
+        msg = f"DEPLOY_FAILED {type(e).__name__}: {e}\n{traceback.format_exc()[-1500:]}"
+        print(msg, flush=True)
+        try:
+            with (ROOT / "evx_deploy.log").open("a") as f:
+                f.write(msg + "\n")
+        except OSError:
+            pass
         finish(1)
