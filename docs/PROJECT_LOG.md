@@ -339,3 +339,6 @@
   clears its own cron after run.
 - **`.cursor/rules/project-start-stop.mdc`** and **`docs/DEMO_RUNBOOK.md`**: ~20-minute M1 walkthrough
   (workbenches, dashboards, notebook, guardrails, `platform_ctl stop` at end).
+- Pushed **`64dfc37`**. Sync job **evx-uc01-00-sync-code** run **uv3m2g0n3tblcrvo** succeeded (~325 s,
+  project at `64dfc37`). CAI job **stop-evx-project** created (`f8xt-2tvp-mlxy-igtq`). Live check:
+  both workbench apps running, model `evx-uc01-service` deployed.
