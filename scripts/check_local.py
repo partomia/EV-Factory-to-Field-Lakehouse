@@ -311,7 +311,9 @@ def check_stream_m2(spark) -> list[str]:
         return [tuple(x) for x in spark.sql(sql).collect()]
 
     def lit(value) -> str:
-        return "'" + str(value).replace("'", "") + "'"
+        if not isinstance(value, str) or not re.fullmatch(r"evx\.[a-z.]+", value):
+            raise ValueError(f"not a topic name, refused as a SQL literal: {value!r}")
+        return "'" + value + "'"
 
     for key in ("dtc", "qc", "line"):
         t = cfg[key]
