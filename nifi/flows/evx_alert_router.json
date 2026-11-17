@@ -1,0 +1,763 @@
+{
+  "externalControllerServices": {
+    "c24c25f7-023b-5d44-a3d0-2a1b026d0d89": {
+      "identifier": "c24c25f7-023b-5d44-a3d0-2a1b026d0d89",
+      "name": "rsingh Truststore-only NiFi SSL Context Service"
+    }
+  },
+  "flowContents": {
+    "comments": "Rendered offline by nifi/deploy_flow.py export --offline; replace with the registry export after the live deploy.",
+    "componentType": "PROCESS_GROUP",
+    "connections": [
+      {
+        "backPressureDataSizeThreshold": "1 GB",
+        "backPressureObjectThreshold": 10000,
+        "componentType": "CONNECTION",
+        "destination": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "64a8a0c1-da43-55a6-8c35-7f6037fdd1d9",
+          "name": "Route thermal and critical DTCs",
+          "type": "PROCESSOR"
+        },
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "11c925e7-0dbe-57e7-84c7-5c014f72edb7",
+        "selectedRelationships": [
+          "success"
+        ],
+        "source": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "ba800c03-8afa-5f64-b9c0-d320895cf884",
+          "name": "Consume evx.vehicle.dtc",
+          "type": "PROCESSOR"
+        }
+      },
+      {
+        "backPressureDataSizeThreshold": "1 GB",
+        "backPressureObjectThreshold": 10000,
+        "componentType": "CONNECTION",
+        "destination": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "f5abd83b-29ba-5283-8816-490fdc6534a7",
+          "name": "Hold failures (inspect, then replay)",
+          "type": "PROCESSOR"
+        },
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "0196d97e-da33-56fd-b6b5-523bbf4edc5f",
+        "selectedRelationships": [
+          "parse failure"
+        ],
+        "source": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "ba800c03-8afa-5f64-b9c0-d320895cf884",
+          "name": "Consume evx.vehicle.dtc",
+          "type": "PROCESSOR"
+        }
+      },
+      {
+        "backPressureDataSizeThreshold": "1 GB",
+        "backPressureObjectThreshold": 10000,
+        "componentType": "CONNECTION",
+        "destination": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "d3e5c382-fc05-58de-b002-701aa1c462a1",
+          "name": "Stamp routed_at",
+          "type": "PROCESSOR"
+        },
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "e1ffcc0b-64f5-5737-905f-14d1990dfb59",
+        "selectedRelationships": [
+          "critical",
+          "thermal"
+        ],
+        "source": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "64a8a0c1-da43-55a6-8c35-7f6037fdd1d9",
+          "name": "Route thermal and critical DTCs",
+          "type": "PROCESSOR"
+        }
+      },
+      {
+        "backPressureDataSizeThreshold": "1 GB",
+        "backPressureObjectThreshold": 10000,
+        "componentType": "CONNECTION",
+        "destination": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "f5abd83b-29ba-5283-8816-490fdc6534a7",
+          "name": "Hold failures (inspect, then replay)",
+          "type": "PROCESSOR"
+        },
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "19ceecc7-a72a-5471-89a3-456779c21ab2",
+        "selectedRelationships": [
+          "failure"
+        ],
+        "source": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "64a8a0c1-da43-55a6-8c35-7f6037fdd1d9",
+          "name": "Route thermal and critical DTCs",
+          "type": "PROCESSOR"
+        }
+      },
+      {
+        "backPressureDataSizeThreshold": "1 GB",
+        "backPressureObjectThreshold": 10000,
+        "componentType": "CONNECTION",
+        "destination": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "4f32cc3f-95fe-59ce-a770-0f93dc6eaba6",
+          "name": "Publish evx.alert.priority",
+          "type": "PROCESSOR"
+        },
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "d42f4cf6-5b26-5b19-989b-7c6a6944b7c2",
+        "selectedRelationships": [
+          "success"
+        ],
+        "source": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "d3e5c382-fc05-58de-b002-701aa1c462a1",
+          "name": "Stamp routed_at",
+          "type": "PROCESSOR"
+        }
+      },
+      {
+        "backPressureDataSizeThreshold": "1 GB",
+        "backPressureObjectThreshold": 10000,
+        "componentType": "CONNECTION",
+        "destination": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "f5abd83b-29ba-5283-8816-490fdc6534a7",
+          "name": "Hold failures (inspect, then replay)",
+          "type": "PROCESSOR"
+        },
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "84960cb5-2646-5ba9-8a96-c7efabecc6b9",
+        "selectedRelationships": [
+          "failure"
+        ],
+        "source": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "d3e5c382-fc05-58de-b002-701aa1c462a1",
+          "name": "Stamp routed_at",
+          "type": "PROCESSOR"
+        }
+      },
+      {
+        "backPressureDataSizeThreshold": "1 GB",
+        "backPressureObjectThreshold": 10000,
+        "componentType": "CONNECTION",
+        "destination": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "f5abd83b-29ba-5283-8816-490fdc6534a7",
+          "name": "Hold failures (inspect, then replay)",
+          "type": "PROCESSOR"
+        },
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "e9a81f14-e9e7-5713-b88f-84fe381dd685",
+        "selectedRelationships": [
+          "failure"
+        ],
+        "source": {
+          "groupId": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+          "id": "4f32cc3f-95fe-59ce-a770-0f93dc6eaba6",
+          "name": "Publish evx.alert.priority",
+          "type": "PROCESSOR"
+        }
+      }
+    ],
+    "controllerServices": [
+      {
+        "bundle": {
+          "artifact": "nifi-kafka-3-service-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "CONTROLLER_SERVICE",
+        "controllerServiceApis": [
+          {
+            "type": "KafkaConnectionService"
+          }
+        ],
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "f42a59d9-6888-57b7-85c6-f4a638dd76ba",
+        "name": "EVX Kafka (SASL_SSL PLAIN)",
+        "properties": {
+          "SSL Context Service": "c24c25f7-023b-5d44-a3d0-2a1b026d0d89",
+          "bootstrap.servers": "${EVX_KAFKA_BOOTSTRAP}",
+          "sasl.mechanism": "PLAIN",
+          "sasl.password": null,
+          "sasl.username": "${EVX_WORKLOAD_USER}",
+          "security.protocol": "SASL_SSL"
+        },
+        "propertyDescriptors": {
+          "SSL Context Service": {
+            "displayName": "SSL Context Service",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "SSL Context Service",
+            "sensitive": false
+          },
+          "bootstrap.servers": {
+            "displayName": "bootstrap.servers",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "bootstrap.servers",
+            "sensitive": false
+          },
+          "sasl.mechanism": {
+            "displayName": "sasl.mechanism",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "sasl.mechanism",
+            "sensitive": false
+          },
+          "sasl.password": {
+            "displayName": "sasl.password",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "sasl.password",
+            "sensitive": true
+          },
+          "sasl.username": {
+            "displayName": "sasl.username",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "sasl.username",
+            "sensitive": false
+          },
+          "security.protocol": {
+            "displayName": "security.protocol",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "security.protocol",
+            "sensitive": false
+          }
+        },
+        "scheduledState": "DISABLED",
+        "type": "org.apache.nifi.kafka.service.Kafka3ConnectionService"
+      },
+      {
+        "bundle": {
+          "artifact": "nifi-record-serialization-services-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "CONTROLLER_SERVICE",
+        "controllerServiceApis": [
+          {
+            "type": "RecordReaderFactory"
+          }
+        ],
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "9968ff14-c102-54c3-b892-b2354a6e8558",
+        "name": "EVX DTC reader (JSON)",
+        "properties": {
+          "schema-access-strategy": "schema-text-property",
+          "schema-text": "{\"type\":\"record\",\"name\":\"evx_vehicle_dtc_route\",\"namespace\":\"evx.stream\",\"fields\":[{\"name\":\"event_id\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"vin\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"event_ts\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"dtc_code\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"severity\",\"type\":[\"null\",\"string\"],\"default\":null}]}"
+        },
+        "propertyDescriptors": {
+          "schema-access-strategy": {
+            "displayName": "schema-access-strategy",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "schema-access-strategy",
+            "sensitive": false
+          },
+          "schema-text": {
+            "displayName": "schema-text",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "schema-text",
+            "sensitive": false
+          }
+        },
+        "scheduledState": "DISABLED",
+        "type": "org.apache.nifi.json.JsonTreeReader"
+      },
+      {
+        "bundle": {
+          "artifact": "nifi-record-serialization-services-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "CONTROLLER_SERVICE",
+        "controllerServiceApis": [
+          {
+            "type": "RecordSetWriterFactory"
+          }
+        ],
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "920ffdd6-19ff-5aa6-b9ef-74fd6a337b25",
+        "name": "EVX DTC writer (JSON lines)",
+        "properties": {
+          "Schema Write Strategy": "no-schema",
+          "output-grouping": "output-oneline",
+          "schema-access-strategy": "inherit-record-schema"
+        },
+        "propertyDescriptors": {
+          "Schema Write Strategy": {
+            "displayName": "Schema Write Strategy",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "Schema Write Strategy",
+            "sensitive": false
+          },
+          "output-grouping": {
+            "displayName": "output-grouping",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "output-grouping",
+            "sensitive": false
+          },
+          "schema-access-strategy": {
+            "displayName": "schema-access-strategy",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "schema-access-strategy",
+            "sensitive": false
+          }
+        },
+        "scheduledState": "DISABLED",
+        "type": "org.apache.nifi.json.JsonRecordSetWriter"
+      },
+      {
+        "bundle": {
+          "artifact": "nifi-record-serialization-services-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "CONTROLLER_SERVICE",
+        "controllerServiceApis": [
+          {
+            "type": "RecordReaderFactory"
+          }
+        ],
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "d46dc126-5711-533e-a38e-014bf6c71315",
+        "name": "EVX alert reader (JSON)",
+        "properties": {
+          "schema-access-strategy": "schema-text-property",
+          "schema-text": "{\"type\":\"record\",\"name\":\"evx_alert_priority\",\"namespace\":\"evx.stream\",\"fields\":[{\"name\":\"alert_id\",\"type\":\"string\"},{\"name\":\"vin\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"event_ts\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"dtc_code\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"severity\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"reason\",\"type\":\"string\"},{\"name\":\"priority\",\"type\":\"string\"},{\"name\":\"source_topic\",\"type\":\"string\"},{\"name\":\"routed_at\",\"type\":[\"null\",\"string\"],\"default\":null}]}"
+        },
+        "propertyDescriptors": {
+          "schema-access-strategy": {
+            "displayName": "schema-access-strategy",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "schema-access-strategy",
+            "sensitive": false
+          },
+          "schema-text": {
+            "displayName": "schema-text",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "schema-text",
+            "sensitive": false
+          }
+        },
+        "scheduledState": "DISABLED",
+        "type": "org.apache.nifi.json.JsonTreeReader"
+      },
+      {
+        "bundle": {
+          "artifact": "nifi-record-serialization-services-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "CONTROLLER_SERVICE",
+        "controllerServiceApis": [
+          {
+            "type": "RecordSetWriterFactory"
+          }
+        ],
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "b8b157b9-292e-570b-b32e-22c063a834a9",
+        "name": "EVX alert writer (JSON lines)",
+        "properties": {
+          "Schema Write Strategy": "no-schema",
+          "output-grouping": "output-oneline",
+          "schema-access-strategy": "schema-text-property",
+          "schema-text": "{\"type\":\"record\",\"name\":\"evx_alert_priority\",\"namespace\":\"evx.stream\",\"fields\":[{\"name\":\"alert_id\",\"type\":\"string\"},{\"name\":\"vin\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"event_ts\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"dtc_code\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"severity\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"reason\",\"type\":\"string\"},{\"name\":\"priority\",\"type\":\"string\"},{\"name\":\"source_topic\",\"type\":\"string\"},{\"name\":\"routed_at\",\"type\":[\"null\",\"string\"],\"default\":null}]}",
+          "suppress-nulls": "never-suppress"
+        },
+        "propertyDescriptors": {
+          "Schema Write Strategy": {
+            "displayName": "Schema Write Strategy",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "Schema Write Strategy",
+            "sensitive": false
+          },
+          "output-grouping": {
+            "displayName": "output-grouping",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "output-grouping",
+            "sensitive": false
+          },
+          "schema-access-strategy": {
+            "displayName": "schema-access-strategy",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "schema-access-strategy",
+            "sensitive": false
+          },
+          "schema-text": {
+            "displayName": "schema-text",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "schema-text",
+            "sensitive": false
+          },
+          "suppress-nulls": {
+            "displayName": "suppress-nulls",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "suppress-nulls",
+            "sensitive": false
+          }
+        },
+        "scheduledState": "DISABLED",
+        "type": "org.apache.nifi.json.JsonRecordSetWriter"
+      }
+    ],
+    "funnels": [],
+    "identifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+    "inputPorts": [],
+    "labels": [],
+    "name": "EVX - Alert Router",
+    "outputPorts": [],
+    "position": {
+      "x": 3904.0,
+      "y": -1040.0
+    },
+    "processGroups": [],
+    "processors": [
+      {
+        "autoTerminatedRelationships": [],
+        "bundle": {
+          "artifact": "nifi-kafka-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "PROCESSOR",
+        "concurrentlySchedulableTaskCount": 1,
+        "executionNode": "ALL",
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "ba800c03-8afa-5f64-b9c0-d320895cf884",
+        "name": "Consume evx.vehicle.dtc",
+        "position": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "properties": {
+          "Group ID": "evx-alert-router",
+          "Kafka Connection Service": "f42a59d9-6888-57b7-85c6-f4a638dd76ba",
+          "Processing Strategy": "RECORD",
+          "Record Reader": "9968ff14-c102-54c3-b892-b2354a6e8558",
+          "Record Writer": "920ffdd6-19ff-5aa6-b9ef-74fd6a337b25",
+          "Topic Format": "names",
+          "Topics": "evx.vehicle.dtc",
+          "auto.offset.reset": "earliest"
+        },
+        "propertyDescriptors": {
+          "Group ID": {
+            "displayName": "Group ID",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "Group ID",
+            "sensitive": false
+          },
+          "Kafka Connection Service": {
+            "displayName": "Kafka Connection Service",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "Kafka Connection Service",
+            "sensitive": false
+          },
+          "Processing Strategy": {
+            "displayName": "Processing Strategy",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "Processing Strategy",
+            "sensitive": false
+          },
+          "Record Reader": {
+            "displayName": "Record Reader",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "Record Reader",
+            "sensitive": false
+          },
+          "Record Writer": {
+            "displayName": "Record Writer",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "Record Writer",
+            "sensitive": false
+          },
+          "Topic Format": {
+            "displayName": "Topic Format",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "Topic Format",
+            "sensitive": false
+          },
+          "Topics": {
+            "displayName": "Topics",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "Topics",
+            "sensitive": false
+          },
+          "auto.offset.reset": {
+            "displayName": "auto.offset.reset",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "auto.offset.reset",
+            "sensitive": false
+          }
+        },
+        "scheduledState": "ENABLED",
+        "schedulingPeriod": "0 sec",
+        "schedulingStrategy": "TIMER_DRIVEN",
+        "type": "org.apache.nifi.kafka.processors.ConsumeKafka"
+      },
+      {
+        "autoTerminatedRelationships": [
+          "original"
+        ],
+        "bundle": {
+          "artifact": "nifi-standard-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "PROCESSOR",
+        "concurrentlySchedulableTaskCount": 1,
+        "executionNode": "ALL",
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "64a8a0c1-da43-55a6-8c35-7f6037fdd1d9",
+        "name": "Route thermal and critical DTCs",
+        "position": {
+          "x": 0.0,
+          "y": 250.0
+        },
+        "properties": {
+          "critical": "SELECT event_id AS alert_id, vin, event_ts, dtc_code, severity, 'CRITICAL' AS reason, 'P1' AS priority, 'evx.vehicle.dtc' AS source_topic, CAST(NULL AS VARCHAR) AS routed_at FROM FLOWFILE WHERE severity = 'CRITICAL' AND (dtc_code IS NULL OR dtc_code NOT IN ('BMS-T01', 'MCU-T10'))",
+          "include-zero-record-flowfiles": "false",
+          "record-reader": "9968ff14-c102-54c3-b892-b2354a6e8558",
+          "record-writer": "b8b157b9-292e-570b-b32e-22c063a834a9",
+          "thermal": "SELECT event_id AS alert_id, vin, event_ts, dtc_code, severity, 'THERMAL' AS reason, 'P1' AS priority, 'evx.vehicle.dtc' AS source_topic, CAST(NULL AS VARCHAR) AS routed_at FROM FLOWFILE WHERE dtc_code IN ('BMS-T01', 'MCU-T10')"
+        },
+        "propertyDescriptors": {
+          "critical": {
+            "displayName": "critical",
+            "dynamic": true,
+            "identifiesControllerService": false,
+            "name": "critical",
+            "sensitive": false
+          },
+          "include-zero-record-flowfiles": {
+            "displayName": "include-zero-record-flowfiles",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "include-zero-record-flowfiles",
+            "sensitive": false
+          },
+          "record-reader": {
+            "displayName": "record-reader",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "record-reader",
+            "sensitive": false
+          },
+          "record-writer": {
+            "displayName": "record-writer",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "record-writer",
+            "sensitive": false
+          },
+          "thermal": {
+            "displayName": "thermal",
+            "dynamic": true,
+            "identifiesControllerService": false,
+            "name": "thermal",
+            "sensitive": false
+          }
+        },
+        "scheduledState": "ENABLED",
+        "schedulingPeriod": "0 sec",
+        "schedulingStrategy": "TIMER_DRIVEN",
+        "type": "org.apache.nifi.processors.standard.QueryRecord"
+      },
+      {
+        "autoTerminatedRelationships": [],
+        "bundle": {
+          "artifact": "nifi-standard-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "PROCESSOR",
+        "concurrentlySchedulableTaskCount": 1,
+        "executionNode": "ALL",
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "d3e5c382-fc05-58de-b002-701aa1c462a1",
+        "name": "Stamp routed_at",
+        "position": {
+          "x": 0.0,
+          "y": 500.0
+        },
+        "properties": {
+          "/routed_at": "${now():format(\"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\", \"GMT\")}",
+          "Record Reader": "d46dc126-5711-533e-a38e-014bf6c71315",
+          "Record Writer": "b8b157b9-292e-570b-b32e-22c063a834a9",
+          "Replacement Value Strategy": "literal-value"
+        },
+        "propertyDescriptors": {
+          "/routed_at": {
+            "displayName": "/routed_at",
+            "dynamic": true,
+            "identifiesControllerService": false,
+            "name": "/routed_at",
+            "sensitive": false
+          },
+          "Record Reader": {
+            "displayName": "Record Reader",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "Record Reader",
+            "sensitive": false
+          },
+          "Record Writer": {
+            "displayName": "Record Writer",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "Record Writer",
+            "sensitive": false
+          },
+          "Replacement Value Strategy": {
+            "displayName": "Replacement Value Strategy",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "Replacement Value Strategy",
+            "sensitive": false
+          }
+        },
+        "scheduledState": "ENABLED",
+        "schedulingPeriod": "0 sec",
+        "schedulingStrategy": "TIMER_DRIVEN",
+        "type": "org.apache.nifi.processors.standard.UpdateRecord"
+      },
+      {
+        "autoTerminatedRelationships": [
+          "success"
+        ],
+        "bundle": {
+          "artifact": "nifi-kafka-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "PROCESSOR",
+        "concurrentlySchedulableTaskCount": 1,
+        "executionNode": "ALL",
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "4f32cc3f-95fe-59ce-a770-0f93dc6eaba6",
+        "name": "Publish evx.alert.priority",
+        "position": {
+          "x": 0.0,
+          "y": 750.0
+        },
+        "properties": {
+          "Kafka Connection Service": "f42a59d9-6888-57b7-85c6-f4a638dd76ba",
+          "Message Key Field": "vin",
+          "Record Reader": "d46dc126-5711-533e-a38e-014bf6c71315",
+          "Record Writer": "b8b157b9-292e-570b-b32e-22c063a834a9",
+          "Topic Name": "evx.alert.priority"
+        },
+        "propertyDescriptors": {
+          "Kafka Connection Service": {
+            "displayName": "Kafka Connection Service",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "Kafka Connection Service",
+            "sensitive": false
+          },
+          "Message Key Field": {
+            "displayName": "Message Key Field",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "Message Key Field",
+            "sensitive": false
+          },
+          "Record Reader": {
+            "displayName": "Record Reader",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "Record Reader",
+            "sensitive": false
+          },
+          "Record Writer": {
+            "displayName": "Record Writer",
+            "dynamic": false,
+            "identifiesControllerService": true,
+            "name": "Record Writer",
+            "sensitive": false
+          },
+          "Topic Name": {
+            "displayName": "Topic Name",
+            "dynamic": false,
+            "identifiesControllerService": false,
+            "name": "Topic Name",
+            "sensitive": false
+          }
+        },
+        "scheduledState": "ENABLED",
+        "schedulingPeriod": "0 sec",
+        "schedulingStrategy": "TIMER_DRIVEN",
+        "type": "org.apache.nifi.kafka.processors.PublishKafka"
+      },
+      {
+        "autoTerminatedRelationships": [
+          "success"
+        ],
+        "bundle": {
+          "artifact": "nifi-update-attribute-nar",
+          "group": "org.apache.nifi",
+          "version": "2.6.0.4.12.0.100-95"
+        },
+        "comments": "",
+        "componentType": "PROCESSOR",
+        "concurrentlySchedulableTaskCount": 1,
+        "executionNode": "ALL",
+        "groupIdentifier": "a72bd3c0-641e-5ff5-8975-31dd527c8491",
+        "identifier": "f5abd83b-29ba-5283-8816-490fdc6534a7",
+        "name": "Hold failures (inspect, then replay)",
+        "position": {
+          "x": 550.0,
+          "y": 375.0
+        },
+        "properties": {},
+        "propertyDescriptors": {},
+        "scheduledState": "ENABLED",
+        "schedulingPeriod": "0 sec",
+        "schedulingStrategy": "TIMER_DRIVEN",
+        "type": "org.apache.nifi.processors.attributes.UpdateAttribute"
+      }
+    ],
+    "remoteProcessGroups": []
+  },
+  "flowEncodingVersion": "1.0",
+  "latest": false,
+  "parameterContexts": {},
+  "parameterProviders": {}
+}
