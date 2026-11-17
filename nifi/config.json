@@ -1,0 +1,24 @@
+{
+  "_comment": "nifi/deploy_flow.py: the EVX - Alert Router flow on the federal-nifi Data Hub (NiFi 2, REST through the Knox cdp-proxy-api gateway, workload-user basic auth). No credentials here: they come from the environment variables named under env. Topic names are read from config/streaming.json (keys under streaming_key) when present, else from here. Discovered read-only 2026-11-17.",
+  "datahub": "federal-nifi",
+  "api": "https://federal-nifi-management0.federal.dp5i-5vkq.cloudera.site/federal-nifi/cdp-proxy-api/nifi-app/nifi-api",
+  "registry_api": "https://federal-nifi-management0.federal.dp5i-5vkq.cloudera.site/federal-nifi/cdp-proxy-api/nifi-registry-app/nifi-registry-api",
+  "nifi_version": "2.6.0.4.12.0.100-95",
+  "process_group": "EVX - Alert Router",
+  "registry_client": "Default NiFi Registry Client",
+  "registry_bucket": "evx-flows",
+  "flow_name": "evx_alert_router",
+  "ssl_context_service": "rsingh Truststore-only NiFi SSL Context Service",
+  "consumer_group": "evx-alert-router",
+  "topics": {
+    "in": {"streaming_key": "dtc", "name": "evx.vehicle.dtc"},
+    "out": {"streaming_key": "alert_priority", "name": "evx.alert.priority"}
+  },
+  "alert_priority": "P1",
+  "position": [3904, -1040],
+  "env": {
+    "kafka_bootstrap": "EVX_KAFKA_BOOTSTRAP",
+    "user": "EVX_WORKLOAD_USER",
+    "password": "EVX_WORKLOAD_PASSWORD"
+  }
+}
