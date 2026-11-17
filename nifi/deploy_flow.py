@@ -141,6 +141,11 @@ ROUTED_AT = "${now():format(\"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\", \"GMT\")}"
 
 
 def route_sql(reason: str, codes: list[str], in_topic: str) -> str:
+    if reason not in ("THERMAL", "CRITICAL"):
+        raise ValueError(f"route reason {reason!r}")
+    for v in (in_topic, NIFI["alert_priority"], *codes):
+        if not re.fullmatch(r"[A-Za-z0-9._-]+", v):
+            raise ValueError(f"{v!r} is not safe to put in a SQL literal")
     listed = ", ".join(f"'{c}'" for c in codes)
     cols = (f"SELECT event_id AS alert_id, vin, event_ts, dtc_code, severity, '{reason}' AS reason, "
             f"'{NIFI['alert_priority']}' AS priority, '{in_topic}' AS source_topic, "

@@ -9,6 +9,7 @@ is planted once per generator partition that has a candidate on that date.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -309,13 +310,19 @@ def check_stream_m2(spark) -> list[str]:
     def rows(sql):
         return [tuple(x) for x in spark.sql(sql).collect()]
 
+    def lit(value) -> str:
+        return "'" + str(value).replace("'", "") + "'"
+
     for key in ("dtc", "qc", "line"):
         t = cfg[key]
-        table, ev = f"{b}.{t['table']}", t["event_time"]
+        if not (re.fullmatch(r"evx\.[a-z.]+", t["name"])
+                and all(re.fullmatch(r"[a-z_]+", t[k]) for k in ("table", "event_time", "quarantine"))):
+            raise ValueError(f"config/streaming.json topics.{key}: unsafe name in {t}")
+        table, ev, topic = f"{b}.{t['table']}", t["event_time"], lit(t["name"])
         diff = rows(f"SELECT count(*) FROM (SELECT c.minute, c.total, coalesce(r.n, 0) n FROM {b}.stream_control c "
                     f"LEFT JOIN (SELECT date_trunc('minute', {ev}) m, count(*) n FROM {table} GROUP BY 1) r "
-                    f"ON r.m = c.minute WHERE c.topic = '{t['name']}') WHERE total <> n")
-        sent, got = rows(f"SELECT (SELECT coalesce(sum(total), 0) FROM {b}.stream_control WHERE topic = '{t['name']}'), "
+                    f"ON r.m = c.minute WHERE c.topic = {topic}) WHERE total <> n")
+        sent, got = rows(f"SELECT (SELECT coalesce(sum(total), 0) FROM {b}.stream_control WHERE topic = {topic}), "
                          f"(SELECT count(*) FROM {table})")[0]
         if diff != [(0,)] or sent != got or not got:
             errors.append(f"{key}: {diff[0][0]} minutes whose control total differs; control {sent}, bronze {got}")
