@@ -1,0 +1,80 @@
+{
+ "topic": "evx.alert.priority",
+ "table": null,
+ "derived": true,
+ "written_by": "NiFi process group EVX - Alert Router",
+ "description": "P1 alerts routed by NiFi from evx.vehicle.dtc: dtc_code of catalog kind THERMAL, or severity CRITICAL (reason THERMAL wins when both); everything else is dropped by the router. No bronze job subscribes (synthetic)",
+ "fields": [
+  {
+   "name": "alert_id",
+   "type": "string",
+   "required": true,
+   "description": "= the DTC event_id"
+  },
+  {
+   "name": "vin",
+   "type": "string",
+   "required": true,
+   "pattern": "^[A-HJ-NPR-Z0-9]{17}$"
+  },
+  {
+   "name": "event_ts",
+   "type": "timestamp",
+   "required": true
+  },
+  {
+   "name": "dtc_code",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "ABS-W30",
+    "BMS-I02",
+    "BMS-T01",
+    "CHG-C05",
+    "MCU-T10",
+    "MOT-E21"
+   ]
+  },
+  {
+   "name": "severity",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "CRITICAL"
+   ]
+  },
+  {
+   "name": "reason",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "THERMAL",
+    "CRITICAL"
+   ]
+  },
+  {
+   "name": "priority",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "P1"
+   ]
+  },
+  {
+   "name": "source_topic",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "evx.vehicle.dtc"
+   ]
+  },
+  {
+   "name": "routed_at",
+   "type": "timestamp",
+   "required": true
+  }
+ ]
+}

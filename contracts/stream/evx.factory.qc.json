@@ -1,0 +1,96 @@
+{
+ "topic": "evx.factory.qc",
+ "table": "factory_qc_event",
+ "description": "Inline QC inspection verdicts, one message per verdict row of the batch cell_qc export of the business date (X-ray per cell, film vision per segment) (synthetic)",
+ "fields": [
+  {
+   "name": "event_id",
+   "type": "string",
+   "required": true,
+   "pattern": "^QC-[A-Z0-9]+-(XRAY|FILM)$"
+  },
+  {
+   "name": "unit_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "batch_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "line_id",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "CL1",
+    "CL2"
+   ]
+  },
+  {
+   "name": "inspection",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "XRAY",
+    "FILM"
+   ]
+  },
+  {
+   "name": "station_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "event_ts",
+   "type": "timestamp",
+   "required": true
+  },
+  {
+   "name": "verdict",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "PASS",
+    "FAIL"
+   ]
+  },
+  {
+   "name": "defect_code",
+   "type": "string",
+   "required": false
+  },
+  {
+   "name": "score",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "bbox",
+   "type": "string",
+   "required": false
+  },
+  {
+   "name": "image_ref",
+   "type": "string",
+   "required": false
+  },
+  {
+   "name": "business_date",
+   "type": "string",
+   "required": true,
+   "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+  },
+  {
+   "name": "source_file",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "producer_run",
+   "type": "string",
+   "required": true
+  }
+ ]
+}

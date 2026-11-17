@@ -1,8 +1,35 @@
 {
-  "_comment": "Kafka topics, the telemetry producer and the CDE streaming jobs. M1 streams evx.vehicle.telemetry and evx.control; DTC, QC and line topics are added in M2. All data is synthetic.",
+  "_comment": "Kafka topics, the stream producers and the CDE streaming jobs. M1 streams evx.vehicle.telemetry and evx.control; M2 adds DTC, QC and line topics and the derived alert topic (written by NiFi, read by no bronze job). Each bronze job subscribes only to the topics whose bronze_job names it, with its own checkpoint and its own quarantine table (stream_quarantine is telemetry-only). --setup only creates missing topics; it never alters an existing one. evx.control carries the per-minute control totals of every produced topic (field topic). All data is synthetic.",
   "topics": {
-    "telemetry": {"name": "evx.vehicle.telemetry", "partitions": 6, "replication": 3, "retention_hours": 168},
-    "control": {"name": "evx.control", "partitions": 1, "replication": 3, "retention_hours": 168}
+    "telemetry": {"name": "evx.vehicle.telemetry", "partitions": 6, "replication": 3, "retention_hours": 168,
+                  "bronze_job": "rsingh-evx-stream-telemetry", "table": "telemetry_reading", "quarantine": "stream_quarantine", "event_time": "event_ts",
+                  "watermark": "10 minutes"},
+    "control": {"name": "evx.control", "partitions": 1, "replication": 3, "retention_hours": 168,
+                "bronze_job": "rsingh-evx-stream-telemetry", "table": "stream_control", "event_time": "minute"},
+    "dtc": {"name": "evx.vehicle.dtc", "partitions": 3, "replication": 3, "retention_hours": 168,
+            "bronze_job": "rsingh-evx-stream-dtc", "table": "vehicle_dtc_event", "quarantine": "dtc_quarantine", "event_time": "event_ts",
+            "watermark": "30 minutes"},
+    "qc": {"name": "evx.factory.qc", "partitions": 3, "replication": 3, "retention_hours": 168,
+           "bronze_job": "rsingh-evx-stream-qc", "table": "factory_qc_event", "quarantine": "qc_quarantine", "event_time": "event_ts",
+           "watermark": "10 minutes"},
+    "line": {"name": "evx.factory.line", "partitions": 6, "replication": 3, "retention_hours": 168,
+             "bronze_job": "rsingh-evx-stream-line", "table": "factory_line_event", "quarantine": "line_quarantine", "event_time": "mes_ts",
+             "watermark": "10 minutes"},
+    "alert_priority": {"name": "evx.alert.priority", "partitions": 1, "replication": 3, "retention_hours": 168,
+                       "bronze_job": null, "derived": true, "written_by": "NiFi process group EVX - Alert Router"}
+  },
+  "jobs": {
+    "rsingh-evx-stream-telemetry": {"file": "cde/jobs/stream_telemetry_bronze.py", "checkpoint": "telemetry_bronze",
+                                    "group": "telemetry"},
+    "rsingh-evx-stream-agg": {"file": "cde/jobs/stream_telemetry_agg.py", "checkpoint": "telemetry_agg",
+                              "group": "telemetry", "reads_table": "bronze.telemetry_reading",
+                              "after": "rsingh-evx-stream-telemetry"},
+    "rsingh-evx-stream-dtc": {"file": "cde/jobs/stream_dtc_bronze.py", "checkpoint": "dtc_bronze", "group": "m2"},
+    "rsingh-evx-stream-qc": {"file": "cde/jobs/stream_qc_bronze.py", "checkpoint": "qc_bronze", "group": "m2"},
+    "rsingh-evx-stream-line": {"file": "cde/jobs/stream_line_bronze.py", "checkpoint": "line_bronze", "group": "m2"},
+    "rsingh-evx-stream-line-window": {"file": "cde/jobs/stream_line_window.py", "checkpoint": "line_window",
+                                      "group": "m2", "reads_table": "bronze.factory_line_event",
+                                      "after": "rsingh-evx-stream-line", "window": "15 minutes"}
   },
   "producer": {
     "interval_s": 30,
@@ -15,6 +42,16 @@
     "very_late_seconds": [900, 1800],
     "out_of_order_fraction": 0.02,
     "control_hold_s": 1805
+  },
+  "producers": {
+    "_comment": "M2 producers (telemetry keeps `producer`). control_hold_s exceeds the largest delay, so a minute's control total is sent once none of its messages can still follow. DTC very-late messages fall beyond the 30-minute watermark.",
+    "dtc": {"latency_s": [1, 20], "late_fraction": 0.02, "late_seconds": [120, 900], "very_late_fraction": 0.005,
+            "very_late_seconds": [2100, 3000], "out_of_order_fraction": 0.05, "control_hold_s": 3025,
+            "ride_hours_ist": [7, 21], "critical_share": {"ABS-W30": 0.25}},
+    "qc": {"latency_s": [1, 5], "late_fraction": 0.01, "late_seconds": [120, 480], "very_late_fraction": 0.001,
+           "very_late_seconds": [900, 1800], "out_of_order_fraction": 0.02, "control_hold_s": 1810},
+    "line": {"latency_s": [0, 2], "late_fraction": 0.01, "late_seconds": [120, 480], "very_late_fraction": 0.001,
+             "very_late_seconds": [900, 1800], "out_of_order_fraction": 0.02, "control_hold_s": 1810}
   },
   "spark": {
     "kafka_package": "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.4",

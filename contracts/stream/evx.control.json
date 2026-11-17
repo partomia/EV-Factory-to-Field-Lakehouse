@@ -1,7 +1,7 @@
 {
  "topic": "evx.control",
  "table": "stream_control",
- "description": "Producer control totals per event minute and topic (synthetic)",
+ "description": "Producer control totals per event minute and topic, for every produced topic (synthetic); vehicles = distinct message keys of the minute (VINs; inspected units for evx.factory.qc; stations for evx.factory.line)",
  "fields": [
   {
    "name": "minute",
