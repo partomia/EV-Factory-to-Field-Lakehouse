@@ -1,0 +1,67 @@
+{
+  "_comment": "Production behaviour (PLAN.md section 9): Iceberg maintenance, freshness SLAs per data product, late EDR reprocess, clock-skew tolerance. Table names are <layer>.<table> under the rsingh_evx_ prefix. Business dates are decoupled from the wall clock (PLAN section 15); every calendar date is a business date.",
+  "maintenance": {
+    "snapshots_days": 7,
+    "retain_last": 5,
+    "orphan_days": 3,
+    "_schedule": "CDE job rsingh-evx-maintenance, cron 30 4 * * * (UTC), registered paused; cde/jobs/maintenance.py",
+    "layers": ["bronze", "silver", "master", "gold", "features", "semantic", "ref"],
+    "compact": {
+      "tables": ["bronze.telemetry_reading", "bronze.stream_control", "bronze.stream_quarantine",
+                 "silver.telemetry_window", "bronze.vehicle_dtc_event", "bronze.factory_qc_event",
+                 "bronze.factory_line_event", "silver.line_cycle_window"],
+      "target_file_size_mb": 128,
+      "min_input_files": 5
+    },
+    "_no_expire": "tables read as a stream by another job (INTERFACES correction 3): expire_snapshots is never called on them, so no reader checkpoint can point at an expired snapshot",
+    "no_expire": ["bronze.telemetry_reading", "bronze.factory_line_event"],
+    "branch_prefix": "wap_",
+    "stale_branch_days": 7,
+    "_gold_publish_window_utc": "the nightly DAG (23:30 UTC, 4 h timeout) publishes gold inside this window; a gold table is skipped when maintenance reaches it inside the window",
+    "gold_publish_window_utc": {"start": "23:00", "end": "04:00"}
+  },
+  "freshness": {
+    "_rule": "one ref.freshness row per product and business date: the worst of its checks. batch lag = business date - last business date loaded (business days; from ref.load_audit COMMITTED rows of the table's stage, or max(date_col) when given); stream lag = end of the business date (UTC) - latest event time (minutes); GREEN within the SLA, AMBER within SLA + amber_extra, RED beyond or never loaded; tables that do not exist yet are skipped",
+    "amber_extra_days": 1,
+    "amber_factor_minutes": 2.0,
+    "products": {
+      "supply": {"owner": "Supplier Quality", "sla_days": 0,
+                 "batch": ["bronze.sap_odata_record", "silver.sap_material_document", "silver.sap_inspection_lot",
+                           "gold.dim_material_batch"]},
+      "cell": {"owner": "Cell Quality", "sla_days": 0, "sla_minutes": 15,
+               "batch": ["bronze.cell_mes_step", "bronze.cell_qc_inspection", "silver.cell_step",
+                         "gold.fact_cell_process", "gold.fact_cell_grading", "gold.fact_qc_inspection"],
+               "stream": [{"table": "bronze.factory_qc_event", "time_col": "event_ts"}]},
+      "pack_vehicle": {"owner": "Pack & Vehicle Quality", "sla_days": 0,
+                       "batch": ["bronze.pack_build_doc", "bronze.vehicle_eol_doc", "silver.pack_build",
+                                 "silver.vehicle_build", "gold.fact_pack_eol", "gold.fact_vehicle_eol", "gold.dim_pack",
+                                 "gold.dim_vehicle", "gold.bridge_genealogy"]},
+      "field": {"owner": "Fleet Reliability", "sla_days": 0, "sla_minutes": 15,
+                "_bronze": "telematics and DTC reach bronze as streams on the live dates (no batch file), so their bronze tables are stream checks",
+                "batch": [{"table": "silver.edr_event", "stage": "extract"}, "gold.fact_vehicle_daily", "gold.fact_dtc",
+                          "gold.fact_edr_event"],
+                "stream": [{"table": "bronze.telemetry_reading", "time_col": "event_ts"},
+                           {"table": "silver.telemetry_window", "time_col": "last_event_ts"},
+                           {"table": "bronze.vehicle_dtc_event", "time_col": "event_ts"}]},
+      "field_edr": {"owner": "Fleet Reliability", "sla_days": 3,
+                    "batch": [{"table": "gold.edr_event_daily", "date_col": "last_arrival_date"}]},
+      "service": {"owner": "Service & Warranty", "sla_days": 0,
+                  "batch": ["bronze.warranty_claims", "silver.warranty_claim", {"table": "silver.doc_extract",
+                            "stage": "extract"}, "gold.fact_service_job", "gold.fact_warranty_claim", "gold.dim_rider"]},
+      "twin": {"owner": "Manufacturing Engineering", "sla_days": 0, "sla_minutes": 15,
+               "batch": ["silver.line_event"],
+               "stream": [{"table": "bronze.factory_line_event", "time_col": "mes_ts"},
+                          {"table": "silver.line_cycle_window", "time_col": "last_mes_ts"}]}
+    }
+  },
+  "late_data": {
+    "_rule": "an EDR dump is late when it lands on or after business date E + ceil(sla_hours / 24), E being its event date (IST date of trigger_ts): by then the 72 h counted from the start of E have passed. The arrival time inside a day is not known, only the landing date.",
+    "sla_hours": 72,
+    "source": "gold.fact_edr_event",
+    "aggregate": "gold.edr_event_daily"
+  },
+  "clock_skew": {
+    "tolerance_s": 120,
+    "round_s": 60
+  }
+}
