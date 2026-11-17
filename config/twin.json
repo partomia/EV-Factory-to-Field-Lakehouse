@@ -1,0 +1,83 @@
+{
+  "_comment": "Twin domain (PLAN.md sections 5, 7, 13): station layout and design cycle times per area, the weekly twin scenario cadence, and the line-event window. Lines come from config/lakehouse.json universe (cell_lines, pack_lines, vehicle_lines). Station id = <area code>-<step code>-<line number>, e.g. VA-EOL-02 is the vehicle EOL test station on VA2. Every value is synthetic.",
+  "line_events_from": "2026-10-24",
+  "status_rates": {"FAULT": 0.004, "BLOCKED": 0.012, "STARVED": 0.010},
+  "status_bias": 2.0,
+  "fault_extra_s": [60, 900],
+  "wait_extra": [0.2, 1.2],
+  "cycle_sigma": 0.06,
+  "mes_latency_s": [1, 3],
+  "shift_factor": {"A": 1.0, "B": 1.01, "C": 1.04},
+  "areas": {
+    "CELL": {
+      "code": "CA", "unit": "cell", "transfer_s": 4,
+      "stations": [
+        {"code": "WND", "step": "winding", "cycle_s": 24.0},
+        {"code": "TWL", "step": "tab_welding", "cycle_s": 21.0},
+        {"code": "TFD", "step": "tab_folding", "cycle_s": 16.0},
+        {"code": "INS", "step": "can_insertion", "cycle_s": 18.0},
+        {"code": "CWD", "step": "can_welding", "cycle_s": 23.0},
+        {"code": "EFL", "step": "electrolyte_fill", "cycle_s": 31.0},
+        {"code": "WET", "step": "wetting", "cycle_s": 27.0},
+        {"code": "EFT", "step": "electrolyte_top_up", "cycle_s": 25.0},
+        {"code": "SEL", "step": "sealing", "cycle_s": 22.0},
+        {"code": "LKT", "step": "leak_test", "cycle_s": 26.0},
+        {"code": "XRY", "step": "xray_inline", "cycle_s": 20.0},
+        {"code": "LMK", "step": "laser_marking", "cycle_s": 12.0}
+      ]
+    },
+    "PACK": {
+      "code": "PA", "unit": "pack", "transfer_s": 60,
+      "stations": [
+        {"code": "CLD", "step": "cell_loading", "cycle_s": 1250.0},
+        {"code": "MST", "step": "module_stacking", "cycle_s": 980.0},
+        {"code": "BBW", "step": "busbar_welding", "cycle_s": 1150.0},
+        {"code": "WBD", "step": "wire_bonding", "cycle_s": 1580.0},
+        {"code": "BMS", "step": "bms_fit", "cycle_s": 640.0},
+        {"code": "LID", "step": "lid_sealing", "cycle_s": 820.0},
+        {"code": "LKT", "step": "leak_test", "cycle_s": 1100.0},
+        {"code": "EOL", "step": "pack_eol_test", "cycle_s": 1350.0}
+      ]
+    },
+    "VEHICLE": {
+      "code": "VA", "unit": "vehicle", "transfer_s": 60,
+      "stations": [
+        {"code": "FRM", "step": "frame_marriage", "cycle_s": 900.0},
+        {"code": "MTR", "step": "motor_fit", "cycle_s": 720.0},
+        {"code": "PCK", "step": "pack_install", "cycle_s": 1050.0},
+        {"code": "HRN", "step": "harness_routing", "cycle_s": 1280.0},
+        {"code": "MCU", "step": "mcu_flash", "cycle_s": 610.0},
+        {"code": "WHL", "step": "wheel_fit", "cycle_s": 540.0},
+        {"code": "ALN", "step": "alignment", "cycle_s": 830.0},
+        {"code": "EOL", "step": "vehicle_eol_test", "cycle_s": 1620.0}
+      ]
+    }
+  },
+  "actual_drift": [
+    {"station_id": "CA-SEL-02", "from": "2026-11-03", "factor": 1.5,
+     "note": "sealing jaw wear on CL2: the actual bottleneck moves from CA-EFL-02 to CA-SEL-02 while the twin baseline still predicts CA-EFL-02"}
+  ],
+  "twin": {
+    "cadence_days": 7,
+    "model_version": "twin-2.1",
+    "availability": 0.92,
+    "prediction_sigma": 0.03,
+    "extras_weights": [0.45, 0.40, 0.15],
+    "scenarios": {
+      "BASELINE": {},
+      "DEMAND_PLUS_15": {"demand": 1.15},
+      "SHIFT_C_REDUCED": {"available": 0.83},
+      "TOOL_CHANGE": {"tool_factor": 1.35},
+      "NEW_RECIPE": {"area_factor": 1.04}
+    }
+  },
+  "volumes": {
+    "_comment": "Expected at default scale (scale 1.0); line events are proportional to scale, scenarios are not (one baseline per line per week plus 0-2 what-ifs).",
+    "line_events_per_date": 60000,
+    "line_event_dates": 18,
+    "line_event_objects_per_date": 6,
+    "scenarios_total": 400,
+    "scenario_objects_per_week": 6,
+    "weeks": 40
+  }
+}
