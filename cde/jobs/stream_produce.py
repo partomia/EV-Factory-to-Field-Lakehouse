@@ -1,10 +1,17 @@
 """
-The telemetry producer as a CDE Spark job (rsingh-evx-stream-produce): stream/producer/telemetry.py's seeded
-readings and control counts for the live subset (rsingh_evx_ref.generator_fleet), written to Kafka through
-Spark's Kafka sink. CDE reaches the brokers on 9093 where a laptop cannot. Adapted from OGX's stream_produce.py.
+The stream producers as a CDE Spark job (rsingh-evx-stream-produce), written to Kafka through Spark's Kafka sink.
+CDE reaches the brokers on 9093 where a laptop cannot. Adapted from OGX's stream_produce.py.
 
-  --setup            create the evx.* topics if absent (Kafka AdminClient over py4j: partitions and retention
-                     from config/streaming.json, the brokers' default replication)
+  --topics telemetry[,dtc,qc,line]   which producers run (default telemetry, the M1 behaviour), in that order:
+                     telemetry  stream/producer/telemetry.py, the live subset (rsingh_evx_ref.generator_fleet)
+                     dtc        stream/producer/dtc.py, the same live subset
+                     qc         stream/producer/qc.py, the date's QC exports in the generated tree (--generated)
+                     line       stream/producer/line.py, generators.twin.station_cycle_events (--scale)
+                     each with its per-minute control totals on evx.control (field topic)
+  --setup            create every configured evx.* topic that does not exist yet, evx.alert.priority included
+                     (Kafka AdminClient over py4j: partitions and retention from config/streaming.json, the
+                     brokers' default replication). An existing topic is never altered (no partition or
+                     retention change); it is reported EXISTS
   --dates 2026-11-06[,2026-11-07]   backfill these dates (send-time order, as fast as the sink takes them)
   --mode none        topics only
 
@@ -26,6 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evx_common as C  # noqa: E402
 
 C._import_path()
+from stream.producer import common as K  # noqa: E402
 from stream.producer import telemetry as T  # noqa: E402
 from stream_telemetry_bronze import STREAM, kafka_options  # noqa: E402
 
@@ -37,7 +45,7 @@ class SparkKafkaSink:
         self.sent = 0
 
     def send(self, topic: str, msg: dict, send_ts: float) -> None:
-        self.buf.append((topic, msg.get("vin") or msg.get("topic"), json.dumps(msg, separators=(",", ":"))))
+        self.buf.append((topic, K.record_key(msg), json.dumps(msg, separators=(",", ":"))))
         self.sent += 1
         if len(self.buf) >= self.batch:
             self.flush()
@@ -83,6 +91,17 @@ def create_topics(spark, opts: dict) -> dict:
         admin.close()
 
 
+PRODUCERS = ("telemetry", "dtc", "qc", "line")
+
+
+def parse_topics(arg: str) -> list[str]:
+    keys = [x.strip() for x in arg.split(",") if x.strip()]
+    bad = [k for k in keys if k not in PRODUCERS]
+    if bad or not keys:
+        raise SystemExit(f"--topics: unknown {bad}; choose from {','.join(PRODUCERS)}")
+    return [k for k in PRODUCERS if k in keys]
+
+
 def fleet(spark, names: C.Names) -> list[dict]:
     rows = spark.table(names.t("ref", "generator_fleet")).where("live_subset").collect()
     return T.load_fleet({k: (v.isoformat() if isinstance(v, date) else v) for k, v in r.asDict().items()} for r in rows)
@@ -96,6 +115,9 @@ def main(argv=None) -> int:
     ap.add_argument("--dates", default=C.CFG["calendar"]["live_dates"][0])
     ap.add_argument("--interval", type=int, default=T.P["interval_s"])
     ap.add_argument("--batch", type=int, default=250_000)
+    ap.add_argument("--topics", default="telemetry", help="comma list of telemetry, dtc, qc, line")
+    ap.add_argument("--generated", default=C.sibling(C.DEFAULT_LANDING, "generated"), help="qc: the generated tree")
+    ap.add_argument("--scale", type=float, default=None, help="line: twin scale (default generator.scale, else 1)")
     args, _ = ap.parse_known_args(argv if argv is not None else sys.argv[1:])
     spark = C.get_spark("evx-stream-produce")
     opts = kafka_options(spark)
@@ -104,13 +126,36 @@ def main(argv=None) -> int:
         print("STREAM_TOPICS", json.dumps(create_topics(spark, opts)), flush=True)
     if args.mode == "none":
         return 0
-    live = fleet(spark, C.Names(args.db_prefix))
+    topics = parse_topics(args.topics)
+    live = fleet(spark, C.Names(args.db_prefix)) if {"telemetry", "dtc"} & set(topics) else []
     run_id, t0 = f"backfill-{uuid.uuid4().hex[:8]}", time.time()
     sink = SparkKafkaSink(spark, opts, args.batch)
     days = [date.fromisoformat(x) for x in args.dates.split(",")]
-    print(f"backfill {args.dates} for {len(live):,} live vehicles at {args.interval} s, run {run_id}", flush=True)
-    T.backfill(sink, live, days, args.interval, run_id, log=lambda s: print(s, flush=True))
+    log = lambda s: print(s, flush=True)  # noqa: E731
+    print(f"backfill {args.dates} topics {','.join(topics)} for {len(live):,} live vehicles, run {run_id}", flush=True)
+    sent = {}
+    for key in topics:
+        before = sink.sent
+        if key == "telemetry":
+            T.backfill(sink, live, days, args.interval, run_id, log=log)
+        elif key == "dtc":
+            from stream.producer import dtc as D
+
+            D.backfill(sink, live, days, run_id, log=log)
+        elif key == "qc":
+            from stream.producer import qc as Q
+
+            Q.backfill(sink, C.filesystem(spark, args.generated), C.as_uri(args.generated), days, run_id, log=log)
+        elif key == "line":
+            from stream.producer import line as L
+
+            cfg = C.config()
+            scale = args.scale if args.scale is not None else float(cfg.get("generator", {}).get("scale", 1.0))
+            L.backfill(sink, cfg, days, scale, run_id, log=log)
+        sink.flush()
+        sent[key] = sink.sent - before
     sink.close()
+    print("STREAM_PRODUCED_TOPICS " + " ".join(f"{k}={v}" for k, v in sent.items()), flush=True)
     print(f"STREAM_PRODUCED messages={sink.sent} vehicles={len(live)} seconds={time.time() - t0:.0f} run={run_id}",
           flush=True)
     return 0

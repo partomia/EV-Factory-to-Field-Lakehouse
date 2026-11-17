@@ -34,7 +34,9 @@ from pyspark.sql import DataFrame  # noqa: E402
 from pyspark.sql import functions as F  # noqa: E402
 
 STREAM = C.load_json("config/streaming.json")
-TOPICS = {k: v["name"] for k, v in STREAM["topics"].items()}
+JOB = "rsingh-evx-stream-telemetry"
+# only this job's topics (telemetry, control): the M2 topics have their own jobs, evx.alert.priority none
+TOPICS = {k: v["name"] for k, v in STREAM["topics"].items() if v.get("bronze_job") == JOB}
 QUERY = "stream-telemetry"
 BATCH_PROP = "evx.stream-batch"
 KAFKA_COLS = ["kafka_topic", "kafka_partition", "kafka_offset", "kafka_ts"]
@@ -178,6 +180,7 @@ def process(names: C.Names, contracts: dict, query: dict):
         df = kafka_ts_ntz(df).persist()
         bad_all, counts = None, {}
         for kind, topic in TOPICS.items():
+            assert kind in ("telemetry", "control"), kind
             parsed = parse_topic(df.where(F.col("kafka_topic") == topic), contracts[topic])
             good = parsed.where(F.size("reject_reasons") == 0).drop("reject_reasons", "record_value", "record_key")
             bad = parsed.where(F.size("reject_reasons") > 0).select(

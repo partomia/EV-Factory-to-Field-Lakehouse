@@ -1,0 +1,92 @@
+{
+ "topic": "evx.factory.line",
+ "table": "factory_line_event",
+ "description": "Station cycle events (one per completed cycle), the fields of the batch line_event source; timestamps ISO-8601 with offset; mes_ts is the trusted MES clock and the stream's event time (synthetic)",
+ "fields": [
+  {
+   "name": "event_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "station_id",
+   "type": "string",
+   "required": true,
+   "pattern": "^[A-Z0-9]+(-[A-Z0-9]+)+$"
+  },
+  {
+   "name": "line_id",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "CL1",
+    "CL2",
+    "PL1",
+    "PL2",
+    "VA1",
+    "VA2"
+   ]
+  },
+  {
+   "name": "area",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "CELL",
+    "PACK",
+    "VEHICLE"
+   ]
+  },
+  {
+   "name": "unit_id",
+   "type": "string",
+   "required": true
+  },
+  {
+   "name": "cycle_start_ts",
+   "type": "timestamp",
+   "required": true
+  },
+  {
+   "name": "event_ts",
+   "type": "timestamp",
+   "required": true
+  },
+  {
+   "name": "mes_ts",
+   "type": "timestamp",
+   "required": true
+  },
+  {
+   "name": "cycle_s",
+   "type": "double",
+   "required": true
+  },
+  {
+   "name": "status",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "OK",
+    "FAULT",
+    "BLOCKED",
+    "STARVED"
+   ]
+  },
+  {
+   "name": "shift",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "name": "producer_run",
+   "type": "string",
+   "required": true
+  }
+ ]
+}
