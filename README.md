@@ -16,7 +16,8 @@ Synthetic EV battery factory-to-field lakehouse on Cloudera (CDE, Impala, CAI, D
 | Start / stop the live demo | `python scripts/platform_ctl.py status` then `start` or `stop` |
 | M1 walkthrough check (Impala + CDV) | `.venv/bin/python scripts/m1_walkthrough_check.py` — [results](docs/M1_WALKTHROUGH_RESULTS.md) |
 
-**Status (2026-11-16):** stopped at project scope — both CAI apps and `evx-uc01-service` stopped, no CDE runs,
-nightly DAG paused. Shared services left running. Resume with `platform_ctl.py start`.
+**Status (2026-11-18):** M2 phase 9 merged; the new streams were drained live for 2026-11-06. Stopped at project
+scope: both CAI apps and `evx-uc01-service` stopped, NiFi `EVX - Alert Router` stopped, no CDE runs, nightly DAG
+paused. Shared services left running. Resume with `platform_ctl.py start`.
 
 Data is synthetic. Do not present it as a customer's production data.

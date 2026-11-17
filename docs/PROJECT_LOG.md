@@ -394,3 +394,45 @@
 - **Tests:** `pytest -q` 243 passed, 0 skipped. Lane B's earlier skip (`tests/test_nifi_export.py::
   test_topic_names_match_streaming_json_when_lane_a_keys_exist`, waiting on lane A's topics) now runs and passes.
 - Nothing registered or run on CDE, Kafka, NiFi, Impala or CAI.
+
+## 2026-11-18 02:25 IST - M2 phase 9 live step (CDE, Kafka, NiFi), 2026-11-06 only
+
+- **Code:** `main` at `f13f69c` pushed; CDE repository `rsingh-evx-pipeline` synced (file content checked).
+- **Capacity:** OGX runs 1239 and 1240 killed by the owner (ended 20:24 UTC). Before every job: no starting or
+  running run on `federal-cde-vc` (quota 20 CPU / 80 GiB). The VC's `actualCpuRequests` read a constant 27 CPU /
+  103 GiB with and without runs, so it was not counted as usage.
+- **WAP self-test:** job `rsingh-evx-wap-check` registered; run **1241** `WAP_SELFTEST result PASS 5/5`.
+  - It covered a passing publish, a date emptied on the branch, a failed audit with main unchanged and the
+    branch kept.
+  - The scratch table `zz_wap_scratch` and its log rows were dropped in the same run.
+  - Real gold stays `publish.mode` direct.
+- **Topics:** run **1242** (`stream_produce --setup --mode none --topics dtc,qc,line`).
+  - CREATED: `evx.vehicle.dtc`, `evx.factory.qc`, `evx.factory.line`, `evx.alert.priority`.
+  - EXISTS and not altered: `evx.vehicle.telemetry`, `evx.control`.
+  - Nothing produced.
+- **Stream jobs:** `deploy_streaming.sh create` registered `rsingh-evx-stream-dtc`, `-qc`, `-line` and
+  `-line-window` (driver 1 / 2 GB, one executor 1 core / 2 GB), and updated the M1 telemetry jobs with the same
+  files and sizes.
+- **NiFi:** `EVX - Alert Router` deployed with 5 processors STOPPED and VALID and 5 services enabled.
+  - The root truststore SSL context is referenced, not modified.
+  - Registry `evx-flows/evx_alert_router` version 1.
+  - Re-exported to `nifi/flows/evx_alert_router.json`. The export scan passed (no password, token, keystore
+    password, access key or credentials provider), and so did lane B's 38 tests.
+- **Produce 2026-11-06:** run **1243** `--topics dtc,qc,line`, `STREAM_PRODUCED_TOPICS dtc=40 qc=6313 line=62476`
+  (events plus their per-minute `evx.control` totals). No telemetry was sent.
+- **Drains (available-now, one at a time):**
+  - dtc **1244**: 20 rows, quarantine 0, checkpoint `dtc_bronze`.
+  - qc **1245**: 5,017 rows, quarantine 0, checkpoint `qc_bronze`.
+  - line **1246**: 61,036 rows, quarantine 0, checkpoint `line_bronze`.
+  - line-window **1247**: `silver.line_cycle_window` 3,734 windows, sum(cycles) 61,036, checkpoint `line_window`.
+- **Checks (Impala):**
+  - `bronze.telemetry_reading` for 2026-11-06: 282,924 rows before and after (282,924 distinct event ids).
+  - `stream_control`: 782 rows, unchanged; `stream_quarantine`: empty.
+  - Each new bronze table holds only its own topic, and `dtc_quarantine`, `qc_quarantine` and `line_quarantine`
+    are separate and empty.
+- **Not done in this step:**
+  - The telemetry drain was not run, so the M2 control totals for 11-06 are still on `evx.control`, not yet in
+    `bronze.stream_control`.
+  - Maintenance and freshness were not run (not on this phase's done list). No snapshot was expired.
+  - The DAG was not redeployed or unpaused (window end 2026-11-09 23:30 UTC); `built_milestones` stays `["M1"]`.
+  - The producer, the model and the CAI apps were not started. NiFi stays stopped.
