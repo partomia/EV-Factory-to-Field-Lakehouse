@@ -464,3 +464,37 @@
   on `evx.vehicle.telemetry` for 2026-11-06.
 - **Doc fix:** the `late_data._rule` note in `config/operations.json` now matches the code (late from event date
   + 4 for 72 h).
+
+## 2026-11-18 03:05 IST - Project started at project scope (code at 36052ac)
+
+- **Shared services:** all already up, so none was started and `--scope platform` was not used.
+  - `federal-kafka`, `federal-flink`, `federal-nifi`: AVAILABLE.
+  - `federal-impala-1`: Running.
+  - `federal-cde-vc`: AppInstalled.
+  - `federal-cml-ws`: finished.
+- **Code sync:**
+  - `cde repository sync` of `rsingh-evx-pipeline`; the content was checked by download.
+  - CAI `evx-uc01-00-sync-code` run `9rav6af1wp4efnby` succeeded.
+- **New DAG task jobs:** `rsingh-evx-reprocess` (`cde/jobs/reprocess_late.py`) and `rsingh-evx-freshness`
+  (`cde/jobs/freshness.py`). They use the shape of `rsingh-evx-recon`: the repository mounted at `/`, a 2c / 8g
+  driver and 3 executors of 2c / 8g.
+- **Deploys:**
+  - `deploy_streaming.sh create` updated the seven stream jobs.
+  - `deploy_dag.sh` registered the DAG from git. START is 2026-11-05 23:30, END 2026-11-09 23:30 UTC, catchup
+    False.
+- **`platform_ctl.py start`:**
+  - Unpaused `rsingh-evx-orchestration`. The schedule is active with no next run (the window is closed), and no
+    DAG run fired.
+  - Streaming runs from their checkpoints: telemetry 1248, agg 1249, dtc 1250, qc 1251, line 1252,
+    line-window 1253, all running.
+  - NiFi `EVX - Alert Router`: 4 processors running, the hold processor stopped.
+  - `evx-uc01-service`: deployment 737799a5 could not be restarted, so a new deployment 7158cfa1 was made from
+    build d96b378c, now deployed.
+  - Both CAI apps APPLICATION_RUNNING.
+  - The producer was not started, and no manual DAG run was made.
+  - Before the start no run was active on the cluster. The 6 streaming runs request 12 CPU / 24 GiB of the
+    20 / 80 GiB quota.
+- **Known gap closed:** `rsingh-evx-stream-telemetry` read the M2 control totals from `evx.control`.
+  `stream_control` now has line 1,440 rows (total 61,036), qc 1,296 (5,017), dtc 20 (20) and telemetry 782
+  (282,924). Each total equals its bronze table. `telemetry_reading` for 2026-11-06 is still 282,924, and
+  `stream_quarantine` is empty.
