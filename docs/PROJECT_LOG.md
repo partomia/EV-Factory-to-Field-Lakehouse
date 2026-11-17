@@ -363,3 +363,11 @@
   on gitignored `metrics.json`; fixed to use tracked **`baseline.json`** only on CAI.
 - Sync **8pzgir6rynll3cz4** (→ **`e3fc8cc`**). Walkthrough run **fmxb1ej5mhp8s7us** **ENGINE_SUCCEEDED**:
   all Impala checks pass; **`outputs/walkthrough.log`** on the project.
+
+## 2026-11-16 12:15 IST - Stop all (project scope)
+
+- `platform_ctl.py stop`: stopped both CAI applications and the `evx-uc01-service` deployment (`737799a5`).
+  CDE already idle (no runs, `rsingh-evx-orchestration` schedule paused, streams not running). Status confirmed.
+- Shared services (Data Hubs, `federal-impala-1`, CDE VC, CAI workspace) left running for sibling demos.
+- Data, Kafka topics and checkpoints kept; `platform_ctl.py start` resumes. Rule now maps "start all" / "stop all"
+  to project-scope `start` / `stop`.

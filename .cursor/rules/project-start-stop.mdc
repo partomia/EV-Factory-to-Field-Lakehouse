@@ -16,6 +16,9 @@ python scripts/platform_ctl.py stop                  # or: start
 python scripts/platform_ctl.py status                # always last: confirm every layer
 ```
 
+- "stop all" / "start all" means `stop` / `start` at the default project scope (all layers). Use
+ `.venv/bin/python` (plain `python` is not on PATH). After "start all", report that the producer
+ and the nightly DAG stay off unless the user asks (see below).
 - Default scope `project` touches only this demo (`config/platform.json`): CAI apps
   **EVX Quality and Reliability Workbench** and **EVX Vision and Documents Workbench**, model
   `evx-uc01-service`, CAI jobs whose names start with `evx-`, CDE `rsingh-evx-*` runs and the
