@@ -498,3 +498,28 @@
   `stream_control` now has line 1,440 rows (total 61,036), qc 1,296 (5,017), dtc 20 (20) and telemetry 782
   (282,924). Each total equals its bronze table. `telemetry_reading` for 2026-11-06 is still 282,924, and
   `stream_quarantine` is empty.
+
+## 2026-11-18 03:25 IST - Step 10 fix-forward: SQL from config files is validated (8dfe440, aa86274)
+
+- **What changed:** the final pass on `0bd2fef..da8ba4f` found two places that put values read from config files
+  into SQL unchecked.
+  - `scripts/check_local.py` (`check_stream_m2`): each topic's table, event-time and quarantine names must
+    match `[a-z_]+`.
+    - Topic names go through `lit()`. In `8dfe440` it stripped quotes. Since `aa86274` it raises `ValueError`
+      unless the value matches `evx\.[a-z.]+`, and it never strips characters.
+  - `nifi/deploy_flow.py` (`route_sql`): the reason must be THERMAL or CRITICAL. The input topic, the
+    priority and the DTC codes must match `[A-Za-z0-9._-]+`.
+    - The generated routing SQL is byte-identical to the committed export, so NiFi was not redeployed.
+- **Tests:**
+  - pytest 243 passed after each commit.
+  - `check_local.py stream` OK on the local integration data.
+  - gitleaks: no leaks over the full history. Brand check: 0 hits.
+  - NiFi export `check_export`: PASS.
+- **Sync to `aa86274`:**
+  - `cde repository sync --name rsingh-evx-pipeline` printed nothing and exited 0. The repository is ready with
+    signature `aa86274`, and its 32 top-level entries match `git ls-tree aa86274`.
+  - CAI `evx-uc01-00-sync-code` run `68ydvp26aj72tpww` succeeded.
+- **Not restarted:**
+  - Streaming runs 1248-1253 kept running.
+  - `evx-uc01-service`, both CAI apps and the NiFi `EVX - Alert Router` flow were left as they were.
+  - No DAG run, reprocess, freshness, fault-8 regeneration or producer run.
