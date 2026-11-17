@@ -1,0 +1,98 @@
+{
+ "entity": "twin_scenario",
+ "source": "twin_scenario",
+ "format": "ndjson",
+ "file_glob": "*.ndjson",
+ "description": "Digital twin weekly scenario outputs: one JSON document per scenario (one NDJSON file per line per week start), per station the predicted cycle s, utilisation and bottleneck flag (document kept as payload)",
+ "key": [
+  "scenario_id"
+ ],
+ "columns": [
+  {
+   "name": "scenario_id",
+   "type": "string",
+   "required": true,
+   "pattern": "^TS-(CL|PL|VA)[12]-[0-9]{6}-[0-9]{2}$",
+   "severity": "reject",
+   "json": "scenario_id"
+  },
+  {
+   "name": "week_start",
+   "type": "date",
+   "required": true,
+   "formats": [
+    "yyyy-MM-dd"
+   ],
+   "json": "week_start"
+  },
+  {
+   "name": "line_id",
+   "type": "string",
+   "required": true,
+   "allowed": [
+    "CL1",
+    "CL2",
+    "PL1",
+    "PL2",
+    "VA1",
+    "VA2"
+   ],
+   "severity": "reject",
+   "json": "line_id"
+  },
+  {
+   "name": "area",
+   "type": "string",
+   "allowed": [
+    "CELL",
+    "PACK",
+    "VEHICLE"
+   ],
+   "json": "area"
+  },
+  {
+   "name": "scenario_name",
+   "type": "string",
+   "required": true,
+   "json": "scenario_name"
+  },
+  {
+   "name": "model_version",
+   "type": "string",
+   "json": "model_version"
+  },
+  {
+   "name": "generated_ts",
+   "type": "timestamp",
+   "formats": [
+    "yyyy-MM-dd'T'HH:mm:ssXXX"
+   ],
+   "json": "generated_ts"
+  },
+  {
+   "name": "planned_units_per_day",
+   "type": "double",
+   "min": 0,
+   "json": "planned_units_per_day"
+  },
+  {
+   "name": "available_s",
+   "type": "double",
+   "min": 0,
+   "json": "available_s"
+  },
+  {
+   "name": "n_stations",
+   "type": "int",
+   "required": true,
+   "min": 1,
+   "json": "n_stations"
+  },
+  {
+   "name": "bottleneck_station",
+   "type": "string",
+   "pattern": "^(CA|PA|VA)-[A-Z]{3}-[0-9]{2}$",
+   "json": "bottleneck_station"
+  }
+ ]
+}

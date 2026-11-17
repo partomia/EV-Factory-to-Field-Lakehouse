@@ -13,7 +13,9 @@ Stage 3 - Silver: typed, UTC, conformed rows per business date from bronze and t
              fields outside the contract are kept in _extra_fields, and typed when silver knows them
              (ZZ_MOISTURE_PPM on inspection lots, from 2026-11-08)
   extracted  silver.doc_extract by document title -> silver.service_job, silver.supplier_coa,
-             silver.quality_report (free text upper-cased, as OCR reads it, so text-layer and scanned cards agree)
+             silver.             quality_report (free text upper-cased, as OCR reads it, so text-layer and scanned cards agree)
+  twin       silver.line_event (typed, UTC, one row per event_id per date), silver.twin_scenario and
+             silver.twin_station_prediction (scenario x station); each skipped while its bronze table does not exist
 
 Each table gets one commit replacing the business dates processed. ref.load_audit: STARTED, COMMITTED per
 table, COMPLETED or FAILED.
@@ -209,6 +211,49 @@ def doc_tables(docs):
     return {"service_job": job, "supplier_coa": coa, "quality_report": report}, unmapped
 
 
+# ---------------------------------------------------------------- twin domain (M2)
+
+TWIN_STATIONS = ("stations array<struct<station_id:string,seq:int,predicted_cycle_s:double,utilisation:double,"
+                 "bottleneck:boolean>>")
+
+
+def twin_station_predictions(bronze):
+    """One row per scenario x station from the scenario document kept in bronze.payload."""
+    d = bronze.where(F.col("payload").isNotNull()).withColumn("d", F.from_json("payload", TWIN_STATIONS))
+    df = d.select("scenario_id", F.to_date(blank_null(F.col("week_start"))).alias("week_start"), "line_id",
+                  F.explode("d.stations").alias("s"), *LINEAGE) \
+        .select("scenario_id", "week_start", "line_id", F.col("s.station_id").alias("station_id"),
+                F.col("s.seq").alias("station_seq"), F.col("s.predicted_cycle_s").alias("predicted_cycle_s"),
+                F.col("s.utilisation").alias("utilisation"), F.col("s.bottleneck").alias("bottleneck"),
+                dq_array([F.when(F.col("s.station_id").isNull(), F.lit("parse:station_id")),
+                          F.when(F.col("s.predicted_cycle_s").isNull(), F.lit("parse:predicted_cycle_s"))])
+                .alias("_dq_issues"), *LINEAGE)
+    return dedup(df, ["scenario_id", "station_id"])
+
+
+def twin_tables(spark, names, contracts: dict, bronze, write) -> list[str]:
+    """silver.line_event, silver.twin_scenario, silver.twin_station_prediction. A bronze table that does not exist
+    (dates before config/twin.json line_events_from, or a lakehouse built before the twin domain) is skipped."""
+    skipped = []
+    if C.table_exists(spark, names.t("bronze", "line_event")):
+        b = bronze("line_event")
+        df = typed_entity(b, contracts["line_event"])
+        # CLOCK-SKEW HOOK (integrator, lane D): df = correct_clock_skew(df, tolerance)
+        write("line_event", df, names.t("bronze", "line_event"), b.count())
+    else:
+        skipped.append("line_event")
+    if C.table_exists(spark, names.t("bronze", "twin_scenario")):
+        b = bronze("twin_scenario")
+        write("twin_scenario", typed_entity(b, contracts["twin_scenario"]), names.t("bronze", "twin_scenario"),
+              b.count())
+        n_st = b.select(F.size(F.from_json("payload", TWIN_STATIONS)["stations"]).alias("n")).agg(F.sum("n")).collect()[0][0]
+        write("twin_station_prediction", twin_station_predictions(b), names.t("bronze", "twin_scenario"),
+              int(n_st or 0), "normalise")
+    else:
+        skipped += ["twin_scenario", "twin_station_prediction"]
+    return skipped
+
+
 def run(spark, argv=None) -> dict:
     p = C.base_parser(__doc__.split("\n\n")[0])
     args = C.parse(p, argv)
@@ -278,6 +323,9 @@ def run(spark, argv=None) -> dict:
         for table, df in tables.items():
             write(table, df.withColumn("_dq_issues", F.array().cast("array<string>")),
                   names.t("silver", "doc_extract"), by_table.get(table, 0), "extract")
+        twin_skipped = twin_tables(spark, names, contracts, bronze, write)
+        if twin_skipped:
+            print(f"  twin: no bronze table yet, skipped {', '.join(twin_skipped)}", flush=True)
         n_unmapped = unmapped.count()
         audit.load(STAGE, "*", "COMPLETED", rows_in=sum((s["rows_in"] or 0) for s in summary.values()),
                    rows_out=sum(s["rows_out"] for s in summary.values()),

@@ -18,6 +18,9 @@ Facts (the business dates processed, mode "dates"):
   fact_dtc and fact_edr_event (with config/dtc_catalog.json: battery-related, safety floor; EDR arrival lag),
   fact_service_job and fact_warranty_claim (VIN resolved through master.xref)
 Bridge: bridge_genealogy (pack -> module -> cell -> cell batch -> material lots, link_status), mode "full".
+Twin (each skipped while its silver table does not exist): fact_line_cycle (one row per station cycle, production
+  day from the MES clock), fact_twin_scenario (scenario x station predictions next to the actual mean OK cycle of
+  that station in that week, as of the run); line-event stations are added to dim_station (existing rows unchanged).
 
 Usage:
   spark-submit build_gold.py --business-date 2026-11-08
@@ -99,6 +102,77 @@ def dim_date(start: date, end: date, history_end: str):
         (F.col("date") <= F.lit(history_end).cast("date")).alias("is_history"))
 
 
+# ---------------------------------------------------------------- twin domain (M2)
+
+
+def twin_steps() -> dict:
+    """'<area code>-<step code>' -> step name, from config/twin.json (empty when the file is absent)."""
+    try:
+        tc = C.load_json("config/twin.json")
+    except OSError:
+        return {}
+    return {f"{a['code']}-{s['code']}": s["step"] for a in tc["areas"].values() for s in a["stations"]}
+
+
+def twin_stations(spark, names, stations, silver):
+    """dim_station plus the line-event stations it does not hold yet (its existing rows are kept as they are)."""
+    t = names.t("silver", "line_event")
+    if not C.table_exists(spark, t):
+        return stations, []
+    steps = twin_steps()
+    fallback = F.lower(F.split("station", "-")[1])
+    step = F.coalesce(F.create_map(*[F.lit(x) for kv in steps.items() for x in kv])[
+        F.regexp_extract("station", r"^([A-Z]+-[A-Z]+)-", 1)], fallback) if steps else fallback
+    new = silver("line_event").groupBy(F.col("station_id").alias("station")) \
+        .agg(F.first("area").alias("area"), F.first("line_id").alias("line")).withColumn("step", step) \
+        .join(stations.select("station"), "station", "left_anti").withColumn("station_sk", sk("station"))
+    return stations.unionByName(new), [t]
+
+
+def twin_facts(spark, names, shifts: dict, silver, pub) -> list[str]:
+    """fact_line_cycle and fact_twin_scenario; returns the tables skipped because their silver input is absent."""
+    lin = ["_business_date", "_batch_id"]
+    le_t, sc_t, pr_t = (names.t("silver", t) for t in ("line_event", "twin_scenario", "twin_station_prediction"))
+    has_le, skipped = C.table_exists(spark, le_t), []
+    if has_le:
+        le = silver("line_event", upto=False)
+        clock = [c for c in ("clock_offset_s", "clock_corrected") if c in le.columns]
+        flc = le.select("event_id", "station_id", "line_id", "area", "unit_id", "cycle_start_ts", "event_ts", "mes_ts",
+                        "cycle_s", "status", "shift", *clock, *lin) \
+            .withColumn("production_date", production_day("mes_ts", shifts)[0])
+        pub(flc, Spec("fact_line_cycle", ["event_id"], transform="consume",
+                      checks={"cycle_positive": "cycle_s > 0", "shift_known": "shift IN ('A', 'B', 'C')",
+                              "production_day": "production_date IS NOT NULL"}), [le_t])
+    else:
+        skipped.append("fact_line_cycle")
+    if not (C.table_exists(spark, sc_t) and C.table_exists(spark, pr_t)):
+        return skipped + ["fact_twin_scenario"]
+    sc = silver("twin_scenario", upto=False).select("scenario_id", "scenario_name", "area", "model_version",
+                                                    "planned_units_per_day", "bottleneck_station")
+    fts = silver("twin_station_prediction", upto=False) \
+        .drop("_dq_issues", "_source_file", "_source_row", "_record_hash").join(sc, "scenario_id", "left")
+    if has_le:
+        act = silver("line_event").where(F.col("status") == "OK") \
+            .withColumn("week_start", F.date_sub(F.next_day("_business_date", "Mon"), 7)) \
+            .groupBy("line_id", "station_id", "week_start") \
+            .agg(F.round(F.avg("cycle_s"), 2).alias("actual_mean_cycle_s"), F.count(F.lit(1)).alias("actual_cycles"),
+                 F.countDistinct("_business_date").alias("actual_days"))
+        act = act.withColumn("actual_bottleneck", F.col("actual_mean_cycle_s")
+                             == F.max("actual_mean_cycle_s").over(Window.partitionBy("line_id", "week_start"))) \
+            .drop("line_id")
+        fts = fts.join(act, ["station_id", "week_start"], "left")
+    else:
+        fts = fts.withColumn("actual_mean_cycle_s", F.lit(None).cast("double")) \
+            .withColumn("actual_cycles", F.lit(None).cast("bigint")) \
+            .withColumn("actual_days", F.lit(None).cast("bigint")) \
+            .withColumn("actual_bottleneck", F.lit(None).cast("boolean"))
+    fts = fts.withColumn("cycle_gap_pct", F.round(100 * (F.col("actual_mean_cycle_s") - F.col("predicted_cycle_s"))
+                                                  / F.col("predicted_cycle_s"), 2))
+    pub(fts, Spec("fact_twin_scenario", ["scenario_id", "station_id"], transform="enrich",
+                  checks={"prediction": "predicted_cycle_s > 0"}), [sc_t, pr_t] + ([le_t] if has_le else []))
+    return skipped
+
+
 def run(spark, argv=None) -> dict:
     p = C.base_parser(__doc__.split("\n\n")[0])
     args = C.parse(p, argv)
@@ -141,8 +215,10 @@ def run(spark, argv=None) -> dict:
         stations = stations.groupBy("station").agg(F.first("area").alias("area"), F.first("line").alias("line"),
                                                    F.first("step").alias("step")) \
             .withColumn("station_sk", sk("station"))
+        stations, twin_station_src = twin_stations(spark, names, stations, silver)
         pub(stations, Spec("dim_station", ["station"], "full", transform="consume"),
-            [names.t("silver", t) for t in ("cell_step", "qc_inspection", "pack_build", "vehicle_build")])
+            [names.t("silver", t) for t in ("cell_step", "qc_inspection", "pack_build", "vehicle_build")]
+            + twin_station_src)
 
         pub(master("cell").withColumn("cell_sk", sk("cell_id")).drop("_as_of_date"),
             Spec("dim_cell", ["cell_id"], "full", transform="consume"), [names.t("master", "cell")])
@@ -322,6 +398,10 @@ def run(spark, argv=None) -> dict:
             .withColumn("battery_related", F.col("category").isin(catalog["warranty_battery_categories"]))
         pub(resolved(wc, "WARRANTY"), Spec("fact_warranty_claim", ["claim_id"], transform="match"),
             [names.t("silver", "warranty_claim"), names.t("master", "xref")])
+
+        twin_skipped = twin_facts(spark, names, cal["shifts"], silver, pub)
+        if twin_skipped:
+            print(f"  twin: no silver table yet, skipped {', '.join(twin_skipped)}", flush=True)
 
         audit.load(STAGE, "*", "COMPLETED", rows_out=sum(s["rows"] for s in summary.values()),
                    message=f"{len(summary)} tables in {time.time() - t0:.0f}s")
