@@ -436,3 +436,31 @@
   - Maintenance and freshness were not run (not on this phase's done list). No snapshot was expired.
   - The DAG was not redeployed or unpaused (window end 2026-11-09 23:30 UTC); `built_milestones` stays `["M1"]`.
   - The producer, the model and the CAI apps were not started. NiFi stays stopped.
+
+## 2026-11-18 02:45 IST - Step 8 bookkeeping and known gap
+
+- **Run ids:**
+  - 1241: WAP check, PASS 5/5.
+  - 1242: topic setup, nothing produced.
+  - 1243: produce 2026-11-06, topics dtc, qc and line.
+  - 1244, 1245, 1246, 1247: drains for dtc, qc, line and line-window.
+- **NiFi:** registry `evx-flows/evx_alert_router` is at version 1.
+- **Milestones:** `built_milestones` stays `["M1"]`.
+- **Impala counts (2026-11-06):**
+  - `bronze.telemetry_reading`: 282,924 before and after.
+  - `vehicle_dtc_event`: 20.
+  - `factory_qc_event`: 5,017.
+  - `factory_line_event`: 61,036.
+  - `silver.line_cycle_window`: 3,734 windows, 61,036 cycles.
+  - `dtc_quarantine`, `qc_quarantine` and `line_quarantine`: 0 each.
+  - `stream_control`: 782 rows, unchanged.
+- **Capacity gate:** the virtual cluster's "in use" figure (`actualCpuRequests`) stayed at 27 CPU / 103 GiB with
+  no run starting or running. It is not a headroom gate. Headroom is the quota minus the requests of active runs.
+  No job is sized up to fit it.
+- **Known gap:** the M2 control totals for 2026-11-06 are on `evx.control` but not yet in
+  `bronze.stream_control`, which is short by those rows. Do not re-drain telemetry for it, and do not run
+  `rsingh-evx-stream-produce` for 2026-11-06. `rsingh-evx-stream-telemetry` subscribes to `evx.control`, so its
+  continuous run from the `telemetry_bronze` checkpoint at project start reads those rows. No telemetry is pending
+  on `evx.vehicle.telemetry` for 2026-11-06.
+- **Doc fix:** the `late_data._rule` note in `config/operations.json` now matches the code (late from event date
+  + 4 for 72 h).

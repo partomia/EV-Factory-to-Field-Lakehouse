@@ -55,7 +55,7 @@
     }
   },
   "late_data": {
-    "_rule": "an EDR dump is late when it lands on or after business date E + ceil(sla_hours / 24), E being its event date (IST date of trigger_ts): by then the 72 h counted from the start of E have passed. The arrival time inside a day is not known, only the landing date.",
+    "_rule": "an EDR dump is late when it lands on or after business date E + floor(sla_hours / 24) + 1 (day 4 for 72 h), E being its event date (IST date of trigger_ts): by then more than 72 h have passed since any trigger on E. A day-3 landing can still be within 72 h. The arrival time inside a day is not known, only the landing date.",
     "sla_hours": 72,
     "source": "gold.fact_edr_event",
     "aggregate": "gold.edr_event_daily"
