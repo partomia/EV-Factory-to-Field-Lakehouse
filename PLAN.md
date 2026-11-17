@@ -198,7 +198,7 @@ per shift is ≈ 3.2k at initial load and 12 per date. Each row carries `channel
 **Planted data faults** (each with a test that it is caught where planted; expected-recon rows in section 16):
 SAP delta page re-sent; MES CSV trailer off by one; corrupt X-ray PNG; scanned job card with no text layer; pack
 genealogy referencing a non-existent cell; vehicle re-flashed with firmware reporting °F; stuck SoC sensor; EDR
-dumps 3 days late; VIN typo between DMS and EOL; pack swapped between two vehicles mid-week (SCD2); clock skew on one
+dumps 4 days late; VIN typo between DMS and EOL; pack swapped between two vehicles mid-week (SCD2); clock skew on one
 station's line events.
 
 ## 8. Genealogy and gold model
@@ -392,11 +392,18 @@ realised rate outside 8–10 % fails the calibration test.
 | 5 | Genealogy to a non-existent cell | 2026-10-20 and 2026-11-07 | master | `pack_vehicle.bridge_genealogy` | orphan cell | MISMATCH (pack abstains) |
 | 6 | Firmware reporting °F | 2026-11-08 .. 11-10 | silver | `field.telemetry` | unit sanity | EXPLAINED (converted, guardrail event) |
 | 7 | Stuck SoC sensor | 2026-11-09 | silver | `field.telemetry` | stuck sensor | EXPLAINED (flagged, abstain) |
-| 8 | EDR dumps 3 days late | events of 2026-11-06 arrive 2026-11-09 | gold | `field.fact_edr_event` | late reprocess | EXPLAINED (`ref.reprocess_log`) |
+| 8 | EDR dumps 4 days late | events of 2026-11-06 arrive 2026-11-10 | gold | `field.fact_edr_event` | late reprocess | EXPLAINED (`ref.reprocess_log`) |
 | 9 | VIN typo DMS vs EOL | 2026-10-28 and 2026-11-07 | master | `vehicle` xref | identity match | EXPLAINED (review queue) |
 | 10 | Pack swapped between two vehicles | 2026-11-08 | gold | `dim_vehicle` SCD2 | link change | EXPLAINED (two SCD2 versions each) |
 | 11 | Clock skew on station `VA-EOL-02` | 2026-11-09 | silver | `twin.line_event` | skew | EXPLAINED (corrected offset) |
 | 12 | Schema evolution `ZZ_MOISTURE_PPM` | 2026-11-08 | bronze | `supply.qm_lot` | contract diff | EXPLAINED (`ref.schema_change`) |
+
+**Plan change 2026-11-18 (fault 8):** the planted arrival moved from 2026-11-09 to 2026-11-10. An arrival on 11-09
+is 60 to 74 h after the event, inside the normal 2 to 72 h upload range, and a dump carries no upload time, so recon
+could not tell it from an ordinary late file. On 11-10 (day 4) it is past that range
+(`docs/LATE_DATA.md`). Only the planted dumps' landing folder changes; the generator's random draws are the same.
+CDE dates 11-09 and 11-10 keep the old placement until they are regenerated, so fault 8 has milestone `M2-regen`
+and is not MISSING-checked before then.
 
 **As built:** a fault keyed on a date (VIN typo, image-only job card, orphan cell, corrupt X-ray, pack swap) is
 planted once per generator partition (cell line × assembly month) that has a candidate on that date, so a date can

@@ -1,9 +1,10 @@
 """
 Airflow DAG (CDE): one business date of the EV factory-to-field lakehouse.
 
-  land -> bronze -> extract -> silver -> master -> gold -> <enabled use cases> -> recon
-  scheduled runs also drain that date's telemetry before gold:
-    stream_produce -> stream_telemetry -> stream_agg
+  land -> bronze -> extract -> silver -> master -> gold -> reprocess_late, <enabled use cases> -> recon -> freshness
+  scheduled runs also produce and drain that date's streams before gold, one job at a time:
+    stream_produce (--topics telemetry,dtc,qc,line) -> stream_telemetry -> stream_agg
+    -> stream_dtc -> stream_qc -> stream_line -> stream_line_window
 
 Feature and score tasks come from every usecases/*/config.yaml with enabled: true.
 The score task publishes the champion parquet already mounted on rsingh-evx-uc01-score.
@@ -28,6 +29,7 @@ LANDING = "s3a://federal-buk-574bcea0/data/IB/rsingh_evx/landing"
 CHECKPOINTS = "s3a://federal-buk-574bcea0/data/IB/rsingh_evx/checkpoints"
 SCORE_INPUT = "/app/mount/scores/scores.parquet"
 SCHEDULE = "30 23 * * *"
+STREAM_TOPICS = "telemetry,dtc,qc,line"
 # first interval ends 2026-11-06 23:30 UTC; the last starts on END
 START = datetime(2026, 11, 5, 23, 30)
 END = datetime(2026, 11, 9, 23, 30)
@@ -100,7 +102,9 @@ if DAG is not None:
         silver = stage("build_silver", "silver")
         master = stage("build_master", "master")
         gold = stage("build_gold", "gold")
+        reprocess = stage("reprocess_late", "reprocess")
         recon = stage("reconcile", "recon", trigger_rule="all_done")
+        freshness = stage("freshness", "freshness", trigger_rule="all_done")
         batch_complete = EmptyOperator(task_id="batch_complete", trigger_rule="all_success")
 
         is_scheduled = ShortCircuitOperator(
@@ -113,10 +117,13 @@ if DAG is not None:
                 overrides={"spark": {"args": list(args)}}, wait=True)
 
         produce = stream_job("stream_produce", "stream-produce", "--db-prefix", DB_PREFIX,
-                             "--mode", "backfill", "--dates", BUSINESS_DATE)
+                             "--mode", "backfill", "--topics", STREAM_TOPICS, "--dates", BUSINESS_DATE)
         common = ("--db-prefix", DB_PREFIX, "--checkpoints", CHECKPOINTS, "--trigger", "available-now")
         stream_bronze = stream_job("stream_telemetry", "stream-telemetry", *common)
         stream_agg = stream_job("stream_agg", "stream-agg", *common)
+        # each bronze drain before its window job; one at a time on the shared virtual cluster
+        m2_streams = [stream_job(f"stream_{j.replace('-', '_')}", f"stream-{j}", *common)
+                      for j in ("dtc", "qc", "line", "line-window")]
         stream_done = EmptyOperator(task_id="stream_done", trigger_rule="none_failed")
 
         scored = []
@@ -135,9 +142,13 @@ if DAG is not None:
             gold >> features
 
         land >> bronze >> extract >> silver >> master >> gold
-        is_scheduled >> produce >> stream_bronze >> stream_agg >> stream_done >> gold
+        chain = [produce, stream_bronze, stream_agg, *m2_streams, stream_done]
+        is_scheduled >> chain[0]
+        for a, b in zip(chain, chain[1:]):
+            a >> b
+        stream_done >> gold
+        gold >> reprocess >> recon
         if scored:
             scored >> recon
-        else:
-            gold >> recon
         recon >> batch_complete
+        recon >> freshness

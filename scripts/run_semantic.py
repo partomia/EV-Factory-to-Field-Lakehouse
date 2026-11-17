@@ -68,6 +68,10 @@ class LocalSpark(Impala):
     def create(self, name: str, body: str) -> None:
         self.spark.sql(body).createOrReplaceTempView(name)
 
+    def missing(self, body: str) -> list[str]:
+        """Gold tables a view reads that do not exist: at CI scale scoring is SKIPPED by design."""
+        return [t for t in sorted(set(GOLD_REF.findall(body))) if not self.spark.catalog.tableExists(f"{self.gold}.{t}")]
+
     def prepare(self, gold_tables: set[str]) -> None:
         pass
 
@@ -139,7 +143,14 @@ def main(argv=None) -> int:
     if "views" in steps or "kpi_check" in steps:
         if args.engine == "spark" or "views" in steps:
             eng.prepare({t for _, body in views for t in GOLD_REF.findall(body)})
+            skipped: set[str] = set()
             for name, body in views:
+                absent = eng.missing(body) if isinstance(eng, LocalSpark) else []
+                absent += sorted(v for v in skipped if re.search(rf"\$\{{semantic\}}\.{v}\b", body))
+                if absent:
+                    print(f"SEMANTIC_SKIP {name} (not built: {', '.join(absent)})", flush=True)
+                    skipped.add(name)
+                    continue
                 eng.create(name, eng.sub(body))
                 print(f"SEMANTIC_VIEW {name} {eng.rows(eng.sub(f'SELECT count(*) FROM ${{semantic}}.{name}'))[0][0]}",
                       flush=True)

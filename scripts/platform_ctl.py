@@ -239,7 +239,7 @@ def cde_project(action: str) -> None:
     running = {r["job"] for r in runs}
     # the scheduled DAG runs the streaming jobs itself (available-now, same checkpoints): a
     # continuous run alongside it would share the checkpoint
-    nightly = [j["name"] for j in scheduled if _schedule_open(j["schedule"])]
+    nightly = [j["name"] for j in scheduled if j["name"] in PRJ["cde_dag_jobs"] and _schedule_open(j["schedule"])]
     if nightly:
         say(f"  streaming jobs not started: the nightly schedule ({', '.join(nightly)}) runs them "
             "with the same checkpoints until its end date")
@@ -269,16 +269,18 @@ def nifi_project(action: str) -> None:
             say(f"  process group {name}: {g.get('runningCount', 0)} running, {g.get('stoppedCount', 0)} stopped, "
                 f"{g.get('invalidCount', 0)} invalid")
             continue
-        state = "STOPPED" if action == "stop" else "RUNNING"
-        act(f"{action} NiFi process group {name}", n.call, "PUT", f"/flow/process-groups/{g['id']}",
-            json={"id": g["id"], "state": state})
-        if action == "start" and not DRY:
-            # "Hold failures" processors stay stopped by design, so failures stay queued and visible
-            procs = n.call("GET", f"/process-groups/{g['id']}/processors")["processors"]
-            for p in procs:
-                if p["component"]["name"].startswith("Hold"):
-                    n.call("PUT", f"/processors/{p['id']}/run-status",
-                           json={"revision": p["revision"], "state": "STOPPED"})
+        if action == "stop":
+            act(f"stop NiFi process group {name}", n.call, "PUT", f"/flow/process-groups/{g['id']}",
+                json={"id": g["id"], "state": "STOPPED"})
+            continue
+        # one processor at a time: a group-level start would run "Hold failures" for a moment and
+        # drop the failures queued in front of it, which stay queued and visible by design
+        for p in n.call("GET", f"/process-groups/{g['id']}/processors")["processors"]:
+            c = p["component"]
+            if c["name"].startswith("Hold") or c["state"] in ("RUNNING", "DISABLED") or c.get("validationStatus") == "INVALID":
+                continue
+            act(f"start NiFi processor {name} / {c['name']}", n.call, "PUT", f"/processors/{p['id']}/run-status",
+                json={"revision": p["revision"], "state": "RUNNING"})
 
 
 PROJECT = {"cai": cai_project, "cde": cde_project, "nifi": nifi_project}

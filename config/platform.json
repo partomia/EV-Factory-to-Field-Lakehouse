@@ -12,7 +12,8 @@
     "_cai_scheduled_jobs": "name -> cron: API v2 ignores paused, so stop clears the cron and start sets it back",
     "cai_scheduled_jobs": {},
     "cde_job_prefix": "rsingh-evx-",
-    "cde_streaming_jobs": ["rsingh-evx-stream-telemetry", "rsingh-evx-stream-agg"],
+    "cde_streaming_jobs": ["rsingh-evx-stream-telemetry", "rsingh-evx-stream-agg", "rsingh-evx-stream-dtc",
+                           "rsingh-evx-stream-qc", "rsingh-evx-stream-line", "rsingh-evx-stream-line-window"],
     "cde_dag_jobs": ["rsingh-evx-orchestration"],
     "nifi_process_groups": ["EVX - Alert Router"]
   },

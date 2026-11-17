@@ -371,3 +371,26 @@
 - Shared services (Data Hubs, `federal-impala-1`, CDE VC, CAI workspace) left running for sibling demos.
 - Data, Kafka topics and checkpoints kept; `platform_ctl.py start` resumes. Rule now maps "start all" / "stop all"
   to project-scope `start` / `stop`.
+
+## 2026-11-18 01:30 IST - M2 phase 9 integration (local only) and plan change for fault 8
+
+- **Plan change, fault 8 (late EDR):** the planted arrival moved from 2026-11-09 to 2026-11-10
+  (`config/lakehouse.json` `faults.edr_late`, PLAN.md section 16, `config/expected_recon.json`).
+  - An arrival on 11-09 is 60 to 74 h after the event, inside the normal 2 to 72 h upload range. A dump carries
+    no upload time, so recon could not tell it from an ordinary late file. 11-10 (day 4) is past that range.
+  - Only the planted dumps' landing folder changes; the generator's random draws are the same.
+  - CDE dates 11-09 and 11-10 are **not** regenerated in this phase and keep the old placement. Fault 8 has
+    milestone `M2-regen`, so it is not MISSING-checked until a later regenerate. `built_milestones` stays M1.
+- **Lanes merged** on `0bd2fef` in order C (`181fa86`, WAP), D (`f9e397d`, production batch: D-a `212cf27` +
+  D-b `04cca37` squashed), E (`174515e`, twin), A (`237ef8a`, streams), B (`d49d70a`, NiFi).
+- **Integrator changes:**
+  - `recon.py`: the A, E and D patches merged by hand, adding stream control totals, twin counts, clock skew
+    and late reprocess. Lane A's topic literal is quoted with `lit()`.
+  - DAG: lane A's stream chain, plus `reprocess_late` after gold and `freshness` after recon. Still paused,
+    dates unchanged.
+  - `build_silver.py`: `correct_clock_skew` wired into the line_event section.
+  - `publish.py`: direct mode writes no `publish_log` row, exactly as M1.
+  - `ci/project_stop.py`: clears its own schedule even when a layer exits early.
+- **Tests:** `pytest -q` 243 passed, 0 skipped. Lane B's earlier skip (`tests/test_nifi_export.py::
+  test_topic_names_match_streaming_json_when_lane_a_keys_exist`, waiting on lane A's topics) now runs and passes.
+- Nothing registered or run on CDE, Kafka, NiFi, Impala or CAI.

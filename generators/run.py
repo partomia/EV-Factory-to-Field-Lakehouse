@@ -34,6 +34,7 @@ from generators.core import batches_of, build_plan, d, load_config, partitions  
 from generators.factory import generate_partition  # noqa: E402
 from generators.field import CLAIM_COLS, DTC_COLS, RIDER_COLS, TELEMATICS_COLS, generate_vehicles  # noqa: E402
 from generators.supply import generate_supply  # noqa: E402
+from generators.twin import generate_twin  # noqa: E402
 
 TABLES = {
     "telematics_daily": (TELEMATICS_COLS, "SUMMARY_DATE"),
@@ -42,6 +43,11 @@ TABLES = {
     "dms_riders": (RIDER_COLS, "DELIVERY_DATE"),
 }
 SUPPLY_KEY = ("SUPPLY", "-")
+TWIN = "TWIN"   # twin keys ("TWIN", "YYYY-MM"): line events and scenarios of the business dates in that month
+
+
+def twin_keys(plan) -> list[tuple[str, str]]:
+    return sorted({(TWIN, f"{x:%Y-%m}") for x in plan.business_dates()})
 
 
 def prepare(cfg: dict, scale: float) -> tuple[dict, list[tuple[str, str]]]:
@@ -54,11 +60,15 @@ def prepare(cfg: dict, scale: float) -> tuple[dict, list[tuple[str, str]]]:
     cfg = dict(cfg)
     cfg["_live_subset_p"] = min(1.0, cfg["universe"]["live_subset_vehicles"] / max(expected, 1.0))
     cfg["_scale"] = scale
-    return cfg, [SUPPLY_KEY] + partitions(plan)
+    return cfg, [SUPPLY_KEY] + partitions(plan) + twin_keys(plan)
 
 
 def partition_records(cfg: dict, key: tuple[str, str]):
     plan = build_plan(cfg, cfg.get("_scale", 1.0))
+    if key[0] == TWIN:
+        yield from generate_twin(cfg, [x for x in plan.business_dates() if f"{x:%Y-%m}" == key[1]],
+                                 cfg.get("_scale", 1.0))
+        return
     if key == SUPPLY_KEY:
         yield from generate_supply(plan)
         return

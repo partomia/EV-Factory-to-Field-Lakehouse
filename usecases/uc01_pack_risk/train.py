@@ -26,6 +26,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "cde" / "jobs"))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 import evx_common as C  # noqa: E402
 from mlcore.gate import decide  # noqa: E402

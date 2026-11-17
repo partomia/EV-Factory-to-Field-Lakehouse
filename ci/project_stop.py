@@ -34,7 +34,11 @@ spec.loader.exec_module(P)
 
 
 def main() -> int:
-    rc = P.main(["stop", "--only", "cai,nifi"] + (["--dry-run"] if os.environ.get("EVX_STOP_DRY_RUN") == "1" else []))
+    try:
+        rc = P.main(["stop", "--only", "cai,nifi"] + (["--dry-run"] if os.environ.get("EVX_STOP_DRY_RUN") == "1" else []))
+    except SystemExit as e:  # e.g. the NiFi layer without its workload credentials: the schedule is still cleared
+        print(f"stop ended early: {e}", flush=True)
+        rc = e.code if isinstance(e.code, int) and e.code else 1
     if os.environ.get("EVX_STOP_DRY_RUN") != "1":
         c = P.Cai()
         for j in c("GET", c.p("/jobs"), params={"page_size": 200})["jobs"]:

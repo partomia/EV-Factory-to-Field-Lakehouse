@@ -11,6 +11,8 @@ once, and the same (seed, scale) gives the same bytes as `python -m generators.r
 
 Usage:
   spark-submit generate.py [--scale 1.0] [--overlay config/ci.yaml] [--only CL1:2026-09] [--no-truth]
+  spark-submit generate.py --twin-only     # adds line_event/ and twin_scenario/ (+ generator_truth_twin) to an
+                                           # existing generated tree; nothing else is deleted or rewritten
   python cde/jobs/generate.py --out data/generated --scale 0.05            # laptop, local Spark
 """
 from __future__ import annotations
@@ -27,7 +29,8 @@ import evx_common as C  # noqa: E402
 from generators.run import TABLES, as_strings, partition_records, prepare, row_date, write_manifests  # noqa: E402
 
 TRUTH_TABLES = {"truth_pack": "generator_truth_pack", "truth_batch": "generator_truth_batch",
-                "fleet": "generator_fleet", "truth_fault": "generator_truth_fault"}
+                "fleet": "generator_fleet", "truth_fault": "generator_truth_fault", "truth_twin": "generator_truth_twin"}
+TWIN_SOURCES = ("line_event", "twin_scenario")
 
 
 def _records(cfg: dict):
@@ -77,6 +80,7 @@ def main(argv=None, spark=None) -> int:
     p.add_argument("--only", default=None, help="comma list of partition keys line:month (debug)")
     p.add_argument("--threads", type=int, default=32)
     p.add_argument("--no-truth", action="store_true")
+    p.add_argument("--twin-only", action="store_true", help="only the TWIN partitions; keeps the rest of <out>")
     args = C.parse(p, argv)
     cfg = C.config(args.overlay)
     scale = args.scale if args.scale is not None else float(cfg.get("generator", {}).get("scale", 1.0))
@@ -91,8 +95,14 @@ def main(argv=None, spark=None) -> int:
     if args.only:
         want = {tuple(x.split(":")) for x in args.only.split(",")}
         keys = [k for k in keys if k in want]
+    if args.twin_only:
+        keys = [k for k in keys if k[0] == "TWIN"]
     print(f"generate scale={scale} partitions={len(keys)} -> {out}", flush=True)
-    fs.delete(out)
+    if args.twin_only:
+        for src in TWIN_SOURCES:
+            fs.delete(f"{out}/{src}")
+    else:
+        fs.delete(out)
 
     from pyspark import StorageLevel
 
@@ -106,7 +116,8 @@ def main(argv=None, spark=None) -> int:
 
     n = write_objects(fs, out, files, args.threads)
     print(f"  objects  {n} written in {time.time() - t0:.0f}s", flush=True)
-    counts.update(write_exports(spark, out, recs.filter(lambda r: r[0] == "row").map(lambda r: (r[1], r[2]))))
+    if not args.twin_only:
+        counts.update(write_exports(spark, out, recs.filter(lambda r: r[0] == "row").map(lambda r: (r[1], r[2]))))
     with ThreadPoolExecutor(max_workers=args.threads) as pool:
         jobs = []
         write_manifests(lambda rel, text: jobs.append(pool.submit(fs.write_text, f"{out}/{rel}", text)), counts)
@@ -118,6 +129,8 @@ def main(argv=None, spark=None) -> int:
     if not args.no_truth:
         C.ensure_databases(spark, names, ("ref",))
         for kind, table in TRUTH_TABLES.items():
+            if args.twin_only and kind != "truth_twin":
+                continue
             js = recs.filter(lambda r, k=kind: r[0] == k).map(lambda r: r[2])
             if js.isEmpty():
                 continue

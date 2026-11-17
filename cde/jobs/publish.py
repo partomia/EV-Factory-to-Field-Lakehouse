@@ -7,7 +7,8 @@ publish(): the one way gold tables are written.
   write    mode "dates" replaces the business dates processed (facts, partitioned by _business_date); mode
            "full" replaces the table (dimensions and SCD2 history recomputed as of the date)
   record   ref.load_audit COMMITTED with snapshot ids and row counts; ref.transform_log with the source tables;
-           ref.publish_log one row per publish (status PUBLISHED | AUDIT_FAILED | MAIN_MOVED | ERROR | DIRECT)
+           in wap mode, ref.publish_log one row per publish (status PUBLISHED | AUDIT_FAILED | MAIN_MOVED | ERROR);
+           direct mode writes no publish_log row, exactly as M1
 
 Publish mode (first set wins): Spark conf spark.evx.publish.mode, env EVX_PUBLISH_MODE, config/lakehouse.json
 publish.mode, default "direct".
@@ -177,10 +178,6 @@ def _publish(spark, df, spec, names, audit, dates, sources, mode: str) -> dict:
     audit.load("gold", spec.table, "COMMITTED", rows_in=None, rows_out=stats["rows"], snapshot_before=before,
                snapshot_after=after, started_at=started, message=msg)
     audit.transform(f"publish {spec.table}", spec.transform, sources, target, None, stats["rows"], msg)
-    log_publish(spark, names, audit, {
-        "table_name": target, "mode": "direct", "write_mode": spec.mode, "business_dates": ",".join(dates),
-        "main_snapshot_before": before, "main_snapshot_after": after, "row_count": stats["rows"],
-        "status": "DIRECT", "detail": msg, "started_at": started})
     print(f"  {spec.table:<24} {msg}", flush=True)
     return {"rows": stats["rows"], "snapshot": after}
 

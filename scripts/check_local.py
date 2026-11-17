@@ -224,6 +224,36 @@ def check_gold(spark) -> list[str]:
     return errors
 
 
+def check_twin(spark) -> list[str]:
+    """Twin domain: every generated line event reaches gold once per date; VA-EOL-02 reports on 2026-11-09."""
+    errors = []
+    gen = {}
+    for f in (DATA / "generated" / "line_event").glob("*/*.csv"):
+        gen[f.parent.name] = gen.get(f.parent.name, 0) + len(f.read_text().splitlines()) - 1
+
+    def counts(t):
+        return {str(d): n for d, n in spark.sql(f"SELECT _business_date, count(*) FROM {t} GROUP BY 1").collect()}
+
+    b, s, g = (counts(t) for t in ("rsingh_evx_bronze.line_event", "rsingh_evx_silver.line_event",
+                                   "rsingh_evx_gold.fact_line_cycle"))
+    bad = [d for d in b if not gen.get(d) == b[d] == s.get(d) == g.get(d)]
+    if not b or bad:
+        errors.append(f"line events generated / bronze / silver / gold differ on {bad[:3]} ({len(b)} dates loaded)")
+    dup = spark.sql("SELECT count(*) FROM (SELECT _business_date, event_id FROM rsingh_evx_gold.fact_line_cycle "
+                    "GROUP BY 1, 2 HAVING count(*) > 1)").collect()[0][0]
+    if dup:
+        errors.append(f"{dup} duplicate event ids in fact_line_cycle")
+    if "2026-11-09" in b and not spark.sql("SELECT count(*) FROM rsingh_evx_gold.fact_line_cycle WHERE "
+                                           "station_id = 'VA-EOL-02' AND _business_date = '2026-11-09'").collect()[0][0]:
+        errors.append("no VA-EOL-02 cycles on 2026-11-09")
+    n_sc = spark.sql("SELECT count(*) FROM rsingh_evx_gold.fact_twin_scenario").collect()[0][0]
+    n_pr = spark.sql("SELECT count(*) FROM rsingh_evx_silver.twin_station_prediction WHERE _business_date IN "
+                     "(SELECT DISTINCT _business_date FROM rsingh_evx_gold.fact_twin_scenario)").collect()[0][0]
+    if not n_sc or n_sc != n_pr:
+        errors.append(f"fact_twin_scenario {n_sc} rows, silver predictions {n_pr}")
+    return errors
+
+
 def check_stream(spark) -> list[str]:
     """The telemetry stream after run_local --stages stream (one available-now batch per job)."""
     from datetime import date
@@ -238,7 +268,7 @@ def check_stream(spark) -> list[str]:
 
     diff = rows(f"SELECT count(*) FROM (SELECT c.minute, c.total, coalesce(r.n, 0) n FROM {b}.stream_control c "
                 f"LEFT JOIN (SELECT date_trunc('minute', event_ts) m, count(*) n FROM {b}.telemetry_reading GROUP BY 1) r "
-                f"ON r.m = c.minute) WHERE total <> n")
+                f"ON r.m = c.minute WHERE c.topic = 'evx.vehicle.telemetry') WHERE total <> n")
     if diff != [(0,)]:
         errors.append(f"{diff[0][0]} event minutes whose control total differs from bronze")
     if rows(f"SELECT count(*) FROM {b}.stream_quarantine") != [(0,)]:
@@ -264,6 +294,58 @@ def check_stream(spark) -> list[str]:
     hot = rows(f"SELECT max(cell_t_max) FROM {s}.telemetry_window")[0][0]
     if hot is None or hot > 70:
         errors.append(f"cell temperature after conversion up to {hot} C")
+    return errors + check_stream_m2(spark)
+
+
+def check_stream_m2(spark) -> list[str]:
+    """The DTC, QC and line streams: control totals per minute, own quarantine, topic isolation, QC rows equal
+    to the batch QC exports, line windows hold every line event."""
+    import json
+
+    errors = []
+    b, s = "rsingh_evx_bronze", "rsingh_evx_silver"
+    cfg = json.loads((DATA.parent / "config" / "streaming.json").read_text())["topics"]
+
+    def rows(sql):
+        return [tuple(x) for x in spark.sql(sql).collect()]
+
+    for key in ("dtc", "qc", "line"):
+        t = cfg[key]
+        table, ev = f"{b}.{t['table']}", t["event_time"]
+        diff = rows(f"SELECT count(*) FROM (SELECT c.minute, c.total, coalesce(r.n, 0) n FROM {b}.stream_control c "
+                    f"LEFT JOIN (SELECT date_trunc('minute', {ev}) m, count(*) n FROM {table} GROUP BY 1) r "
+                    f"ON r.m = c.minute WHERE c.topic = '{t['name']}') WHERE total <> n")
+        sent, got = rows(f"SELECT (SELECT coalesce(sum(total), 0) FROM {b}.stream_control WHERE topic = '{t['name']}'), "
+                         f"(SELECT count(*) FROM {table})")[0]
+        if diff != [(0,)] or sent != got or not got:
+            errors.append(f"{key}: {diff[0][0]} minutes whose control total differs; control {sent}, bronze {got}")
+        if rows(f"SELECT count(*) - count(DISTINCT event_id) FROM {table}") != [(0,)]:
+            errors.append(f"{key}: duplicate event ids in {table}")
+        topics = {r[0] for r in rows(f"SELECT DISTINCT kafka_topic FROM {table}")}
+        if topics != {t["name"]}:
+            errors.append(f"{key}: {table} holds topics {sorted(topics)}")
+        if rows(f"SELECT count(*) FROM {b}.{t['quarantine']}") != [(0,)]:
+            errors.append(f"{key}: messages quarantined")
+    if rows(f"SELECT count(*) FROM {b}.stream_quarantine WHERE kafka_topic NOT IN "
+            "('evx.vehicle.telemetry', 'evx.control')") != [(0,)]:
+        errors.append("M2 rejects in the telemetry quarantine")
+    if {r[0] for r in rows(f"SELECT DISTINCT kafka_topic FROM {b}.telemetry_reading")} != {"evx.vehicle.telemetry"}:
+        errors.append("telemetry_reading holds another topic")
+    qc_files = {}
+    for f in (DATA / "generated" / "cell_qc").glob("*/*.csv"):
+        n = sum(1 for x in f.read_text().splitlines()[1:] if x.strip() and not x.startswith("TRL|"))
+        qc_files[f.parent.name] = qc_files.get(f.parent.name, 0) + n
+    for d, n in rows(f"SELECT business_date, count(*) FROM {b}.factory_qc_event GROUP BY 1"):
+        if qc_files.get(d) != n:
+            errors.append(f"qc {d}: {n} stream verdicts, {qc_files.get(d)} rows in the QC exports")
+    bad = rows(f"SELECT count(*) FROM {b}.vehicle_dtc_event WHERE vin IS NULL OR dtc_code IS NULL "
+               "OR severity IS NULL OR event_ts IS NULL")
+    if bad != [(0,)]:
+        errors.append("DTC events without the routing fields")
+    got, sent = rows(f"SELECT (SELECT sum(cycles) FROM {s}.line_cycle_window), "
+                     f"(SELECT count(*) FROM {b}.factory_line_event)")[0]
+    if got != sent:
+        errors.append(f"line windows hold {got} cycles, bronze {sent}")
     return errors
 
 
@@ -272,7 +354,7 @@ def main(argv: list[str]) -> int:
     errors = []
     for layer in argv or ["bronze"]:
         errors += {"bronze": check_bronze, "extract": check_extract, "silver": check_silver,
-                   "master": check_master, "gold": check_gold, "stream": check_stream}[layer](spark)
+                   "master": check_master, "gold": check_gold, "stream": check_stream, "twin": check_twin}[layer](spark)
     for e in errors:
         print(f"FAIL {e}")
     print("OK" if not errors else f"{len(errors)} check(s) failed")

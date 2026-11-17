@@ -2,6 +2,7 @@
   "_comment": "Synthetic EV factory-to-field universe and lakehouse names. Every value here is synthetic, chosen from public specs where noted, and never the customer's data. scale multiplies the build rate (--scale); CI uses config/ci.yaml (scale 0.05).",
   "db_prefix": "rsingh_evx",
   "features": {"hash_salt": "platform"},
+  "publish": {"mode": "direct"},
   "model": {
     "test_fraction": 0.2,
     "folds": 5,
@@ -360,7 +361,7 @@
     },
     "edr_late": {
       "event_date": "2026-11-06",
-      "arrival_date": "2026-11-09"
+      "arrival_date": "2026-11-10"
     },
     "fahrenheit_firmware": {
       "from": "2026-11-08",

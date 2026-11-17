@@ -32,6 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evx_common as C  # noqa: E402
+from clock_skew import correct_clock_skew, tolerance as skew_tolerance  # noqa: E402
 from pyspark.sql import Window  # noqa: E402
 from pyspark.sql import functions as F  # noqa: E402
 
@@ -237,8 +238,7 @@ def twin_tables(spark, names, contracts: dict, bronze, write) -> list[str]:
     skipped = []
     if C.table_exists(spark, names.t("bronze", "line_event")):
         b = bronze("line_event")
-        df = typed_entity(b, contracts["line_event"])
-        # CLOCK-SKEW HOOK (integrator, lane D): df = correct_clock_skew(df, tolerance)
+        df = correct_clock_skew(typed_entity(b, contracts["line_event"]), skew_tolerance())
         write("line_event", df, names.t("bronze", "line_event"), b.count())
     else:
         skipped.append("line_event")

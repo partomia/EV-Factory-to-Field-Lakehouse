@@ -3,6 +3,7 @@ import csv
 import hashlib
 import json
 import struct
+from datetime import datetime, timedelta, timezone
 
 from generators.core import build_plan, partitions
 from generators.run import label_stats, partition_records
@@ -78,7 +79,15 @@ def test_odata_pages_and_planted_supply_faults(generated):
 
 def test_live_date_faults(generated):
     out, _ = generated
-    assert list((out / "edr/2026-11-09").glob("*.edr")), "late EDR arrives on 2026-11-09"
+    ist = timezone(timedelta(minutes=330))
+
+    def event_dates(folder):
+        for p in (out / "edr" / folder).glob("*.edr"):
+            ts = struct.unpack_from("<H17s24sBqHIIH", p.read_bytes(), 8)[4]
+            yield datetime.fromtimestamp(ts / 1000, ist).date().isoformat()
+
+    assert "2026-11-06" in set(event_dates("2026-11-10")), "late EDR of 2026-11-06 arrives on 2026-11-10 (day 4)"
+    assert "2026-11-06" not in set(event_dates("2026-11-09")), "the planted dumps no longer land on day 3"
     corrupt = [p.parent.name for p in (out / "qc_xray").glob("*/*.png") if b"IEND" not in p.read_bytes()]
     assert corrupt == ["2026-11-08"], "one truncated X-ray PNG on the planted live date"
 

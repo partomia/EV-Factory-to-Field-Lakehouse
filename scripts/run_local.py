@@ -90,22 +90,34 @@ def main(argv=None) -> int:
         elif stage == "stream":
             import shutil
 
-            from stream.producer import telemetry
+            from stream.producer import dtc, line, qc, telemetry
 
             shutil.rmtree(DATA / "stream", ignore_errors=True)
             days = C.date_range(C.parse_date(d0), C.parse_date(d1))
-            telemetry.main(["--out", str(DATA / "stream"), "--dates", ",".join(d.isoformat() for d in days)])
+            dates = ",".join(d.isoformat() for d in days)
+            out, gen = ["--out", str(DATA / "stream")], ["--generated", str(DATA / "generated")]
+            telemetry.main(out + gen + ["--dates", dates])
+            dtc.main(out + gen + ["--dates", dates])
+            qc.main(out + gen + ["--dates", dates])
+            line.main(out + ["--dates", dates, "--scale", args.scale])   # generators.twin (lane E)
             spark = spark or local_spark(Path(args.warehouse))
-            for cp in ("telemetry_bronze", "telemetry_agg"):   # local only: a rerun starts the stream afresh
+            for cp in ("telemetry_bronze", "telemetry_agg", "dtc_bronze", "qc_bronze", "line_bronze",
+                       "line_window"):   # local only: a rerun starts the streams afresh
                 shutil.rmtree(DATA / "checkpoints" / cp, ignore_errors=True)
             for t in ("bronze.telemetry_reading", "bronze.stream_control", "bronze.stream_quarantine",
-                      "silver.telemetry_window"):
+                      "silver.telemetry_window", "bronze.vehicle_dtc_event", "bronze.dtc_quarantine",
+                      "bronze.factory_qc_event", "bronze.qc_quarantine", "bronze.factory_line_event",
+                      "bronze.line_quarantine", "silver.line_cycle_window"):
                 spark.sql(f"DROP TABLE IF EXISTS {C.Names().t(*t.split('.'))}")
             common = ["--checkpoints", str(DATA / "checkpoints"), "--trigger", "available-now"]
-            importlib.import_module("stream_telemetry_bronze").run(
-                spark, common + ["--source", "files", "--input", str(DATA / "stream")]).awaitTermination()
-            # tables created inside foreachBatch (a cloned session) are not visible to this session's catalog
+            files = ["--source", "files", "--input", str(DATA / "stream")]
+            importlib.import_module("stream_telemetry_bronze").run(spark, common + files).awaitTermination()
+            # tables created inside foreachBatch (a cloned session) are not visible to this session's catalog;
+            # in order: each window job after its bronze job
             importlib.import_module("stream_telemetry_agg").run(spark.newSession(), common).awaitTermination()
+            for job in ("stream_dtc_bronze", "stream_qc_bronze", "stream_line_bronze"):
+                importlib.import_module(job).run(spark.newSession(), common + files).awaitTermination()
+            importlib.import_module("stream_line_window").run(spark.newSession(), common).awaitTermination()
         else:
             spark = spark or local_spark(Path(args.warehouse))
             job = {"bronze": "ingest_bronze", "extract": "extract_unstructured", "silver": "build_silver",

@@ -6,10 +6,14 @@ Reconciliation per layer for the business dates processed, compared with config/
   exceptions  what the layers set aside or flagged: file trailers and re-sent delta pages (ref.file_control),
               quarantined objects and records (bronze.quarantine), contract diffs (ref.schema_change),
               OCR fallbacks and failed extracts, silver typing issues, orphan genealogy and VIN reviews (master),
-              pack-link changes (gold dim_vehicle). Each must match an expected row (layer, entity, check, date):
-              it takes that row's outcome (EXPLAINED / MISMATCH) and fault id, else UNEXPECTED
+              pack-link changes (gold dim_vehicle), station clocks corrected (silver line_event), late EDR dumps
+              that re-opened an event date (ref.reprocess_log). Each must match an expected row (layer, entity,
+              check, date): it takes that row's outcome (EXPLAINED / MISMATCH) and fault id, else UNEXPECTED
   missing     an expected row of a built milestone whose date is processed and that was not observed: MISSING
   info        identities with no match (field data older than the factory history), counted only
+  stream      per topic of config/streaming.json with a bronze table, per business date (IST): the producer's
+              evx.control totals vs the bronze rows (layer stream): MATCH or MISMATCH; skipped while
+              bronze.stream_control or the topic's table does not exist
 
 Writes rsingh_evx_ref.recon_result (the dates processed are replaced). Fails on MISMATCH counts, UNEXPECTED
 or MISSING rows.
@@ -19,6 +23,7 @@ Usage:
 """
 from __future__ import annotations
 
+import re
 import sys
 import time
 from pathlib import Path
@@ -44,10 +49,23 @@ COUNTS = [  # (layer, entity, upstream table, downstream table)
     ("gold", "fact_dtc", "silver.dtc_event", "gold.fact_dtc"),
     ("gold", "fact_service_job", "silver.service_job", "gold.fact_service_job"),
     ("gold", "fact_warranty_claim", "silver.warranty_claim", "gold.fact_warranty_claim"),
+    ("silver", "line_event", "bronze.line_event", "silver.line_event"),
+    ("silver", "twin_scenario", "bronze.twin_scenario", "silver.twin_scenario"),
+    ("gold", "fact_line_cycle", "silver.line_event", "gold.fact_line_cycle"),
+    ("gold", "fact_twin_scenario", "silver.twin_station_prediction", "gold.fact_twin_scenario"),
 ]
+OPTIONAL = {"line_event", "twin_scenario", "fact_line_cycle", "fact_twin_scenario"}  # twin domain: absent before M2
 SUMS = [("gold", "fact_warranty_claim amount_inr", "silver.warranty_claim", "gold.fact_warranty_claim", "amount_inr")]
 FILE_OK = ("OK", "LOADED", "MATCH", "NO_CONTROL")
 REVIEW_MATCH = ("VIN_TRANSPOSITION", "VIN_EDIT")
+STREAM_TOPICS = C.load_json("config/streaming.json")["topics"]
+
+
+def lit(value) -> str:
+    """A SQL string literal. Quotes are removed so a config value cannot close the literal."""
+    return "'" + str(value).replace("'", "") + "'"
+
+
 SCHEMA = ("run_id string, business_date date, layer string, entity string, check_name string, observed bigint, "
           "expected bigint, status string, fault_id int, detail string, logged_at timestamp")
 
@@ -85,7 +103,60 @@ def exceptions_sql(n: C.Names, dl: str) -> list[tuple[str, str, str]]:
         ("gold", f"SELECT to_date(valid_from), 'dim_vehicle', 'link change', count(*), concat_ws('; ', collect_list(vin)) "
                  f"FROM {g}.dim_vehicle WHERE version > 1 AND pack_serial <> eol_pack_serial "
                  f"AND to_date(valid_from) IN ({dl}) GROUP BY 1", f"{g}.dim_vehicle"),
+        ("gold", f"SELECT arrival_date, 'fact_edr_event', 'late reprocess', sum(late_dumps), "
+                 f"concat_ws('; ', collect_list(concat('re-opened ', event_dates_reopened))) FROM {r}.reprocess_log "
+                 f"WHERE status = 'REPROCESSED' AND arrival_date IN ({dl}) GROUP BY 1", f"{r}.reprocess_log"),
+        ("silver", f"SELECT _business_date, 'line_event', 'skew', count(*), "
+                   f"concat_ws('; ', collect_set(concat(station_id, ' ', CAST(clock_offset_s AS STRING), ' s'))) "
+                   f"FROM {s}.line_event WHERE _business_date IN ({dl}) AND clock_corrected GROUP BY 1",
+         f"{s}.line_event"),
+        ("silver", f"SELECT d, 'telematics', 'unit sanity', count(DISTINCT vin), concat_ws('; ', slice(sort_array("
+                   f"collect_set(vin)), 1, 20)) FROM (SELECT to_date(from_utc_timestamp(window_start, 'Asia/Kolkata')) d, "
+                   f"vin FROM {s}.telemetry_window WHERE n_fahrenheit > 0) WHERE d IN ({dl}) GROUP BY 1",
+         f"{s}.telemetry_window"),
+        ("silver", f"SELECT d, 'telematics', 'stuck sensor', count(DISTINCT vin), concat_ws('; ', slice(sort_array("
+                   f"collect_set(vin)), 1, 20)) FROM (SELECT to_date(from_utc_timestamp(window_start, 'Asia/Kolkata')) d, "
+                   f"vin FROM {s}.telemetry_window WHERE is_stuck_soc) WHERE d IN ({dl}) GROUP BY 1",
+         f"{s}.telemetry_window"),
     ]
+
+
+def stream_rows(spark, n: C.Names, dates: list[str]) -> list[tuple]:
+    """(date, 'stream', topic key, 'control total', bronze rows, control total, MATCH|MISMATCH, None, detail) per
+    topic and IST business date with either side non-zero."""
+    control = n.t("bronze", "stream_control")
+    if not C.table_exists(spark, control):
+        return []
+    dl, out = C.date_list(dates), []
+    for key, t in STREAM_TOPICS.items():
+        if key == "control" or not t.get("bronze_job"):
+            continue
+        assert re.fullmatch(r"evx\.[a-z.]+", t["name"]) and re.fullmatch(r"[a-z_]+", t["table"] + t["event_time"]), t
+        table = n.t("bronze", t["table"])
+        if not C.table_exists(spark, table):
+            continue
+        ist = "to_date(from_utc_timestamp(CAST({} AS TIMESTAMP), 'Asia/Kolkata'))"
+        sent = dict(spark.sql(f"SELECT CAST(d AS STRING), sum(total) FROM (SELECT {ist.format('minute')} d, total "
+                              f"FROM {control} WHERE topic = {lit(t['name'])}) WHERE d IN ({dl}) GROUP BY 1").collect())
+        got = dict(spark.sql(f"SELECT CAST(d AS STRING), count(*) FROM (SELECT {ist.format(t['event_time'])} d "
+                             f"FROM {table}) WHERE d IN ({dl}) GROUP BY 1").collect())
+        for d in dates:
+            a, b = int(sent.get(d) or 0), int(got.get(d) or 0)
+            if a or b:
+                out.append((d, "stream", key, "control total", b, a, "MATCH" if a == b else "MISMATCH", None,
+                            f"evx.control {t['name']} -> {table}"))
+    qc, batch = n.t("bronze", "factory_qc_event"), n.t("bronze", "cell_qc_inspection")
+    if C.table_exists(spark, qc) and C.table_exists(spark, batch):
+        streamed = dict(spark.sql(f"SELECT business_date, count(*) FROM {qc} WHERE business_date IN ({dl}) "
+                                  "GROUP BY 1").collect())
+        loaded = dict(spark.sql(f"SELECT CAST(_business_date AS STRING), count(*) FROM {batch} "
+                                f"WHERE _business_date IN ({dl}) GROUP BY 1").collect())
+        for d in dates:
+            if d in streamed:
+                a, b = loaded.get(d, 0), streamed[d]
+                out.append((d, "stream", "qc", "batch rows", b, a, "MATCH" if a == b else "MISMATCH", None,
+                            f"{batch} -> {qc}"))
+    return out
 
 
 def silver_typing_sql(spark, n: C.Names, dl: str) -> list[str]:
@@ -127,6 +198,8 @@ def run(spark, argv=None) -> dict:
     run_id, t0, rows = audit.run_id, time.time(), []
     try:
         for layer, entity, up, down in COUNTS:
+            if entity in OPTIONAL and not all(C.table_exists(spark, n.t(*t.split("."))) for t in (up, down)):
+                continue
             a, b = (dict(spark.sql(f"SELECT CAST(_business_date AS STRING), count(*) FROM {n.db(t.split('.')[0])}."
                                    f"{t.split('.')[1]} WHERE _business_date IN ({dl}) GROUP BY 1").collect())
                     for t in (up, down))
@@ -141,6 +214,7 @@ def run(spark, argv=None) -> dict:
             for d in sorted(set(a) | set(b)):
                 rows.append((d, layer, label, "sum", int(round(b.get(d) or 0)), int(round(a.get(d) or 0)),
                              "MATCH" if a.get(d) == b.get(d) else "MISMATCH", None, f"{up} -> {down}"))
+        rows += stream_rows(spark, n, dates)
         observed = []
         sources = [(layer, sql) for layer, sql, table in exceptions_sql(n, dl) if C.table_exists(spark, table)]
         for layer, sql in sources + [("silver", q) for q in silver_typing_sql(spark, n, dl)]:

@@ -156,7 +156,7 @@ def test_direct_mode_writes_as_m1(spark):
         la = spark.sql(f"SELECT status, rows_out, snapshot_after, message FROM {names.t('ref', 'load_audit')} "
                        f"WHERE run_id = '{a.run_id}' AND entity = 'fact_x'").collect()
         assert [tuple(r) for r in la] == [("COMMITTED", batch.count(), out["snapshot"], f"{batch.count()} rows (dates)")]
-        assert [r["status"] for r in log_rows(spark, names, a.run_id)] == ["DIRECT", "DIRECT"]
+        assert not C.table_exists(spark, names.t("ref", "publish_log"))
     for mine, twin in ((names.t("gold", "fact_x"), twin_f), (names.t("gold", "dim_x"), twin_d)):
         assert rows(spark, mine) == rows(spark, twin)
         assert snapshot_ops(spark, mine) == snapshot_ops(spark, twin)
