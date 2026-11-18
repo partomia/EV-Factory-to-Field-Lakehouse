@@ -27,10 +27,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evx_common as C  # noqa: E402
 
 from generators.run import TABLES, as_strings, partition_records, prepare, row_date, write_manifests  # noqa: E402
+from generators.twin import twin_config  # noqa: E402
 
 TRUTH_TABLES = {"truth_pack": "generator_truth_pack", "truth_batch": "generator_truth_batch",
                 "fleet": "generator_fleet", "truth_fault": "generator_truth_fault", "truth_twin": "generator_truth_twin"}
 TWIN_SOURCES = ("line_event", "twin_scenario")
+
+
+def executor_config(cfg: dict, scale: float) -> tuple[dict, list[tuple[str, str]]]:
+    """prepare() plus config/twin.json read on the driver: executors get generators.zip only, no config/."""
+    cfg, keys = prepare(cfg, scale)
+    cfg["twin_cfg"] = twin_config(cfg)
+    return cfg, keys
 
 
 def _records(cfg: dict):
@@ -91,7 +99,7 @@ def main(argv=None, spark=None) -> int:
     names = C.Names(args.db_prefix)
 
     t0 = time.time()
-    cfg, keys = prepare(cfg, scale)
+    cfg, keys = executor_config(cfg, scale)
     if args.only:
         want = {tuple(x.split(":")) for x in args.only.split(",")}
         keys = [k for k in keys if k in want]
