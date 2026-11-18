@@ -537,3 +537,17 @@
 - **Requests after:** 12 CPU / 28 GiB, headroom 8 CPU / 52 GiB.
 - **Gate:** `bronze.telemetry_reading` for 2026-11-06 still 282,924 rows (282,924 distinct event ids);
   `bronze.stream_quarantine` still 0.
+
+## 2026-11-18 14:20 IST - Full regenerate failed; generated tree deleted (run 1256)
+
+- **Run 1256** `rsingh-evx-generate`, no arguments (full calendar, truth included), run-time size driver 2c / 8g
+  and 2 executors 2c / 8g (6 CPU / 24 GiB, `resources.changes`, commit 9764f84). Running 08:39 UTC, failed
+  08:45 UTC.
+- It printed `generate scale=1.0 partitions=31`, deleted `rsingh_evx/generated/` (generate.py deletes before
+  it generates) and failed in the first `collect`. No GENERATE_RESULT, nothing written, truth tables not replaced.
+- **Cause:** `generators/twin.py` `twin_config()` reads `config/twin.json` relative to the package. On CDE the
+  executors get only `generators.zip` (`ship_packages`), so the path is
+  `/opt/spark/work-dir/generators.zip/config/twin.json` (`NotADirectoryError`). Run 989 predates the twin
+  partitions; local runs pass because the executors see the repository.
+- **State:** the generated tree is empty. Landing, bronze through gold and the `ref.generator_truth_*` tables are
+  unchanged. No DAG run was started. The six streams kept running (12 CPU / 28 GiB). Job definitions unchanged.
