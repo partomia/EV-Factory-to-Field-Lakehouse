@@ -566,3 +566,32 @@
 - **Decision:** the DAG window, schedule and catchup stay as they are, and the orchestration job is not run
   again. 2026-11-09 and 11-10 are rebuilt by running each batch job directly, one at a time, with the DAG's
   arguments and `--pipeline-run manual-20261109` / `manual-20261110`. No producer or stream job is run.
+
+## 2026-11-18 23:20 IST - Direct chain for 2026-11-09 (runs 1259-1268): recon failed on fault 12
+
+- Each job run alone, beside the six streams (1250-1255), `--business-date 2026-11-09 --landing
+  .../rsingh_evx/landing --db-prefix rsingh_evx --pipeline-run manual-20261109` (uc01-score: `--input
+  /app/mount/scores/scores.parquet`). Temporary sizes from `ab85ab5`.
+
+| Run | Job | Result |
+|---|---|---|
+| 1259 | land | succeeded, 16 sources, 372 files, 19.6 MB |
+| 1260 | bronze | succeeded, line_event 62,886, cell_mes_step 51,073, cell_qc_inspection 5,227, telematics_daily 0 |
+| 1261 | extract | succeeded, doc_extract 166, qc_image_metric 113, edr_event 20 |
+| 1262 | silver | succeeded, 0 rejects in every table, line_event 62,886 |
+| 1263 | master | succeeded, as_of 2026-11-09, pack 18,056, vehicle 17,958 |
+| 1264 | gold | succeeded, fact_line_cycle 62,886, fact_edr_event 20, fact_telemetry_window 0 |
+| 1265 | reprocess | succeeded, ON_TIME, touched 11-07..11-09, 0 late dumps of 20 events |
+| 1266 | uc01-features | succeeded, 17,863 rows, positives 1,071 |
+| 1267 | uc01-score | succeeded, 17,863 rows published, score_date 2026-11-05 |
+| 1268 | recon | **failed**: 21 rows, MATCH 18, EXPLAINED 1, INFO 1, UNEXPECTED 1 |
+
+- **Recon 1268** (`recon-c3713bfaa9d6`): the driver log was cut at 17:43:59 before any print, so the rows were
+  read from `ref.recon_result` and `ref.load_audit`. EXPLAINED `silver line_event skew 45` fault 11
+  (`VA-EOL-02 5400 s`). UNEXPECTED `bronze sap_odata_record contract diff 1` (`ZZ_MOISTURE_PPM`).
+- **Cause:** batch bronze on the cluster last loaded 2026-11-05, so 11-09 was the first load to see the field and
+  `ref.schema_change` got `first_seen_date` 2026-11-09; fault 12 expects 2026-11-08.
+- **Stuck SoC (fault 7):** no row; there is no stream telemetry for 11-09 (`fact_telemetry_window` 0). It stays
+  unproven, with no producer run. `built_milestones` stays `["M1"]`, so recon does not mark it MISSING.
+- **Repair:** land through recon for 11-06, 11-07 and 11-08 (never batch-loaded), then bronze through recon again
+  for 11-09 (no land or extract), so the field is first seen on 11-08 and the 11-09 schema_change row is replaced.
