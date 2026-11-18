@@ -54,6 +54,10 @@
       "impala_autoscale_max_groups": 6,
       "kafka_telemetry_partitions": 12
     },
-    "changes": []
+    "changes": [
+      {"date": "2026-11-18", "jobs": ["rsingh-evx-stream-telemetry", "rsingh-evx-stream-agg"],
+       "from": "up to 2 executors, 2 cores, 4 GB", "to": "1 executor, 1 core, 4 GB",
+       "driver": "1 core / 2 GB, unchanged", "reason": "leave room for one batch job beside the six streams"}
+    ]
   }
 }

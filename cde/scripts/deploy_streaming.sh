@@ -22,8 +22,9 @@
 # GROUP: all (default) | telemetry | m2. A drain refuses to start (before running anything) while any job of the
 # group has a starting or running run: an available-now run must never share a checkpoint with a continuous one.
 #
-# Sizes: the telemetry jobs and the producer keep their M1 sizes (driver 1 / 2 GB, executors 2 cores / 4 GB, up
-# to 2; 283k messages a day). The M2 jobs use config/platform.json resources.defaults.cde_stream: driver 1 / 2 GB,
+# Sizes: the producer keeps its M1 size (driver 1 / 2 GB, executors 2 cores / 4 GB, up to 2). The telemetry jobs
+# run with driver 1 / 2 GB and one executor 1 core / 4 GB (config/platform.json resources.changes, 2026-11-18), so a
+# default batch job fits next to the six streams. The M2 jobs use resources.defaults.cde_stream: driver 1 / 2 GB,
 # one executor 1 core / 2 GB (a few thousand messages a day).
 #
 # Kafka: SASL_SSL / PLAIN with the workload user (EVX_KAFKA_* from .env). The password is passed as Spark conf
@@ -45,6 +46,8 @@ CONFIG="$(cd "$(dirname "$0")/../.." && pwd)/config/streaming.json"
 RESOURCES=(--driver-cores 1 --driver-memory 2g --executor-cores "${EXECUTOR_CORES:-2}"
            --executor-memory "${EXECUTOR_MEMORY:-4g}" --min-executors 1 --initial-executors 1
            --max-executors "${MAX_EXECUTORS:-2}" --conf spark.sql.shuffle.partitions=12)
+RESOURCES_TELEMETRY=(--driver-cores 1 --driver-memory 2g --executor-cores 1 --executor-memory 4g
+                     --min-executors 1 --initial-executors 1 --max-executors 1 --conf spark.sql.shuffle.partitions=12)
 RESOURCES_M2=(--driver-cores 1 --driver-memory 2g --executor-cores 1 --executor-memory 2g
               --min-executors 1 --initial-executors 1 --max-executors 1 --conf spark.sql.shuffle.partitions=4)
 
@@ -101,7 +104,7 @@ case "${ACTION}" in
   create)
     kafka_conf
     while read -r name file kafka group; do
-      sizes=("${RESOURCES[@]}"); [[ "${group}" == m2 ]] && sizes=("${RESOURCES_M2[@]}")
+      sizes=("${RESOURCES_TELEMETRY[@]}"); [[ "${group}" == m2 ]] && sizes=("${RESOURCES_M2[@]}")
       extra=(); [[ "${kafka}" == 1 ]] && extra=("${KCONF[@]}")
       upsert "${name}" "${file}" "${sizes[@]}" ${extra[@]+"${extra[@]}"} --arg=--checkpoints --arg="${CHECKPOINTS}"
     done < <(stream_jobs all)
