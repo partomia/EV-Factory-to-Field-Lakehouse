@@ -551,3 +551,18 @@
   partitions; local runs pass because the executors see the repository.
 - **State:** the generated tree is empty. Landing, bronze through gold and the `ref.generator_truth_*` tables are
   unchanged. No DAG run was started. The six streams kept running (12 CPU / 28 GiB). Job definitions unchanged.
+
+## 2026-11-18 14:45 IST - Regenerate restored the tree (run 1257); manual DAG run 1258 ran no tasks
+
+- **Run 1257** `rsingh-evx-generate` at `084e577` (config/twin.json read on the driver), no arguments, driver
+  2c / 8g and 2 executors 2c / 8g (6 CPU / 24 GiB). Running 08:58 UTC, succeeded 09:12 UTC.
+  - `GENERATE_RESULT scale=1.0 seconds=773`, 31 partitions. The generated tree that run 1256 deleted is restored:
+    19 sources, for example `edr` 1,775 files, `line_event` 108, `twin_scenario` 240, `qc_xray` 40,220.
+  - Truth tables replaced: `generator_truth_pack` 18,335, `generator_truth_batch` 1,650, `generator_fleet`
+    17,646, `generator_truth_fault` 16, `generator_truth_twin` 401. Label rate 0.0894 (863 positives).
+- **Run 1258** `rsingh-evx-orchestration`, manual, `business_date` 2026-11-09. Succeeded 09:14:20-09:14:26 UTC
+  with **no tasks**: CDE triggers a manual run with the current time as its execution date (2026-11-18), after
+  the DAG `end_date` 2026-11-09 23:30 UTC, so Airflow created no task instances. Nothing was rebuilt.
+- **Decision:** the DAG window, schedule and catchup stay as they are, and the orchestration job is not run
+  again. 2026-11-09 and 11-10 are rebuilt by running each batch job directly, one at a time, with the DAG's
+  arguments and `--pipeline-run manual-20261109` / `manual-20261110`. No producer or stream job is run.
