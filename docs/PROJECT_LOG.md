@@ -523,3 +523,17 @@
   - Streaming runs 1248-1253 kept running.
   - `evx-uc01-service`, both CAI apps and the NiFi `EVX - Alert Router` flow were left as they were.
   - No DAG run, reprocess, freshness, fault-8 regeneration or producer run.
+
+## 2026-11-18 14:00 IST - Telemetry stream jobs resized (fb03579)
+
+- **Change:** `rsingh-evx-stream-telemetry` and `rsingh-evx-stream-agg` go from up to 2 executors of 2 cores /
+  4 GB to 1 executor of 1 core / 4 GB; driver 1 core / 2 GB unchanged. Recorded in `config/platform.json`
+  `resources.changes`, so one batch job fits beside the six streams.
+- **Requests before:** 1248 and 1249 at 3 CPU / 6 GiB each (up to 5 / 10 with two executors), 1250-1253 at
+  2 CPU / 4 GiB each: 14 CPU / 28 GiB, up to 18 / 36 of the 20 CPU / 80 GiB quota.
+- **Deploy:** `deploy_streaming.sh create` updated all seven job definitions. Only the telemetry group was stopped
+  and started: 1248 and 1249 killed, replaced by **1254** (telemetry) and **1255** (agg), each 2 CPU / 6 GiB,
+  resumed from their checkpoints. 1250-1253 kept running, unchanged.
+- **Requests after:** 12 CPU / 28 GiB, headroom 8 CPU / 52 GiB.
+- **Gate:** `bronze.telemetry_reading` for 2026-11-06 still 282,924 rows (282,924 distinct event ids);
+  `bronze.stream_quarantine` still 0.
