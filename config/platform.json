@@ -60,7 +60,19 @@
        "driver": "1 core / 2 GB, unchanged", "reason": "leave room for one batch job beside the six streams"},
       {"date": "2026-11-18", "jobs": ["rsingh-evx-generate"], "scope": "one full regenerate run (run-time override)",
        "from": "driver 2c / 8g, 3 executors 2c / 8g (8 CPU / 32 GiB)", "to": "driver 2c / 8g, 2 executors 2c / 8g (6 CPU / 24 GiB)",
-       "reason": "fit beside the six streams (12 CPU / 28 GiB): 18 CPU / 52 GiB of the 20 / 80 quota"}
+       "reason": "fit beside the six streams (12 CPU / 28 GiB): 18 CPU / 52 GiB of the 20 / 80 quota"},
+      {"date": "2026-11-18", "scope": "temporary, job definitions, for the manual DAG runs of 2026-11-09 and 11-10, reprocess and freshness",
+       "jobs": ["rsingh-evx-bronze", "rsingh-evx-extract", "rsingh-evx-silver", "rsingh-evx-master",
+                "rsingh-evx-gold", "rsingh-evx-recon", "rsingh-evx-freshness"],
+       "from": "driver 2c / 8g, 3 executors 2c / 8g (8 CPU / 32 GiB)",
+       "to": "driver 2c / 8g, 2 executors 2c / 8g (6 CPU / 24 GiB)",
+       "unchanged": "rsingh-evx-land stays at driver 2c / 4g, 1 executor 1c / 2g (3 CPU / 6 GiB), already under the limit",
+       "reason": "serial DAG tasks: with the six streams at most 18 CPU / 52 GiB"},
+      {"date": "2026-11-18", "scope": "temporary, job definitions, same runs",
+       "jobs": ["rsingh-evx-uc01-features", "rsingh-evx-reprocess"],
+       "from": "driver 2c / 8g, 3 executors 2c / 8g (8 CPU / 32 GiB)",
+       "to": "driver 1c / 4g, 1 executor 2c / 8g (3 CPU / 12 GiB)",
+       "reason": "they overlap after gold: the pair plus the six streams is 18 CPU / 52 GiB"}
     ]
   }
 }
