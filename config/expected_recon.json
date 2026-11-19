@@ -12,9 +12,11 @@
     {"id": 5, "fault": "Genealogy to a non-existent cell", "dates": ["2026-10-20", "2026-11-07"], "layer": "master", "entity": "genealogy",
      "check": "orphan cell", "outcome": "MISMATCH", "explanation": "pack genealogy ORPHAN_CELL, the pack abstains", "milestone": "M1"},
     {"id": 6, "fault": "Firmware reporting degrees F", "dates": ["2026-11-08", "2026-11-09", "2026-11-10"], "layer": "silver", "entity": "telematics",
-     "check": "unit sanity", "outcome": "EXPLAINED", "explanation": "converted, guardrail event", "milestone": "M2"},
+     "check": "unit sanity", "outcome": "EXPLAINED", "explanation": "converted, guardrail event", "milestone": "M2-produce",
+     "_milestone": "not MISSING-checked: the telemetry producer was not run after 2026-11-06, so silver.telemetry_window has no rows for these dates; still EXPLAINED if observed"},
     {"id": 7, "fault": "Stuck SoC sensor", "dates": ["2026-11-09"], "layer": "silver", "entity": "telematics",
-     "check": "stuck sensor", "outcome": "EXPLAINED", "explanation": "flagged, abstain", "milestone": "M2"},
+     "check": "stuck sensor", "outcome": "EXPLAINED", "explanation": "flagged, abstain", "milestone": "M2-produce",
+     "_milestone": "not MISSING-checked: the telemetry producer was not run for 2026-11-09, so silver.telemetry_window has no rows for that date; still EXPLAINED if observed"},
     {"id": 8, "fault": "EDR dumps 4 days late", "dates": ["2026-11-10"], "layer": "gold", "entity": "fact_edr_event",
      "check": "late reprocess", "outcome": "EXPLAINED", "explanation": "ref.reprocess_log", "milestone": "M2-regen",
      "_milestone": "checked once CDE dates 2026-11-09 and 11-10 are regenerated with the day-4 arrival (plan change 2026-11-18)"},
@@ -27,5 +29,5 @@
     {"id": 12, "fault": "Schema evolution ZZ_MOISTURE_PPM", "dates": ["2026-11-08"], "layer": "bronze", "entity": "sap_odata_record",
      "check": "contract diff", "outcome": "EXPLAINED", "explanation": "ref.schema_change, mapped in silver", "milestone": "M1"}
   ],
-  "built_milestones": ["M1"]
+  "built_milestones": ["M1", "M2"]
 }
