@@ -85,7 +85,20 @@
        "jobs": ["rsingh-evx-recon"],
        "from": "driver 2c / 8g, 3 executors 2c / 8g (8 CPU / 32 GiB)",
        "to": "driver 2c / 8g, 2 executors 2c / 8g (6 CPU / 24 GiB)",
-       "reason": "run 1322 at the restored size stayed in starting for 18 min beside the six streams (20 CPU = full quota) and was killed; run 1323 at 6 CPU started at once"}
+       "reason": "run 1322 at the restored size stayed in starting for 18 min beside the six streams (20 CPU = full quota) and was killed; run 1323 at 6 CPU started at once"},
+      {"date": "2026-11-20", "scope": "job definitions",
+       "jobs": ["rsingh-evx-bronze", "rsingh-evx-extract", "rsingh-evx-silver", "rsingh-evx-master",
+                "rsingh-evx-gold", "rsingh-evx-recon", "rsingh-evx-freshness", "rsingh-evx-uc01-features",
+                "rsingh-evx-reprocess"],
+       "from": "driver 2c / 8g, 3 executors 2c / 8g (8 CPU / 32 GiB)",
+       "to": "driver 2c / 8g, 2 executors 2c / 8g (6 CPU / 24 GiB), min = initial = max = 2",
+       "unchanged": "rsingh-evx-land, rsingh-evx-generate and the six stream jobs",
+       "reason": "one batch job beside the six streams (12 CPU) is 18 CPU of the 20 quota"},
+      {"date": "2026-11-20", "scope": "job definition and cde/scripts/deploy_streaming.sh",
+       "jobs": ["rsingh-evx-stream-produce"],
+       "from": "driver 1c / 2g, executors 2c / 4g, min 1 / initial 1 / max 2",
+       "to": "driver 1c / 2g, one executor 1c / 2g, min = initial = max = 1",
+       "reason": "keep the producer within the stream sizes so a later live run fits beside the streams and one batch job"}
     ]
   }
 }

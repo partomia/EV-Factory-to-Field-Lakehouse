@@ -22,7 +22,8 @@
 # GROUP: all (default) | telemetry | m2. A drain refuses to start (before running anything) while any job of the
 # group has a starting or running run: an available-now run must never share a checkpoint with a continuous one.
 #
-# Sizes: the producer keeps its M1 size (driver 1 / 2 GB, executors 2 cores / 4 GB, up to 2). The telemetry jobs
+# Sizes: the producer runs with driver 1 / 2 GB and one executor 1 core / 2 GB (config/platform.json
+# resources.changes, 2026-11-20). The telemetry jobs
 # run with driver 1 / 2 GB and one executor 1 core / 4 GB (config/platform.json resources.changes, 2026-11-18), so a
 # default batch job fits next to the six streams. The M2 jobs use resources.defaults.cde_stream: driver 1 / 2 GB,
 # one executor 1 core / 2 GB (a few thousand messages a day).
@@ -43,9 +44,8 @@ CHECKPOINTS="${CHECKPOINTS:-s3a://federal-buk-574bcea0/data/IB/rsingh_evx/checkp
 KAFKA_PACKAGE="${KAFKA_PACKAGE:-org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.4}"
 CONFIG="$(cd "$(dirname "$0")/../.." && pwd)/config/streaming.json"
 
-RESOURCES=(--driver-cores 1 --driver-memory 2g --executor-cores "${EXECUTOR_CORES:-2}"
-           --executor-memory "${EXECUTOR_MEMORY:-4g}" --min-executors 1 --initial-executors 1
-           --max-executors "${MAX_EXECUTORS:-2}" --conf spark.sql.shuffle.partitions=12)
+RESOURCES_PRODUCE=(--driver-cores 1 --driver-memory 2g --executor-cores 1 --executor-memory 2g
+                   --min-executors 1 --initial-executors 1 --max-executors 1 --conf spark.sql.shuffle.partitions=12)
 RESOURCES_TELEMETRY=(--driver-cores 1 --driver-memory 2g --executor-cores 1 --executor-memory 4g
                      --min-executors 1 --initial-executors 1 --max-executors 1 --conf spark.sql.shuffle.partitions=12)
 RESOURCES_M2=(--driver-cores 1 --driver-memory 2g --executor-cores 1 --executor-memory 2g
@@ -108,7 +108,7 @@ case "${ACTION}" in
       extra=(); [[ "${kafka}" == 1 ]] && extra=("${KCONF[@]}")
       upsert "${name}" "${file}" "${sizes[@]}" ${extra[@]+"${extra[@]}"} --arg=--checkpoints --arg="${CHECKPOINTS}"
     done < <(stream_jobs all)
-    upsert "${JOB_PREFIX}-stream-produce" cde/jobs/stream_produce.py "${RESOURCES[@]}" "${KCONF[@]}"
+    upsert "${JOB_PREFIX}-stream-produce" cde/jobs/stream_produce.py "${RESOURCES_PRODUCE[@]}" "${KCONF[@]}"
     ;;
   start)
     for j in $(stream_jobs "${GROUP}" | cut -d' ' -f1); do
