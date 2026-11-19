@@ -595,3 +595,30 @@
   unproven, with no producer run. `built_milestones` stays `["M1"]`, so recon does not mark it MISSING.
 - **Repair:** land through recon for 11-06, 11-07 and 11-08 (never batch-loaded), then bronze through recon again
   for 11-09 (no land or extract), so the field is first seen on 11-08 and the 11-09 schema_change row is replaced.
+
+## 2026-11-19 06:40 IST - Repair chain for 2026-11-06..11-08 (runs 1269-1298) and the 11-09 re-run to score (1299-1305)
+
+- Same arguments and temporary sizes as runs 1259-1268, `--pipeline-run manual-2026110N`. One batch job at a time
+  beside the six streams (1250-1255). Every run succeeded, 2026-11-18 18:04-20:59 UTC.
+
+| Date | Runs | bronze line_event / cell_mes_step / cell_qc_inspection | extract doc / image / edr | master pack / vehicle | gold fact_telemetry_window | features rows / positives |
+|---|---|---|---|---|---|---|
+| 11-06 | 1269-1278 | 61,036 / 49,757 / 5,017 | 152 / 107 / 17 | 18,057 / 17,957 | 12,938 | 17,957 / 1,071 |
+| 11-07 | 1279-1288 | 63,015 / 50,480 (799 quarantined) / 5,216 | 134 / 107 / 15 | 18,153 / 18,051 | 0 | 18,051 / 1,071 |
+| 11-08 | 1289-1298 | 61,050 / 49,046 / 4,920 | 151 / 105 / 18 | 18,248 / 18,147 | 0 | 18,147 / 1,071 |
+
+- Silver: 0 rejects; `line_event` equals bronze each date. Reprocess: ON_TIME, 0 late dumps each date. uc01-score
+  (1277, 1287, 1297): 17,863 rows published, score_date 2026-11-05, schema `576d28e42713`.
+- **Recon:**
+  - 11-06 (1278, `recon-15881ff1044d`): 21 MATCH.
+  - 11-07 (1288, `recon-85a89f81d4ed`): MATCH 17, EXPLAINED 2 (fault 1 delta-token duplicate, fault 9 identity
+    match 3), MISMATCH 2 (fault 2 trailer count `CL1_formation_B.csv`, fault 5 orphan cell `PKPL12611070001`),
+    INFO 1 (no_such_cell). No UNEXPECTED.
+  - 11-08 (1298, `recon-72de734aea87`): MATCH 16, EXPLAINED 4 (fault 3 PNG decode, fault 12 contract diff
+    `ZZ_MOISTURE_PPM`, fault 4 text layer 6, fault 10 link change 2). No UNEXPECTED.
+- `ref.schema_change`: `ZZ_MOISTURE_PPM` (`A_InspectionLot`) now has `first_seen_date` 2026-11-08 (bronze 1290).
+- **11-09 re-run, no land or extract:** bronze 1299, silver 1300, master 1301, gold 1302, reprocess 1303 (ON_TIME,
+  0 late of 20), uc01-features 1304 (18,242 rows, positives 1,071), uc01-score 1305 (17,863 published). Recon
+  pending.
+- **Gate after bronze 1299:** `bronze.telemetry_reading` for 2026-11-06 still 282,924 rows (282,924 distinct event
+  ids); `bronze.stream_quarantine` 0.
