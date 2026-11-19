@@ -708,3 +708,27 @@
   head of the trace with the Kerberos text was not kept). Not retried, nothing shared changed.
 - Producer, orchestration job and DAG window untouched. Six streams (1250-1255), both apps, the model and the NiFi
   flow unchanged.
+
+## 2026-11-20 01:20 IST - Batch jobs at 2 executors, producer at 1; recon with M2 built for 2026-11-08 and 11-10
+
+- **Definitions** (commit `9e39ff2`, `config/platform.json` `resources.changes` 2026-11-20), read back with
+  `cde job describe`:
+  - bronze, extract, silver, master, gold, recon, freshness, uc01-features, reprocess: driver 2c / 8g, executors
+    2c / 8g, min = initial = max = 2 (was 3). One batch job beside the six streams is 18 CPU of the 20 quota.
+  - `rsingh-evx-stream-produce`: driver 1c / 2g, one executor 1c / 2g, min = initial = max = 1 (was executors
+    2c / 4g, up to 2). `cde/scripts/deploy_streaming.sh` now creates it at that size (`RESOURCES_PRODUCE`). Not run.
+  - Unchanged: land (driver 2c / 4g, 1 x 1c / 2g), generate (3 x 2c / 8g) and the six stream jobs (1 x 1c, 2g or
+    4g), still on runs 1250-1255.
+- **Recon, M2 built**, at the new definition with no override, one at a time, CDE resource at `c5b4669`:
+
+| Run | Date | Pipeline run | Result |
+|---|---|---|---|
+| 1324 | 2026-11-08 | `manual-20261108-m2` | `RECON_RESULT dates=1 rows=20 EXPLAINED=4 MATCH=16 failing=0` |
+| 1325 | 2026-11-10 | `manual-20261110-m2` | `RECON_RESULT dates=1 rows=17 EXPLAINED=1 MATCH=16 failing=0` |
+
+  - 1324 EXPLAINED: fault 3 PNG decode, fault 12 contract diff `ZZ_MOISTURE_PPM`, fault 4 text layer 6, fault 10
+    link change 2. 1325 EXPLAINED: fault 8 late reprocess 22, re-opened 2026-11-06. No MISSING, no UNEXPECTED.
+  - Fault 6 is not MISSING on either date (`M2-produce`). Both started at once (18 CPU with the streams).
+- Recon with M2 built now covers 2026-11-08 (1324), 11-09 (1323) and 11-10 (1325); 11-06 and 11-07 were last
+  checked with M1 only (1278, 1288).
+- Producer, orchestration job and DAG window untouched.

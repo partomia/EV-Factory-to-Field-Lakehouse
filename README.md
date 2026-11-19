@@ -18,7 +18,7 @@ Synthetic EV battery factory-to-field lakehouse on Cloudera (CDE, Impala, CAI, D
 
 **Status (2026-11-20):** live on the closed window through 2026-11-10. Both CAI apps and `evx-uc01-service` are
 up, NiFi `EVX - Alert Router` is running (hold processor stopped) and the six streaming jobs are running from their
-checkpoints. The nightly schedule is armed but does not fire: its window ended 2026-11-09 23:30 UTC. Only 2026-11-09
-has been re-run with M2 built (recon run 1323). Stop with `platform_ctl.py stop`.
+checkpoints. The nightly schedule is armed but does not fire: its window ended 2026-11-09 23:30 UTC. Recon has been
+re-run with M2 built for 2026-11-08, 11-09 and 11-10 only (runs 1324, 1323, 1325). Stop with `platform_ctl.py stop`.
 
 Data is synthetic. Do not present it as a customer's production data.
