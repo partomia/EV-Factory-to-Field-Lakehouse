@@ -683,3 +683,28 @@
   `cde job describe`. Land, generate and the streams unchanged. One such job beside the streams is 20 CPU, the full
   quota.
 - Producer, orchestration job and DAG window untouched. Six streams (1250-1255) still running.
+
+## 2026-11-20 00:45 IST - M2 built in recon; faults 6 and 7 not MISSING-checked; recon 2026-11-09 passed (run 1323)
+
+- **Decision:** the demo stays on the closed window through 2026-11-10 and the telemetry producer is not run.
+  `config/expected_recon.json` `built_milestones` is now `["M1", "M2"]`. Faults 6 (degrees F, 11-08..11-10) and 7
+  (stuck SoC, 11-09) move to milestone `M2-produce`, which is not built: both are read only from the stream table
+  `silver.telemetry_window`, which has no rows after 2026-11-06, so with M2 built they would be MISSING. Dates and
+  outcome EXPLAINED unchanged, so an observed row is still EXPLAINED. Fault 11 (clock skew) stays M2 and is checked.
+  `tests/test_recon.py` accepts `M2-produce` and checks that 6 and 7 are not MISSING while 11 is. Commit `c5b4669`.
+- **Sync:** `cde repository sync --name rsingh-evx-pipeline`, signature `c5b4669`. The synced
+  `config/expected_recon.json` was downloaded before the run: faults 6 and 7 `M2-produce`, 11 `M2`.
+- **Run 1322** `rsingh-evx-recon` 2026-11-09 at the restored size (8 CPU / 32 GiB) stayed in `starting` for 18
+  minutes beside the six streams (12 CPU), together the full 20 CPU quota. Killed before it started; it wrote
+  nothing.
+- **Run 1323** same job and arguments, `--pipeline-run manual-20261109-m2`, run-time override 2 executors (6 CPU /
+  24 GiB, as 1306 and 1316; definition left at 3 executors, `resources.changes` 2026-11-20). Succeeded 2026-11-19
+  19:13:01-19:14:51 UTC. `RECON_RESULT dates=1 rows=19 EXPLAINED=1 MATCH=18 failing=0`; the one EXPLAINED row is
+  `silver line_event 'skew' 45 fault=11 VA-EOL-02 5400 s`. No MISSING, no UNEXPECTED.
+- **Capacity:** at the restored 3-executor size a batch job does not start beside the six streams. Run batch jobs
+  with the 2-executor override while the streams run, or stop the streams first.
+- **Impala**, one attempt this turn: `SELECT 1` succeeded; `SELECT count(*) FROM rsingh_evx_ref.recon_result`
+  failed inside `HiveMetaStoreClient.<init>` while loading the Iceberg table (Metastore connection failure; the
+  head of the trace with the Kerberos text was not kept). Not retried, nothing shared changed.
+- Producer, orchestration job and DAG window untouched. Six streams (1250-1255), both apps, the model and the NiFi
+  flow unchanged.

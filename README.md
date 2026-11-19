@@ -16,9 +16,9 @@ Synthetic EV battery factory-to-field lakehouse on Cloudera (CDE, Impala, CAI, D
 | Start / stop the live demo | `python scripts/platform_ctl.py status` then `start` or `stop` |
 | M1 walkthrough check (Impala + CDV) | `.venv/bin/python scripts/m1_walkthrough_check.py` — [results](docs/M1_WALKTHROUGH_RESULTS.md) |
 
-**Status (2026-11-19):** running at project scope. Both CAI apps and `evx-uc01-service` are up, NiFi
-`EVX - Alert Router` is running (hold processor stopped), the six streaming jobs are running from their checkpoints,
-and the nightly DAG is unpaused with its window closed (ends 2026-11-09 23:30 UTC). 2026-11-06..11-10 are rebuilt
-and recon passes on each; fault 8 (late EDR) is EXPLAINED on 11-10. Stop with `platform_ctl.py stop`.
+**Status (2026-11-20):** live on the closed window through 2026-11-10. Both CAI apps and `evx-uc01-service` are
+up, NiFi `EVX - Alert Router` is running (hold processor stopped) and the six streaming jobs are running from their
+checkpoints. The nightly schedule is armed but does not fire: its window ended 2026-11-09 23:30 UTC. Recon passes on
+2026-11-06..11-10; 11-09 was re-checked with M2 built. Stop with `platform_ctl.py stop`.
 
 Data is synthetic. Do not present it as a customer's production data.

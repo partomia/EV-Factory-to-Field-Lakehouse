@@ -80,7 +80,12 @@
        "from": "the two temporary 2026-11-18 sizes above",
        "to": "driver 2c / 8g, 3 executors 2c / 8g (8 CPU / 32 GiB), min = initial = max = 3",
        "unchanged": "rsingh-evx-land, rsingh-evx-generate and the six stream jobs",
-       "reason": "manual rebuild of 2026-11-06..11-10 and freshness done; one such job beside the six streams is 20 CPU / 60 GiB, the full CPU quota"}
+       "reason": "manual rebuild of 2026-11-06..11-10 and freshness done; one such job beside the six streams is 20 CPU / 60 GiB, the full CPU quota"},
+      {"date": "2026-11-20", "scope": "one recon run (run-time override, definition unchanged)",
+       "jobs": ["rsingh-evx-recon"],
+       "from": "driver 2c / 8g, 3 executors 2c / 8g (8 CPU / 32 GiB)",
+       "to": "driver 2c / 8g, 2 executors 2c / 8g (6 CPU / 24 GiB)",
+       "reason": "run 1322 at the restored size stayed in starting for 18 min beside the six streams (20 CPU = full quota) and was killed; run 1323 at 6 CPU started at once"}
     ]
   }
 }
