@@ -635,3 +635,51 @@
   `SELECT 1`, but every query on `rsingh_evx_ref.recon_result` fails: Impala cannot reach the Hive Metastore
   (Kerberos, "Failure to initialize security context"). Tried once at 09:28 and once at 09:38 IST, then stopped.
   Nothing shared was changed. The row breakdown goes in a later entry if Impala recovers.
+
+## 2026-11-19 21:30 IST - Direct chain for 2026-11-10 (runs 1307-1316), freshness 1317-1321, batch sizes restored
+
+- **Chain 2026-11-10**, `--pipeline-run manual-20261110`, same arguments and temporary sizes as 11-09, one job at
+  a time beside the six streams. Every run succeeded, 2026-11-19 04:08-04:50 UTC.
+
+| Run | Job | Result line |
+|---|---|---|
+| 1307 | land | `LAND_RESULT dates=1 files=379 mb=19.7` |
+| 1308 | bronze | `BRONZE_RESULT dates=1 seconds=123` |
+| 1309 | extract | `EXTRACT_RESULT dates=1 seconds=77` |
+| 1310 | silver | `SILVER_RESULT dates=1 unmapped_docs=0` |
+| 1311 | master | `MASTER_RESULT as_of=2026-11-10` |
+| 1312 | gold | `GOLD_RESULT dates=1 as_of=2026-11-10` |
+| 1313 | reprocess | `REPROCESS_RESULT arrival_dates=1 touched=5 late_dumps=22 REPROCESSED=1` |
+| 1314 | uc01-features | `FEATURE_RESULT rows=18335 matured=9658 positives=1075` |
+| 1315 | uc01-score | `SCORE_PUBLISHED rows=17863 score_date=2026-11-05 schema=576d28e42713` |
+| 1316 | recon | `RECON_RESULT dates=1 rows=17 EXPLAINED=1 MATCH=16 failing=0` |
+
+- **Fault 8 (late EDR) proven on the cluster.** 1313: `REPROCESS_ROW arrival=2026-11-10 status=REPROCESSED
+  touched=2026-11-06..2026-11-10 reopened=2026-11-06 late_dumps=22 of 57 events_before=31 events_after=88`.
+  1316: `RECON_ROW 2026-11-10 gold fact_edr_event 'late reprocess' 22 EXPLAINED fault=8 re-opened 2026-11-06`.
+  Both driver logs were complete.
+- **Impala:** one try at 21:10 IST for the 11-09 and 11-10 `rsingh_evx_ref.recon_result` rows. `SELECT 1`
+  answered; the table query failed with "Failed to connect to Hive Metastore" (Iceberg table load). Not retried,
+  nothing shared changed. The 11-09 per-row breakdown stays unread; 1306 succeeded is the record.
+- **Freshness** `rsingh-evx-freshness`, business-date mode (no `--live`: the dates are in the past, so wall-clock
+  lag would be meaningless), `--pipeline-run manual-fresh-<date>`, one at a time, all succeeded:
+
+| Run | Date | Result |
+|---|---|---|
+| 1317 | 11-06 | `products=7 GREEN=5 RED=2` (field, twin) |
+| 1318 | 11-07 | `products=7 GREEN=4 RED=3` (cell, field, twin) |
+| 1319 | 11-08 | `products=7 GREEN=4 RED=3` |
+| 1320 | 11-09 | `products=7 GREEN=4 RED=3` |
+| 1321 | 11-10 | `products=7 GREEN=4 RED=3` |
+
+  - Batch products (supply, pack_vehicle, field_edr, service) GREEN every date; field_edr lag 1 business day on
+    11-09 (SLA 3).
+  - The RED products are stream-fed: `bronze.factory_qc_event` last 2026-11-06 23:51:30,
+    `bronze.vehicle_dtc_event` 14:54:01, `bronze.factory_line_event` 18:29:58. Only 11-06 was ever produced and
+    the producer stays off, so their lag grows with the business date. Expected, not a fault.
+  - The first driver-log fetch held only the submit line; a second fetch after the runs ended had every line.
+- **Sizes restored:** bronze, extract, silver, master, gold, recon, freshness, uc01-features and reprocess back to
+  driver 2c / 8g, 3 executors 2c / 8g (`config/platform.json` `resources.changes` 2026-11-19), read back from
+  `cde job describe`. Land, generate and the streams unchanged. One such job beside the streams is 20 CPU, the full
+  quota.
+- Producer, orchestration job and DAG window untouched. Six streams (1250-1255) still running.

@@ -72,7 +72,15 @@
        "jobs": ["rsingh-evx-uc01-features", "rsingh-evx-reprocess"],
        "from": "driver 2c / 8g, 3 executors 2c / 8g (8 CPU / 32 GiB)",
        "to": "driver 1c / 4g, 1 executor 2c / 8g (3 CPU / 12 GiB)",
-       "reason": "they overlap after gold: the pair plus the six streams is 18 CPU / 52 GiB"}
+       "reason": "they overlap after gold: the pair plus the six streams is 18 CPU / 52 GiB"},
+      {"date": "2026-11-19", "scope": "restore, job definitions, after the manual runs 1259-1321",
+       "jobs": ["rsingh-evx-bronze", "rsingh-evx-extract", "rsingh-evx-silver", "rsingh-evx-master",
+                "rsingh-evx-gold", "rsingh-evx-recon", "rsingh-evx-freshness", "rsingh-evx-uc01-features",
+                "rsingh-evx-reprocess"],
+       "from": "the two temporary 2026-11-18 sizes above",
+       "to": "driver 2c / 8g, 3 executors 2c / 8g (8 CPU / 32 GiB), min = initial = max = 3",
+       "unchanged": "rsingh-evx-land, rsingh-evx-generate and the six stream jobs",
+       "reason": "manual rebuild of 2026-11-06..11-10 and freshness done; one such job beside the six streams is 20 CPU / 60 GiB, the full CPU quota"}
     ]
   }
 }
