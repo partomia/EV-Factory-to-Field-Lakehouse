@@ -622,3 +622,16 @@
   pending.
 - **Gate after bronze 1299:** `bronze.telemetry_reading` for 2026-11-06 still 282,924 rows (282,924 distinct event
   ids); `bronze.stream_quarantine` 0.
+
+## 2026-11-19 09:40 IST - Recon for 2026-11-09 passed (run 1306)
+
+- **Run 1306** `rsingh-evx-recon`, `--business-date 2026-11-09 --pipeline-run manual-20261109`, same arguments
+  and temporary size as 1268. Succeeded 2026-11-19 00:59:46-01:01:31 UTC.
+- Recon fails the run on any UNEXPECTED row (as 1268 did), so the success means no UNEXPECTED row: the
+  `ZZ_MOISTURE_PPM` contract-diff failure of 1268 is cleared by the 11-08 first-seen repair (bronze 1290).
+- Clock skew (fault 11, `VA-EOL-02 5400 s`) was already EXPLAINED on 1268. Stuck SoC (fault 7) stays absent: no
+  stream telemetry for 11-09, no producer run.
+- **Per-row counts unread.** The driver log was cut before the summary print again. `federal-impala-1` answers
+  `SELECT 1`, but every query on `rsingh_evx_ref.recon_result` fails: Impala cannot reach the Hive Metastore
+  (Kerberos, "Failure to initialize security context"). Tried once at 09:28 and once at 09:38 IST, then stopped.
+  Nothing shared was changed. The row breakdown goes in a later entry if Impala recovers.
