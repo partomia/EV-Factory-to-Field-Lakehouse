@@ -408,5 +408,6 @@
     "uc01": 16000,
     "uc02": 16500
   },
-  "datalake_api": "https://federal-aw-dl-gateway.federal.dp5i-5vkq.cloudera.site/federal-aw-dl/cdp-proxy-api"
+  "datalake_api": "https://federal-aw-dl-gateway.federal.dp5i-5vkq.cloudera.site/federal-aw-dl/cdp-proxy-api",
+  "idbroker_url": "https://federal-aw-dl-idbroker0.federal.dp5i-5vkq.cloudera.site:8444/gateway/aws-cab/cab/api/v1/credentials"
 }

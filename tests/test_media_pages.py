@@ -121,3 +121,110 @@ def test_real_client_failure_does_not_log_the_env_key(monkeypatch, caplog):
         assert media.read_s3("s3://bucket/qc_xray/a.png") is None
     assert media.last_failure() == "get_object: ClientError [InvalidAccessKeyId]"
     assert "AKIATESTNOTAREALKEY1" not in caplog.text
+
+
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _no_workload_user(monkeypatch):
+    from app import media
+
+    monkeypatch.delenv("EVX_WORKLOAD_USER", raising=False)
+    monkeypatch.delenv("EVX_WORKLOAD_PASSWORD", raising=False)
+    media._VENDED.update(creds=None, until=0.0)
+
+
+class _Resp:
+    def __init__(self, status, body=None):
+        self.status_code, self._body = status, body or {}
+
+    def json(self):
+        return self._body
+
+
+def _fake_boto3(calls):
+    import types
+
+    class Body:
+        def read(self):
+            return b"png"
+
+    class Client:
+        def get_object(self, **_kw):
+            return {"Body": Body()}
+
+    def client(service, **kw):
+        calls.append((service, kw))
+        return Client()
+
+    return types.SimpleNamespace(client=client)
+
+
+def test_idbroker_200_builds_the_client_and_logs_no_secret(monkeypatch, caplog):
+    import sys
+
+    import requests
+    from app import media
+
+    seen = {}
+
+    def get(url, auth, timeout):
+        seen.update(url=url, auth=auth, timeout=timeout)
+        return _Resp(200, {"Credentials": {"AccessKeyId": "ASIAVENDED", "SecretAccessKey": "planted-secret",
+                                           "SessionToken": "planted-token", "Expiration": 4102444800000}})
+
+    calls = []
+    monkeypatch.setitem(sys.modules, "boto3", _fake_boto3(calls))
+    monkeypatch.setattr(requests, "get", get)
+    monkeypatch.setenv("EVX_WORKLOAD_USER", "workload-user")
+    monkeypatch.setenv("EVX_WORKLOAD_PASSWORD", "planted-password")
+    with caplog.at_level("DEBUG", logger="evx.media"):
+        assert media.read_s3("s3://bucket/a.png") == b"png"
+        assert media.read_s3("s3://bucket/b.png") == b"png"
+    assert seen["url"].endswith("/cab/api/v1/credentials") and seen["timeout"] == 20
+    assert seen["auth"] == ("workload-user", "planted-password")
+    assert calls[0] == ("s3", {"aws_access_key_id": "ASIAVENDED", "aws_secret_access_key": "planted-secret",
+                               "aws_session_token": "planted-token"})
+    assert media.last_failure() is None
+    for secret in ("planted-password", "planted-secret", "planted-token"):
+        assert secret not in caplog.text
+
+
+def test_idbroker_403_sets_the_status_only(monkeypatch, caplog):
+    import sys
+
+    import requests
+    from app import media
+
+    monkeypatch.setitem(sys.modules, "boto3", _fake_boto3([]))
+    monkeypatch.setattr(requests, "get", lambda url, auth, timeout: _Resp(403, {"error": "planted-body"}))
+    monkeypatch.setenv("EVX_WORKLOAD_USER", "workload-user")
+    monkeypatch.setenv("EVX_WORKLOAD_PASSWORD", "planted-password")
+    with caplog.at_level("WARNING", logger="evx.media"):
+        assert media.read_s3("s3://bucket/a.png") is None
+    assert media.last_failure() == "idbroker: HTTP 403"
+    assert "planted-body" not in caplog.text and "planted-password" not in caplog.text
+
+
+def test_without_workload_user_the_filtered_role_session_is_used(monkeypatch):
+    import sys
+    import types
+
+    import requests
+    from app import media
+
+    used = []
+    monkeypatch.setattr(requests, "get", lambda *a, **k: pytest.fail("IDBroker called without a workload user"))
+    monkeypatch.setattr(media, "credential_session", lambda: used.append("filtered") or "core")
+
+    class Session:
+        def __init__(self, botocore_session):
+            used.append(botocore_session)
+
+        def client(self, _svc):
+            return _fake_boto3([]).client("s3")
+
+    monkeypatch.setitem(sys.modules, "boto3", types.SimpleNamespace(Session=Session, client=None))
+    assert media.read_s3("s3://bucket/a.png") == b"png"
+    assert used == ["filtered", "core"]

@@ -76,6 +76,69 @@ def _s3_client(boto3):
     return boto3.Session(botocore_session=credential_session()).client("s3")
 
 
+class IdBrokerHTTPError(Exception):
+    def __init__(self, status: int):
+        super().__init__(f"HTTP {status}")
+        self.status = status
+
+
+_VENDED: dict = {"creds": None, "until": 0.0}
+
+
+def _idbroker_url() -> str:
+    import json
+
+    return json.loads((_repo_root() / "config" / "lakehouse.json").read_text())["idbroker_url"]
+
+
+def _expiry(value) -> float:
+    """Epoch seconds from the IDBroker Expiration (epoch ms, epoch s or ISO 8601); 10 minutes when absent."""
+    import time
+    from datetime import datetime
+
+    if value in (None, ""):
+        return time.time() + 600
+    if isinstance(value, (int, float)) or str(value).isdigit():
+        v = float(value)
+        return (v / 1000 if v > 1e11 else v) - 60
+    return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp() - 60
+
+
+def vended_credentials(user: str, password: str) -> dict:
+    """Short-lived S3 credentials from the data lake IDBroker (RAZ-mapped role) for the workload user, cached in
+    memory until shortly before they expire. Raises IdBrokerHTTPError on a non-200 answer."""
+    import time
+
+    import requests
+
+    if _VENDED["creds"] and time.time() < _VENDED["until"]:
+        return _VENDED["creds"]
+    r = requests.get(_idbroker_url(), auth=(user, password), timeout=20)
+    if r.status_code != 200:
+        raise IdBrokerHTTPError(r.status_code)
+    body = r.json()
+    src = body.get("Credentials", body) if isinstance(body.get("Credentials"), dict) else body
+
+    def pick(*names):
+        return next((src[n] for n in names if src.get(n)), None)
+
+    creds = {"aws_access_key_id": pick("accessKeyId", "AccessKeyId"),
+             "aws_secret_access_key": pick("secretAccessKey", "SecretAccessKey"),
+             "aws_session_token": pick("sessionToken", "SessionToken")}
+    if not all(creds.values()):
+        raise KeyError("credential field missing")
+    _VENDED.update(creds=creds, until=_expiry(pick("expiration", "Expiration")))
+    return creds
+
+
+def _idbroker_failure(exc: Exception) -> None:
+    """Status or exception class only: never the body, the user, the password or a credential field."""
+    global _LAST_FAILURE
+    _LAST_FAILURE = (f"idbroker: HTTP {exc.status}" if isinstance(exc, IdBrokerHTTPError)
+                     else f"idbroker: {type(exc).__name__}")
+    LOG.warning("read_s3 %s", _LAST_FAILURE)
+
+
 def read_s3(uri: str) -> bytes | None:
     global _LAST_FAILURE
     _LAST_FAILURE = None
@@ -88,8 +151,17 @@ def read_s3(uri: str) -> bytes | None:
         _log_failure("import boto3", e)
         return None
     bucket, key = m.group(1), m.group(2)
+    user, password = os.environ.get("EVX_WORKLOAD_USER"), os.environ.get("EVX_WORKLOAD_PASSWORD")
+    if user and password:
+        try:
+            client = boto3.client("s3", **vended_credentials(user, password))
+        except Exception as e:  # noqa: BLE001
+            _idbroker_failure(e)
+            return None
+    else:
+        client = _s3_client(boto3)
     try:
-        return _s3_client(boto3).get_object(Bucket=bucket, Key=key)["Body"].read()
+        return client.get_object(Bucket=bucket, Key=key)["Body"].read()
     except Exception as e:  # noqa: BLE001
         _log_failure("get_object", e)
         return None

@@ -832,3 +832,19 @@
 - **Tests.** With real boto3 the session has none of the four providers and keeps the three role providers; a
   stubbed `InvalidAccessKeyId` from a real client logs only the class and code, and a test `AWS_ACCESS_KEY_ID`
   is not in the log. No AWS call. Full suite 254 passed.
+
+## 2026-11-21 01:30 IST - Vision S3 reads use IDBroker credentials (RAZ data lake)
+
+- **Cause.** With the static-key providers skipped (`52e218e`), `get_object` failed with
+  `ClientError [AccessDenied]`. The data lake `federal-aw-dl` has `enableRangerRaz` true: the CAI workspace role
+  is a real AWS identity and RAZ denies it direct access to `s3a://federal-buk-574bcea0`. Bucket policy unchanged.
+- **Change.** `config/lakehouse.json` `idbroker_url` (the data lake IDBroker `aws-cab` credentials endpoint).
+  When `EVX_WORKLOAD_USER` and `EVX_WORKLOAD_PASSWORD` are set (both present in the CAI project environment, names
+  checked only), `app/media.read_s3` GETs that URL with basic auth (20 s timeout, TLS verified), takes the access
+  key, secret and session token (camelCase or PascalCase, also under `Credentials`), passes them to
+  `boto3.client("s3")`, and caches them in memory until `Expiration` minus 60 s, or 10 minutes without one.
+  Without the variables it keeps the filtered role session. A failure sets `idbroker: <ExceptionClass>` or
+  `idbroker: HTTP <status>`; no body, user, password or credential field is logged or shown.
+- **Tests** (requests and boto3 stubbed, no network): a 200 builds the client from the three fields and the
+  planted password, secret and token are absent from the log; HTTP 403 gives `idbroker: HTTP 403`; without the
+  variables the filtered role session is used. Full suite 257 passed.
