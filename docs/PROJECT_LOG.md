@@ -732,3 +732,18 @@
 - Recon with M2 built now covers 2026-11-08 (1324), 11-09 (1323) and 11-10 (1325); 11-06 and 11-07 were last
   checked with M1 only (1278, 1288).
 - Producer, orchestration job and DAG window untouched.
+
+## 2026-11-20 01:50 IST - Recon with M2 built for 2026-11-06 and 11-07 (runs 1326, 1327)
+
+- `rsingh-evx-recon` at the 2-executor definition, no override, one at a time, CDE resource at `c5b4669`.
+
+| Run | Date | Pipeline run | Result |
+|---|---|---|---|
+| 1326 | 2026-11-06 | `manual-20261106-m2` | `RECON_RESULT dates=1 rows=21 MATCH=21 failing=0` |
+| 1327 | 2026-11-07 | `manual-20261107-m2` | `RECON_RESULT dates=1 rows=22 EXPLAINED=2 INFO=1 MATCH=17 MISMATCH=2 failing=0` |
+
+- 1327: MISMATCH fault 2 trailer count `CL1_formation_B.csv`, MISMATCH fault 5 orphan cell `PKPL12611070001` (both
+  expected MISMATCH), EXPLAINED fault 1 delta-token duplicate, EXPLAINED fault 9 identity match 2 (3 on the M1 run
+  1288; the master runs for 11-08..11-10 ran in between). No MISSING, no UNEXPECTED.
+- Recon with M2 built now passes for 2026-11-06 through 2026-11-10: 1326, 1327, 1324, 1323, 1325.
+- Producer, orchestration job, DAG window, streams (1250-1255) and the Kafka credential untouched.
