@@ -55,6 +55,27 @@ def _log_failure(stage: str, exc: Exception) -> None:
     LOG.warning("read_s3 %s failed: %s%s: %s", stage, type(exc).__name__, f" [{code}]" if code else "", msg)
 
 
+STATIC_KEY_PROVIDERS = ("env", "shared-credentials-file", "custom-process", "sso")
+
+
+def credential_session():
+    """botocore session without the static-key providers, so the workspace identity (web identity, container or
+    instance role) is used instead of a stray key that S3 rejects."""
+    import botocore.session
+
+    core = botocore.session.get_session()
+    resolver = core.get_component("credential_provider")
+    for method in STATIC_KEY_PROVIDERS:
+        resolver.remove(method)
+    return core
+
+
+def _s3_client(boto3):
+    if not hasattr(boto3, "Session"):
+        return boto3.client("s3")
+    return boto3.Session(botocore_session=credential_session()).client("s3")
+
+
 def read_s3(uri: str) -> bytes | None:
     global _LAST_FAILURE
     _LAST_FAILURE = None
@@ -68,7 +89,7 @@ def read_s3(uri: str) -> bytes | None:
         return None
     bucket, key = m.group(1), m.group(2)
     try:
-        return boto3.client("s3").get_object(Bucket=bucket, Key=key)["Body"].read()
+        return _s3_client(boto3).get_object(Bucket=bucket, Key=key)["Body"].read()
     except Exception as e:  # noqa: BLE001
         _log_failure("get_object", e)
         return None

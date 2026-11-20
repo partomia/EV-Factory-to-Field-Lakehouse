@@ -818,3 +818,17 @@
   boto3 in the check and installs it. `app/media.py` keeps the last failure (stage, exception class, ClientError
   code; no message text) and both media warnings show it in parentheses. `app/launch_app.py` unchanged (the
   Quality app reads no images).
+
+## 2026-11-20 14:30 IST - Vision S3 reads skip the static-key credential providers
+
+- **Cause.** After `c276614` boto3 imported in the Vision app and `get_object` failed with
+  `ClientError [InvalidAccessKeyId]`: boto3's default chain found a static access key, tried before the
+  workspace identity, that S3 does not recognise. The key is not in the project or application environment (no
+  `AWS_*` names via the API). CDE reads the same `s3a://federal-buk-574bcea0` path with the data-lake role.
+- **Change.** `app/media.py` builds the S3 client from a botocore session whose credential resolver has the
+  `env`, `shared-credentials-file`, `custom-process` and `sso` providers removed; web identity, container role
+  and instance role stay. No key, endpoint or credential added; nothing in the environment printed. A test
+  double without `boto3.Session` still gets `boto3.client("s3")`.
+- **Tests.** With real boto3 the session has none of the four providers and keeps the three role providers; a
+  stubbed `InvalidAccessKeyId` from a real client logs only the class and code, and a test `AWS_ACCESS_KEY_ID`
+  is not in the log. No AWS call. Full suite 254 passed.

@@ -90,3 +90,34 @@ def test_vision_launcher_requires_boto3():
     src = (Path(__file__).resolve().parents[1] / "app" / "launch_vision_app.py").read_text()
     assert "import boto3" in src.split("def _ensure_app_packages")[0]
     assert '"boto3"]' in src
+
+
+def test_s3_session_drops_the_static_key_providers():
+    import pytest
+
+    pytest.importorskip("boto3")
+    from app import media
+
+    methods = [p.METHOD for p in media.credential_session().get_component("credential_provider").providers]
+    assert "env" not in methods and "shared-credentials-file" not in methods
+    assert "sso" not in methods and "custom-process" not in methods
+    assert {"assume-role-with-web-identity", "container-role", "iam-role"} <= set(methods)
+
+
+def test_real_client_failure_does_not_log_the_env_key(monkeypatch, caplog):
+    import pytest
+
+    boto3 = pytest.importorskip("boto3")
+    from botocore.stub import Stubber
+    from app import media
+
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "AKIATESTNOTAREALKEY1")
+    client = media._s3_client(boto3)
+    stub = Stubber(client)
+    stub.add_client_error("get_object", service_error_code="InvalidAccessKeyId", http_status_code=403)
+    stub.activate()
+    monkeypatch.setattr(media, "_s3_client", lambda _b: client)
+    with caplog.at_level("WARNING", logger="evx.media"):
+        assert media.read_s3("s3://bucket/qc_xray/a.png") is None
+    assert media.last_failure() == "get_object: ClientError [InvalidAccessKeyId]"
+    assert "AKIATESTNOTAREALKEY1" not in caplog.text
