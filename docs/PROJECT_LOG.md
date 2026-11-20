@@ -747,3 +747,30 @@
   1288; the master runs for 11-08..11-10 ran in between). No MISSING, no UNEXPECTED.
 - Recon with M2 built now passes for 2026-11-06 through 2026-11-10: 1326, 1327, 1324, 1323, 1325.
 - Producer, orchestration job, DAG window, streams (1250-1255) and the Kafka credential untouched.
+
+## 2026-11-20 12:10 IST - Impala fixed; recon rows for 2026-11-09 and 11-10 read; both apps return data
+
+- **Impala fix (by the user, 2026-11-20):** `federal-impala-1` suspended and started, then `INVALIDATE METADATA`
+  on `rsingh_evx_ref.recon_result` and `rsingh_evx_ref.identity_review`. Root cause: the Impala VW's Kerberos
+  login to the Hive Metastore was stale; the Hive VW on the same Data Catalog worked.
+- **Recon rows** read from `rsingh_evx_ref.recon_result`, no further INVALIDATE needed:
+  - 2026-11-09 (`recon-10faaccd94f4`, run 1323): 19 rows. EXPLAINED `silver line_event skew 45` fault 11
+    (`VA-EOL-02 5400 s`); 18 MATCH: silver cell_step 51,073, formation_curve_point 12,240, line_event 62,886,
+    pack_build 93, qc_inspection 5,227, rider 91, twin_scenario 10, vehicle_build 95, warranty_claim 9; gold
+    fact_cell_process 51,073, fact_line_cycle 62,886, fact_pack_eol 93, fact_qc_inspection 5,227,
+    fact_service_job 163, fact_twin_scenario 96, fact_vehicle_eol 95, fact_warranty_claim 9 and amount_inr sum
+    154,345.
+  - 2026-11-10 (`recon-fd1ca93cfb20`, run 1325): 17 rows. EXPLAINED `gold fact_edr_event late reprocess 22`
+    fault 8 (re-opened 2026-11-06); 16 MATCH: silver cell_step 49,358, formation_curve_point 13,320, line_event
+    60,489, pack_build 93, qc_inspection 4,929, rider 91, vehicle_build 93, warranty_claim 16; gold
+    fact_cell_process 49,358, fact_line_cycle 60,489, fact_pack_eol 93, fact_qc_inspection 4,929,
+    fact_service_job 152, fact_vehicle_eol 93, fact_warranty_claim 16 and amount_inr sum 442,541.
+  - No MISSING, UNEXPECTED or MISMATCH on either date.
+- **CAI apps**, both `APPLICATION_RUNNING`. Anonymous GET gives 302 to the CAI login; with the API key both return
+  the Streamlit page (HTTP 200). Pages checked headless with Streamlit `AppTest` (temporary venv, same app code,
+  live Impala), every sidebar page, no exceptions or errors:
+  - Quality and Reliability: Vehicle risk worklist 200 rows; Batch containment 40 and 68 rows (lot CATHCL10050
+    SUSPECT, 68 packs / 68 vehicles); Pack 360 seven tables (1, 1, 1, 1, 1, 0, 90 rows).
+  - Vision and Documents: Cell X-ray viewer 100 rows; Film defect gallery 80; EDR event replay 40. The X-ray
+    image bytes did not load from the laptop session (warning in the page; metadata from Impala); not checked
+    inside CAI.
