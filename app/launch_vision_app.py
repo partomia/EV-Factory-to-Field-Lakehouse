@@ -33,6 +33,7 @@ def _note(msg: str) -> None:
 
 def _packages_ok() -> bool:
     try:
+        import boto3  # noqa: F401
         import impala.dbapi  # noqa: F401
         import pyarrow  # noqa: F401
         import streamlit  # noqa: F401
@@ -45,10 +46,10 @@ def _packages_ok() -> bool:
 def _ensure_app_packages() -> None:
     if _packages_ok():
         return
-    _note("pip install streamlit, impyla, pyarrow<18, Pillow")
+    _note("pip install streamlit, impyla, pyarrow<18, Pillow, boto3")
     code = subprocess.call(
         [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--only-binary=:all:",
-         "--upgrade", "pyarrow>=14,<18", "pandas", "Pillow", "streamlit>=1.32", "impyla==0.21.0"],
+         "--upgrade", "pyarrow>=14,<18", "pandas", "Pillow", "streamlit>=1.32", "impyla==0.21.0", "boto3"],
         cwd=ROOT)
     _note(f"pip exit {code}")
     if code != 0 or not _packages_ok():

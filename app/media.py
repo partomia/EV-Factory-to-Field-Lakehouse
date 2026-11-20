@@ -37,15 +37,27 @@ def read_local(root: Path, image_ref: str) -> bytes | None:
     return path.read_bytes() if path.is_file() else None
 
 
+_LAST_FAILURE: str | None = None
+
+
+def last_failure() -> str | None:
+    """Stage, exception class and ClientError code of the last read_s3 failure, for the page; no message text."""
+    return _LAST_FAILURE
+
+
 def _log_failure(stage: str, exc: Exception) -> None:
     """Exception class and the first line of its message only: never the client config or the environment."""
+    global _LAST_FAILURE
     resp = getattr(exc, "response", None)
     code = resp.get("Error", {}).get("Code") if isinstance(resp, dict) else None
     msg = (str(exc).splitlines() or [""])[0][:160]
+    _LAST_FAILURE = f"{stage}: {type(exc).__name__}{f' [{code}]' if code else ''}"
     LOG.warning("read_s3 %s failed: %s%s: %s", stage, type(exc).__name__, f" [{code}]" if code else "", msg)
 
 
 def read_s3(uri: str) -> bytes | None:
+    global _LAST_FAILURE
+    _LAST_FAILURE = None
     m = S3A.match(uri)
     if not m:
         return None

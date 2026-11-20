@@ -800,3 +800,21 @@
   (the workspace role on CAI).
 - **Shared change recorded** in the 12:10 entry: the `federal-impala-1` restart (cluster `env-jjwgzn`), with the
   user's approval; the earlier "nothing shared changed" lines now refer only to the read-only queries.
+
+## 2026-11-20 13:45 IST - Recon 1328 and 1329 (fault 9 per DMS VIN); Pack 360 EDR check; vision launcher installs boto3
+
+- `rsingh-evx-recon` at `512747a` (CDE resource synced), 2-executor definition, headroom 8 CPU beside the streams:
+  - **1328** 2026-10-28, `manual-20261028-m2-f9`: `RECON_RESULT dates=1 rows=19 EXPLAINED=1 MATCH=18 failing=0`;
+    fault 9 identity match EXPLAINED, count 1.
+  - **1329** 2026-11-07, `manual-20261107-m2-f9`: `RECON_RESULT dates=1 rows=22 EXPLAINED=2 INFO=1 MATCH=17
+    MISMATCH=2 failing=0`; fault 9 identity match EXPLAINED, count 2 (the generator truth); MISMATCH rows are
+    the planted faults 2 and 5.
+- **Pack 360:** the 0-row table is EDR events. The default VIN `XEVS1K26050600022` has no row in
+  `gold.fact_edr_event`; `XEVS2K26052700002` has one and its EDR table shows 1 row. Page unchanged.
+- **Vision images still failed after `512747a`** (websocket check of the deployed app: both warnings, no
+  image). `ci/sync_code.py` installs `requirements.txt` in the job engine; an application does not get that
+  install. `app/launch_vision_app.py` `_packages_ok()` passed once streamlit, impyla, pyarrow and Pillow
+  imported, so `_ensure_app_packages()` never ran pip and boto3 was missing in the app. The launcher now imports
+  boto3 in the check and installs it. `app/media.py` keeps the last failure (stage, exception class, ClientError
+  code; no message text) and both media warnings show it in parentheses. `app/launch_app.py` unchanged (the
+  Quality app reads no images).

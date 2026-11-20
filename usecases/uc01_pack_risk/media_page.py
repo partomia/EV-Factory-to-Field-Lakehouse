@@ -3,7 +3,12 @@ Unstructured analytics pages for the vision workbench: images and EDR replay wit
 """
 from __future__ import annotations
 
-from app.media import load_object, png_with_box
+from app.media import last_failure, load_object, png_with_box
+
+
+def _why() -> str:
+    reason = last_failure()
+    return f" ({reason})" if reason else ""
 
 
 def lit(value) -> str:
@@ -80,7 +85,8 @@ def _render_xray(q, gold: str, semantic: str, bronze: str, landing: str) -> None
     raw = paths.iloc[0]["raw_path"] if not paths.empty else None
     data = load_object(str(row["image_ref"]), str(raw) if raw else None, landing)
     if data is None:
-        st.warning("Could not load image bytes from landing/raw in this session. Metadata above is from Impala.")
+        st.warning(f"Could not load image bytes from landing/raw in this session{_why()}. "
+                   "Metadata above is from Impala.")
         return
     img = png_with_box(data, row.get("overhang_box"))
     if img is not None:
@@ -103,7 +109,7 @@ def _render_film(q, gold: str, silver: str, landing: str) -> None:
     row = rows.loc[rows["image_ref"] == ref].iloc[0]
     data = load_object(str(ref), None, landing)
     if data is None:
-        st.warning("Image bytes not reachable here; structured verdict and score are still valid.")
+        st.warning(f"Image bytes not reachable here{_why()}; structured verdict and score are still valid.")
         return
     st.image(data, caption=f"{row['cell_id']} score={row['score']}", use_container_width=True)
 
