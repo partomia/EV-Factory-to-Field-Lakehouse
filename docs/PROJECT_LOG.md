@@ -634,7 +634,8 @@
 - **Per-row counts unread.** The driver log was cut before the summary print again. `federal-impala-1` answers
   `SELECT 1`, but every query on `rsingh_evx_ref.recon_result` fails: Impala cannot reach the Hive Metastore
   (Kerberos, "Failure to initialize security context"). Tried once at 09:28 and once at 09:38 IST, then stopped.
-  Nothing shared was changed. The row breakdown goes in a later entry if Impala recovers.
+  These queries changed nothing shared (the later fix did: shared Impala restart, 2026-11-20 12:10 entry). The row
+  breakdown goes in a later entry if Impala recovers.
 
 ## 2026-11-19 21:30 IST - Direct chain for 2026-11-10 (runs 1307-1316), freshness 1317-1321, batch sizes restored
 
@@ -660,7 +661,8 @@
   Both driver logs were complete.
 - **Impala:** one try at 21:10 IST for the 11-09 and 11-10 `rsingh_evx_ref.recon_result` rows. `SELECT 1`
   answered; the table query failed with "Failed to connect to Hive Metastore" (Iceberg table load). Not retried,
-  nothing shared changed. The 11-09 per-row breakdown stays unread; 1306 succeeded is the record.
+  the query changed nothing shared (see the 2026-11-20 shared Impala restart). The 11-09 per-row breakdown stays
+  unread; 1306 succeeded is the record.
 - **Freshness** `rsingh-evx-freshness`, business-date mode (no `--live`: the dates are in the past, so wall-clock
   lag would be meaningless), `--pipeline-run manual-fresh-<date>`, one at a time, all succeeded:
 
@@ -705,7 +707,8 @@
   with the 2-executor override while the streams run, or stop the streams first.
 - **Impala**, one attempt this turn: `SELECT 1` succeeded; `SELECT count(*) FROM rsingh_evx_ref.recon_result`
   failed inside `HiveMetaStoreClient.<init>` while loading the Iceberg table (Metastore connection failure; the
-  head of the trace with the Kerberos text was not kept). Not retried, nothing shared changed.
+  head of the trace with the Kerberos text was not kept). Not retried; the query changed nothing shared (see the
+  2026-11-20 shared Impala restart).
 - Producer, orchestration job and DAG window untouched. Six streams (1250-1255), both apps, the model and the NiFi
   flow unchanged.
 
@@ -750,9 +753,10 @@
 
 ## 2026-11-20 12:10 IST - Impala fixed; recon rows for 2026-11-09 and 11-10 read; both apps return data
 
-- **Impala fix (by the user, 2026-11-20):** `federal-impala-1` suspended and started, then `INVALIDATE METADATA`
-  on `rsingh_evx_ref.recon_result` and `rsingh_evx_ref.identity_review`. Root cause: the Impala VW's Kerberos
-  login to the Hive Metastore was stale; the Hive VW on the same Data Catalog worked.
+- **Impala fix, a shared change:** the shared virtual warehouse `federal-impala-1` (`impala-1786369317-k4p5` on
+  cluster `env-jjwgzn`) was suspended and started on 2026-11-20, with the user's approval, because its Kerberos
+  login to the Hive Metastore was stale; Hive on the same Data Catalog was fine. Then `INVALIDATE METADATA` on
+  `rsingh_evx_ref.recon_result` and `rsingh_evx_ref.identity_review` only.
 - **Recon rows** read from `rsingh_evx_ref.recon_result`, no further INVALIDATE needed:
   - 2026-11-09 (`recon-10faaccd94f4`, run 1323): 19 rows. EXPLAINED `silver line_event skew 45` fault 11
     (`VA-EOL-02 5400 s`); 18 MATCH: silver cell_step 51,073, formation_curve_point 12,240, line_event 62,886,
@@ -774,3 +778,25 @@
   - Vision and Documents: Cell X-ray viewer 100 rows; Film defect gallery 80; EDR event replay 40. The X-ray
     image bytes did not load from the laptop session (warning in the page; metadata from Impala); not checked
     inside CAI.
+
+## 2026-11-20 12:45 IST - Fault 9 counts DMS VINs; vision workbench image loader; shared Impala restart recorded
+
+- **Fault 9 count drift (cause).** Recon counted `source_key~candidate_id` pairs in `ref.identity_review`, not
+  DMS VINs. Iceberg time travel on `rsingh_evx_ref.recon_result` shows that on run 1288 the DMS VIN
+  `XEVS1K26110100106` had two candidates, `...006` (VIN_EDIT) and `...016` (VIN_TRANSPOSITION), so 11-07 counted 3.
+  The master runs for 11-08..11-10 gave `...006` a rider, it left the free candidate pool, and the 11-07 count
+  became 2 on run 1327 with no change in the data that recon is meant to check. Generator truth
+  (`ref.generator_truth_fault`, fault `vin_typo`) is 2 typos on 11-07 and 1 on 10-28. `cde/jobs/recon.py` now
+  uses `count(DISTINCT source_key)` for `identity match`; the detail keeps every pair. `build_master.py` is
+  unchanged. Test: one DMS VIN with two candidates counts as 1 (local Spark).
+- **Vision workbench images (cause).** Cell X-ray viewer showed "Could not load image bytes from landing/raw in
+  this session. Metadata above is from Impala." (`media_page._render_xray`); Film defect gallery uses the same
+  `app/media.load_object`. `read_s3()` imported boto3 inside a try and returned None on any exception, so a
+  missing package and an S3 denial looked the same, and boto3 was not in `requirements.txt`, which the CAI
+  project installs from (`ci/sync_code.py`; `cdsw-build.sh` uses `--only-binary=:all:`). boto3 is added (pure
+  Python wheel). `read_s3()` now logs the stage, the exception class, the ClientError code and the first line of
+  the message, and still returns None; no client config or environment is logged. Tests cover a missing boto3
+  and a denied `get_object`. No key, endpoint or credential added: `boto3.client("s3")` uses the default chain
+  (the workspace role on CAI).
+- **Shared change recorded** in the 12:10 entry: the `federal-impala-1` restart (cluster `env-jjwgzn`), with the
+  user's approval; the earlier "nothing shared changed" lines now refer only to the read-only queries.

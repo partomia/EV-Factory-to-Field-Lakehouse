@@ -97,7 +97,7 @@ def exceptions_sql(n: C.Names, dl: str) -> list[tuple[str, str, str]]:
         ("master", f"SELECT first_seen_date, 'genealogy', 'orphan cell', count(*), concat_ws('; ', collect_list(pack_serial)) "
                    f"FROM {m}.genealogy WHERE link_status = 'ORPHAN' AND first_seen_date IN ({dl}) GROUP BY 1",
          f"{m}.genealogy"),
-        ("master", f"SELECT first_seen_date, 'identity_review', 'identity match', count(*), "
+        ("master", f"SELECT first_seen_date, 'identity_review', 'identity match', count(DISTINCT source_key), "
                    f"concat_ws('; ', collect_list(concat(source_key, '~', candidate_id))) FROM {r}.identity_review "
                    f"WHERE rule IN ({rv}) AND first_seen_date IN ({dl}) GROUP BY 1", f"{r}.identity_review"),
         ("gold", f"SELECT to_date(valid_from), 'dim_vehicle', 'link change', count(*), concat_ws('; ', collect_list(vin)) "

@@ -1,11 +1,15 @@
 import json
+import shutil
 import sys
+from datetime import date
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "cde" / "jobs"))
 
-from recon import classify  # noqa: E402
+from recon import classify, exceptions_sql  # noqa: E402
 
 EXPECTED = json.loads((ROOT / "config" / "expected_recon.json").read_text())["faults"]
 
@@ -56,3 +60,35 @@ def test_clock_skew_is_explained_where_planted_and_unexpected_elsewhere():
     row = ("silver", "line_event", "skew", 1, "VA-EOL-02 5400 s")
     assert classify([("2026-11-09", *row)], EXPECTED, {"M1"}, {"2026-11-09"})[0][5:7] == ("EXPLAINED", 11)
     assert classify([("2026-11-08", *row)], EXPECTED, {"M1"}, {"2026-11-08"})[0][5:7] == ("UNEXPECTED", None)
+
+
+class _GlobalTemp:
+    def db(self, _layer: str) -> str:
+        return "global_temp"
+
+
+@pytest.fixture(scope="module")
+def spark(tmp_path_factory):
+    pytest.importorskip("pyspark")
+    if not shutil.which("java"):
+        pytest.skip("no Java for local Spark")
+    from scripts.run_local import local_spark
+
+    return local_spark(tmp_path_factory.mktemp("warehouse"), driver_memory="2g")
+
+
+def test_identity_match_counts_dms_vins_not_candidate_pairs(spark):
+    rows = [(date(2026, 11, 7), "XEVS1K26110100106", "XEVS1K26110100006", "VIN_EDIT"),
+            (date(2026, 11, 7), "XEVS1K26110100106", "XEVS1K26110100016", "VIN_TRANSPOSITION"),
+            (date(2026, 11, 7), "XEVS1K26102500082", "XEVS1K26102500002", "VIN_TRANSPOSITION"),
+            (date(2026, 10, 28), "XEVS1K26102000031", "XEVS1K26102000013", "VIN_TRANSPOSITION"),
+            (date(2026, 11, 7), "XEVS1K26110100200", "XEVS1K26110100201", "NO_MATCH")]
+    spark.createDataFrame(rows, "first_seen_date date, source_key string, candidate_id string, rule string") \
+        .createOrReplaceGlobalTempView("identity_review")
+    sql = next(q for layer, q, table in exceptions_sql(_GlobalTemp(), "DATE '2026-10-28', DATE '2026-11-07'")
+               if table.endswith(".identity_review"))
+    got = {d.isoformat(): (n, detail) for d, _e, _c, n, detail in spark.sql(sql).collect()}
+    assert got["2026-11-07"][0] == 2 and got["2026-10-28"][0] == 1
+    assert sorted(got["2026-11-07"][1].split("; ")) == [
+        "XEVS1K26102500082~XEVS1K26102500002", "XEVS1K26110100106~XEVS1K26110100006",
+        "XEVS1K26110100106~XEVS1K26110100016"]

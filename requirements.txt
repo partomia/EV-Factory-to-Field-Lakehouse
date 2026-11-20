@@ -11,3 +11,4 @@ requests
 streamlit>=1.32
 matplotlib
 impyla==0.21.0             # CDW Impala over HTTPS
+boto3                      # vision workbench object bytes from S3 (default AWS chain, workspace role)

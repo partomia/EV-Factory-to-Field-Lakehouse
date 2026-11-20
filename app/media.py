@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import io
+import logging
 import os
 import re
 from pathlib import Path
 
 S3A = re.compile(r"^s3a?://([^/]+)/(.+)$")
+LOG = logging.getLogger("evx.media")
 
 
 def _repo_root() -> Path:
@@ -35,18 +37,28 @@ def read_local(root: Path, image_ref: str) -> bytes | None:
     return path.read_bytes() if path.is_file() else None
 
 
+def _log_failure(stage: str, exc: Exception) -> None:
+    """Exception class and the first line of its message only: never the client config or the environment."""
+    resp = getattr(exc, "response", None)
+    code = resp.get("Error", {}).get("Code") if isinstance(resp, dict) else None
+    msg = (str(exc).splitlines() or [""])[0][:160]
+    LOG.warning("read_s3 %s failed: %s%s: %s", stage, type(exc).__name__, f" [{code}]" if code else "", msg)
+
+
 def read_s3(uri: str) -> bytes | None:
     m = S3A.match(uri)
     if not m:
         return None
     try:
         import boto3
-    except ImportError:
+    except ImportError as e:
+        _log_failure("import boto3", e)
         return None
     bucket, key = m.group(1), m.group(2)
     try:
         return boto3.client("s3").get_object(Bucket=bucket, Key=key)["Body"].read()
-    except Exception:  # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
+        _log_failure("get_object", e)
         return None
 
 
