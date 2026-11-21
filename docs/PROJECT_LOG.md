@@ -864,3 +864,19 @@
     initialize security context") although that table was invalidated after the restart; `fact_qc_inspection`
     still reads 1,057,890. Not invalidated again (it is not a new table), Impala not restarted.
 - Producer, orchestration job, DAG window, streams, CDW, Data Hubs and the Kafka password untouched.
+
+## 2026-11-21 13:30 IST - Vision IDBroker call uses a Knox token; dim_vehicle refreshed without a restart
+
+- **Cause of `idbroker: HTTP 401`:** the workload user and password are correct, but the IDBroker `aws-cab`
+  credentials endpoint does not accept basic auth.
+- **Change:** `config/lakehouse.json` `idbroker_token_url` (IDBroker `dt/knoxtoken` token endpoint);
+  `idbroker_url` stays the `aws-cab` credentials URL. `app/media.vended_credentials` GETs the token URL with the
+  workload user's basic auth (20 s, TLS verified) and reads `access_token`; a non-200 or a missing token gives
+  `idbroker-token: HTTP <status>`. It then GETs `aws-cab` with `Authorization: Bearer <token>` and no basic auth;
+  a non-200 stays `idbroker: HTTP <status>`. Vended S3 credentials are cached as before. No body, token, user,
+  password or credential is logged or shown.
+- **Tests** (no network): the token call uses basic auth, the credentials call the bearer token, the second
+  read uses the cache; planted token, password, secret and session token absent from the log and from
+  `last_failure`; a token HTTP 401 gives `idbroker-token: HTTP 401`. Full suite 258 passed.
+- **Impala:** `rsingh_evx_gold.dim_vehicle` was refreshed after `0edcb6b` and reads 18,337 rows without another
+  warehouse restart; `media_xray` reads 40,220.

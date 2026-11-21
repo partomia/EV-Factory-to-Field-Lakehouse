@@ -22,6 +22,8 @@ checkpoints. The nightly schedule is armed but does not fire: its window ended 2
 built passes for 2026-11-06 through 2026-11-10 (runs 1326, 1327, 1324, 1323, 1325); fault 9 now counts
 DMS VINs, not candidate pairs. Fault 9 re-checked on 2026-10-28 (1328) and 11-07
 (1329). The vision workbench launcher installs boto3 for image bytes and reads S3 with IDBroker credentials
-for the workload user (the data lake uses RAZ); a failed read shows its cause on the page. Stop with `platform_ctl.py stop`.
+for the workload user (the data lake uses RAZ), fetched with a Knox token because `aws-cab` rejected
+basic auth with HTTP 401; a failed read shows its cause on the page. `dim_vehicle` was refreshed to 18,337 rows
+without another warehouse restart. Stop with `platform_ctl.py stop`.
 
 Data is synthetic. Do not present it as a customer's production data.

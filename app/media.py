@@ -77,18 +77,18 @@ def _s3_client(boto3):
 
 
 class IdBrokerHTTPError(Exception):
-    def __init__(self, status: int):
+    def __init__(self, status: int, stage: str = "idbroker"):
         super().__init__(f"HTTP {status}")
-        self.status = status
+        self.status, self.stage = status, stage
 
 
 _VENDED: dict = {"creds": None, "until": 0.0}
 
 
-def _idbroker_url() -> str:
+def _idbroker_url(name: str = "idbroker_url") -> str:
     import json
 
-    return json.loads((_repo_root() / "config" / "lakehouse.json").read_text())["idbroker_url"]
+    return json.loads((_repo_root() / "config" / "lakehouse.json").read_text())[name]
 
 
 def _expiry(value) -> float:
@@ -106,14 +106,19 @@ def _expiry(value) -> float:
 
 def vended_credentials(user: str, password: str) -> dict:
     """Short-lived S3 credentials from the data lake IDBroker (RAZ-mapped role) for the workload user, cached in
-    memory until shortly before they expire. Raises IdBrokerHTTPError on a non-200 answer."""
+    memory until shortly before they expire. aws-cab takes a Knox token, not basic auth: the token comes from the
+    knoxtoken endpoint with the workload user's basic auth. Raises IdBrokerHTTPError on a non-200 answer."""
     import time
 
     import requests
 
     if _VENDED["creds"] and time.time() < _VENDED["until"]:
         return _VENDED["creds"]
-    r = requests.get(_idbroker_url(), auth=(user, password), timeout=20)
+    t = requests.get(_idbroker_url("idbroker_token_url"), auth=(user, password), timeout=20)
+    token = t.json().get("access_token") if t.status_code == 200 else None
+    if not token:
+        raise IdBrokerHTTPError(t.status_code, "idbroker-token")
+    r = requests.get(_idbroker_url(), headers={"Authorization": f"Bearer {token}"}, timeout=20)
     if r.status_code != 200:
         raise IdBrokerHTTPError(r.status_code)
     body = r.json()
@@ -134,7 +139,7 @@ def vended_credentials(user: str, password: str) -> dict:
 def _idbroker_failure(exc: Exception) -> None:
     """Status or exception class only: never the body, the user, the password or a credential field."""
     global _LAST_FAILURE
-    _LAST_FAILURE = (f"idbroker: HTTP {exc.status}" if isinstance(exc, IdBrokerHTTPError)
+    _LAST_FAILURE = (f"{exc.stage}: HTTP {exc.status}" if isinstance(exc, IdBrokerHTTPError)
                      else f"idbroker: {type(exc).__name__}")
     LOG.warning("read_s3 %s", _LAST_FAILURE)
 

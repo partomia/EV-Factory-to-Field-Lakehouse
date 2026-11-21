@@ -409,5 +409,6 @@
     "uc02": 16500
   },
   "datalake_api": "https://federal-aw-dl-gateway.federal.dp5i-5vkq.cloudera.site/federal-aw-dl/cdp-proxy-api",
-  "idbroker_url": "https://federal-aw-dl-idbroker0.federal.dp5i-5vkq.cloudera.site:8444/gateway/aws-cab/cab/api/v1/credentials"
+  "idbroker_url": "https://federal-aw-dl-idbroker0.federal.dp5i-5vkq.cloudera.site:8444/gateway/aws-cab/cab/api/v1/credentials",
+  "idbroker_token_url": "https://federal-aw-dl-idbroker0.federal.dp5i-5vkq.cloudera.site:8444/gateway/dt/knoxtoken/api/v1/token?knox.token.client.cert.required=false"
 }

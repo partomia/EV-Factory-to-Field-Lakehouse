@@ -167,10 +167,12 @@ def test_idbroker_200_builds_the_client_and_logs_no_secret(monkeypatch, caplog):
     import requests
     from app import media
 
-    seen = {}
+    seen = []
 
-    def get(url, auth, timeout):
-        seen.update(url=url, auth=auth, timeout=timeout)
+    def get(url, timeout, auth=None, headers=None):
+        seen.append({"url": url, "auth": auth, "headers": headers, "timeout": timeout})
+        if "/knoxtoken/" in url:
+            return _Resp(200, {"access_token": "planted-knox-token"})
         return _Resp(200, {"Credentials": {"AccessKeyId": "ASIAVENDED", "SecretAccessKey": "planted-secret",
                                            "SessionToken": "planted-token", "Expiration": 4102444800000}})
 
@@ -182,13 +184,34 @@ def test_idbroker_200_builds_the_client_and_logs_no_secret(monkeypatch, caplog):
     with caplog.at_level("DEBUG", logger="evx.media"):
         assert media.read_s3("s3://bucket/a.png") == b"png"
         assert media.read_s3("s3://bucket/b.png") == b"png"
-    assert seen["url"].endswith("/cab/api/v1/credentials") and seen["timeout"] == 20
-    assert seen["auth"] == ("workload-user", "planted-password")
+    token_call, creds_call = seen
+    assert len(seen) == 2, "credentials are cached for the second read"
+    assert "/knoxtoken/api/v1/token" in token_call["url"] and token_call["timeout"] == 20
+    assert token_call["auth"] == ("workload-user", "planted-password") and not token_call["headers"]
+    assert creds_call["url"].endswith("/cab/api/v1/credentials") and creds_call["timeout"] == 20
+    assert creds_call["headers"] == {"Authorization": "Bearer planted-knox-token"} and creds_call["auth"] is None
     assert calls[0] == ("s3", {"aws_access_key_id": "ASIAVENDED", "aws_secret_access_key": "planted-secret",
                                "aws_session_token": "planted-token"})
     assert media.last_failure() is None
-    for secret in ("planted-password", "planted-secret", "planted-token"):
+    for secret in ("planted-password", "planted-secret", "planted-token", "planted-knox-token"):
         assert secret not in caplog.text
+
+
+def test_idbroker_token_401_sets_the_token_status_only(monkeypatch, caplog):
+    import sys
+
+    import requests
+    from app import media
+
+    monkeypatch.setitem(sys.modules, "boto3", _fake_boto3([]))
+    monkeypatch.setattr(requests, "get", lambda url, timeout, auth=None, headers=None: _Resp(401, {"e": "planted-body"}))
+    monkeypatch.setenv("EVX_WORKLOAD_USER", "workload-user")
+    monkeypatch.setenv("EVX_WORKLOAD_PASSWORD", "planted-password")
+    with caplog.at_level("WARNING", logger="evx.media"):
+        assert media.read_s3("s3://bucket/a.png") is None
+    assert media.last_failure() == "idbroker-token: HTTP 401"
+    for planted in ("planted-body", "planted-password"):
+        assert planted not in caplog.text and planted not in media.last_failure()
 
 
 def test_idbroker_403_sets_the_status_only(monkeypatch, caplog):
@@ -197,14 +220,20 @@ def test_idbroker_403_sets_the_status_only(monkeypatch, caplog):
     import requests
     from app import media
 
+    def get(url, timeout, auth=None, headers=None):
+        if "/knoxtoken/" in url:
+            return _Resp(200, {"access_token": "planted-knox-token"})
+        return _Resp(403, {"error": "planted-body"})
+
     monkeypatch.setitem(sys.modules, "boto3", _fake_boto3([]))
-    monkeypatch.setattr(requests, "get", lambda url, auth, timeout: _Resp(403, {"error": "planted-body"}))
+    monkeypatch.setattr(requests, "get", get)
     monkeypatch.setenv("EVX_WORKLOAD_USER", "workload-user")
     monkeypatch.setenv("EVX_WORKLOAD_PASSWORD", "planted-password")
     with caplog.at_level("WARNING", logger="evx.media"):
         assert media.read_s3("s3://bucket/a.png") is None
     assert media.last_failure() == "idbroker: HTTP 403"
-    assert "planted-body" not in caplog.text and "planted-password" not in caplog.text
+    for planted in ("planted-body", "planted-password", "planted-knox-token"):
+        assert planted not in caplog.text and planted not in media.last_failure()
 
 
 def test_without_workload_user_the_filtered_role_session_is_used(monkeypatch):
