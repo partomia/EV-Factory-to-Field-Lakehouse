@@ -848,3 +848,19 @@
 - **Tests** (requests and boto3 stubbed, no network): a 200 builds the client from the three fields and the
   planted password, secret and token are absent from the log; HTTP 403 gives `idbroker: HTTP 403`; without the
   variables the filtered role session is used. Full suite 257 passed.
+
+## 2026-11-21 13:00 IST - Second shared Impala restart; Vision check stops on IDBroker HTTP 401
+
+- **Shared change, with approval:** `federal-impala-1` was suspended and started again on 2026-11-20 at 20:16 UTC
+  (its Metastore Kerberos login had gone stale again). `INVALIDATE METADATA` then ran only on
+  `rsingh_evx_gold.fact_qc_inspection` and `rsingh_evx_gold.dim_vehicle`. Read afterwards:
+  `fact_qc_inspection` 1,057,890 rows, `media_xray` 40,220; `doc_object`, `qc_image_metric`, `fact_edr_event` and
+  `edr_event` already answered.
+- **Websocket check of the running Vision app (`b81f666`), 2026-11-21 12:57 IST:**
+  - Film defect gallery: no image, warning `idbroker: HTTP 401`. IDBroker rejects the workload user's basic
+    auth. Stop condition.
+  - Cell X-ray viewer: no image; the page fails first on Impala "Failed to load metadata for table:
+    'rsingh_evx_gold.dim_vehicle'". A read-only `SELECT count(*)` gives the same Metastore cause ("Failure to
+    initialize security context") although that table was invalidated after the restart; `fact_qc_inspection`
+    still reads 1,057,890. Not invalidated again (it is not a new table), Impala not restarted.
+- Producer, orchestration job, DAG window, streams, CDW, Data Hubs and the Kafka password untouched.
