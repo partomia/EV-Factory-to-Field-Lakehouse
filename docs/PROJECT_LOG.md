@@ -880,3 +880,15 @@
   `last_failure`; a token HTTP 401 gives `idbroker-token: HTTP 401`. Full suite 258 passed.
 - **Impala:** `rsingh_evx_gold.dim_vehicle` was refreshed after `0edcb6b` and reads 18,337 rows without another
   warehouse restart; `media_xray` reads 40,220.
+
+## 2026-11-25 10:45 IST - Resize and upgrade tooling for the shared services (not run live yet)
+
+- **Request:** raise `federal-cde-vc` and `federal-impala-1` so sibling demos run in parallel; upgrade the Data
+  Lake to Runtime build 81274879 and apply the CDE and CDW upgrades on offer.
+- **Added:** `scripts/platform_upgrade.py` (`status`, `resize`, `upgrade`, `--dry-run`, `--yes-shared`), targets in
+  `config/platform.json` `capacity` (CDE VC 48 CPU / 192 GiB, CDE service max instances scaled to match, Impala
+  autoscale max 10) and `upgrade.target_build`. Upgrade order: Data Lake checks and validate-and-prepare, platform
+  stop, Data Lake backup and upgrade, CDE `upgrade-service` prepare / backup / upgrade, CDW DBC then VW, platform
+  start. The CDE VC quota has no public CLI field: the UI step is printed and read back.
+- **Not applied:** the agent VM had no CDP access key, so nothing was resized, stopped or upgraded. Planned sizes are
+  in `resources.changes`. Tests: `tests/test_platform_upgrade.py` (fake `cdp`, no network).
