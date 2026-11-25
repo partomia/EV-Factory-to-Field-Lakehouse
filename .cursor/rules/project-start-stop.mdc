@@ -37,4 +37,7 @@ python scripts/platform_ctl.py status                # always last: confirm ever
   `python ci/setup_cai.py --run evx-uc01-00-sync-code`.
 - Scheduled one-off stop: CAI job `stop-evx-project` (`ci/project_stop.py`), schedule cleared;
   set a dated cron to use it again.
+- Resizing or upgrading the shared CDE VC, CDW warehouse or Data Lake: `scripts/platform_upgrade.py`
+ (`status`, `resize`, `upgrade`, `--dry-run` first, `--yes-shared` only for services the user named),
+ targets in `config/platform.json` `capacity` / `upgrade`; follow the `cloudera-platform-upgrade` skill.
 - Afterwards add a short entry to `docs/PROJECT_LOG.md` and update the README status line.
